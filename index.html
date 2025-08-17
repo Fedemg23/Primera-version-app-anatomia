@@ -415,6 +415,13 @@
       /* Optimizaciones tipográficas globales */
       * { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; text-rendering: optimizeLegibility; }
 
+      /* Flotación suave para imágenes decorativas del login */
+      @keyframes float-bob {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-8px); }
+      }
+      .float-bob { animation: float-bob 3.6s ease-in-out infinite; will-change: transform; }
+
       /* Optimizaciones para pantallas de alta densidad */
       @media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
         body, * { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; text-rendering: optimizeLegibility; }

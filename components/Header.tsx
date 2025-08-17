@@ -58,9 +58,9 @@ const StatusBar: React.FC<StatusBarProps> = ({
         if (xpRef.current) setTargetRef('xp', xpRef.current);
     }, [setTargetRef]);
     
-    const radius = 28;
+    const radius = 38; // en un viewBox de 80
     const circumference = 2 * Math.PI * radius;
-    const strokeWidth = 8;
+    const strokeWidth = 4;
     const xpOffset = circumference - (xpPercentage / 100) * circumference;
 
     return (
@@ -80,7 +80,7 @@ const StatusBar: React.FC<StatusBarProps> = ({
                                 className="relative group flex items-center gap-1 cursor-pointer transition-transform duration-200 active:scale-95 touch-manipulation"
                             >
                                 <div ref={xpRef} className="relative w-20 h-20 md:w-24 md:h-24 flex-shrink-0">
-                                    <svg className="w-full h-full" viewBox="0 0 68 68">
+                                    <svg className="w-full h-full" viewBox="0 0 80 80">
                                         <defs>
                                             <linearGradient id="xpGrad" x1="0" y1="0" x2="1" y2="1">
                                                 <stop offset="0%" stopColor="#3b82f6" />
@@ -90,7 +90,7 @@ const StatusBar: React.FC<StatusBarProps> = ({
                                         {/* marcas alrededor */}
                                         <g className="text-slate-600/70">
                                             {Array.from({ length: 12 }).map((_, i) => (
-                                                <line key={i} x1="34" y1="4" x2="34" y2="8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" transform={`rotate(${i * 30} 34 34)`} />
+                                                <line key={i} x1="40" y1="2" x2="40" y2="6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" transform={`rotate(${i * 30} 40 40)`} />
                                             ))}
                                         </g>
                                         {/* pista */}
@@ -100,10 +100,10 @@ const StatusBar: React.FC<StatusBarProps> = ({
                                             stroke="currentColor"
                                             fill="transparent"
                                             r={radius}
-                                            cx="34"
-                                            cy="34"
+                                            cx="40"
+                                            cy="40"
                                         />
-                                        {/* progreso sin glow */}
+                                        {/* progreso */}
                                         <circle
                                             strokeWidth={strokeWidth}
                                             strokeDasharray={circumference}
@@ -112,12 +112,12 @@ const StatusBar: React.FC<StatusBarProps> = ({
                                             stroke="url(#xpGrad)"
                                             fill="transparent"
                                             r={radius}
-                                            cx="34"
-                                            cy="34"
+                                            cx="40"
+                                            cy="40"
                                             style={{ transform: 'rotate(-90deg)', transformOrigin: '50% 50%', transition: 'stroke-dashoffset 0.5s ease-out' }}
                                         />
                                     </svg>
-                                    <div className="absolute inset-0 p-1">
+                                    <div className="absolute inset-1">
                                         <div className="w-full h-full bg-slate-800/80 group-hover:bg-slate-700/80 transition-colors duration-200 rounded-full flex items-center justify-center shadow-inner overflow-hidden">
                                             {typeof avatar === 'string' && /(png|webp|jpg|jpeg|svg)$/i.test(avatar) ? (
                                                 <img src={avatar} alt="Avatar" className="w-16 h-16 md:w-20 md:h-20 object-contain" />
