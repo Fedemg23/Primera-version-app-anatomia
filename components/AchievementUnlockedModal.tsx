@@ -3,22 +3,37 @@ import { LeveledUpAchievement } from '../types';
 import { iconMap } from './icons';
 
 const RewardItem: React.FC<{ achievement: LeveledUpAchievement, delay: number }> = ({ achievement, delay }) => {
-    return (
-        <div
-            className="flex items-center gap-4 bg-slate-800/50 p-4 rounded-xl border border-slate-700/50 animate-reward-item-bounce"
-            style={{ animationDelay: `${delay}ms` }}
-        >
-            <div className="w-14 h-14 flex-shrink-0 rounded-full bg-slate-700 flex items-center justify-center text-4xl">{achievement.icon}</div>
-            <div className="flex-grow text-left">
-                <p className="font-extrabold text-slate-100 text-base leading-tight">{achievement.name}</p>
-                <p className="text-sm text-slate-400">Nivel {achievement.newLevel} alcanzado</p>
-            </div>
-            <div className="text-right flex-shrink-0">
-                {achievement.rewards?.xp && <p className="font-extrabold text-base text-sky-300">+{achievement.rewards.xp} XP</p>}
-                {achievement.rewards?.bones && <p className="font-extrabold text-base text-amber-300">+{achievement.rewards.bones} 🦴</p>}
-            </div>
-        </div>
-    );
+	// Resolver icono: imagen (url), iconMap o emoji/texto
+	let iconEl: React.ReactNode = null;
+	const isImgUrl = typeof achievement.icon === 'string' && /(png|webp|jpg|jpeg|svg|gif|avif)$/i.test(achievement.icon);
+	if (isImgUrl) {
+		iconEl = <img src={achievement.icon} alt={achievement.name} className="w-10 h-10 object-contain object-center select-none pointer-events-none" />;
+	} else {
+		const IconComp = (iconMap as any)[achievement.icon];
+		if (IconComp) {
+			iconEl = <IconComp className="w-10 h-10" />;
+		} else {
+			iconEl = <span className="text-3xl leading-none">{achievement.icon}</span>;
+		}
+	}
+	return (
+		<div
+			className="flex items-center gap-4 bg-slate-800/50 p-4 rounded-xl border border-slate-700/50 animate-reward-item-bounce"
+			style={{ animationDelay: `${delay}ms` }}
+		>
+			<div className="w-14 h-14 flex-shrink-0 rounded-full bg-slate-700 flex items-center justify-center overflow-hidden">
+				{iconEl}
+			</div>
+			<div className="flex-grow text-left">
+				<p className="font-extrabold text-slate-100 text-base leading-tight">{achievement.name}</p>
+				<p className="text-sm text-slate-400">Nivel {achievement.newLevel} alcanzado</p>
+			</div>
+			<div className="text-right flex-shrink-0">
+				{achievement.rewards?.xp && <p className="font-extrabold text-base text-sky-300">+{achievement.rewards.xp} XP</p>}
+				{achievement.rewards?.bones && <p className="font-extrabold text-base text-amber-300">+{achievement.rewards.bones} 🦴</p>}
+			</div>
+		</div>
+	);
 };
 
 const UserLevelUpBanner: React.FC<{ level: number, delay: number }> = ({ level, delay }) => (

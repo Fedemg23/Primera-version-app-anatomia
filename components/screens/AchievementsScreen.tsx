@@ -269,7 +269,7 @@ const AchievementsScreen: React.FC<AchievementsScreenProps> = ({ userData, onCla
     return (
     <div className="p-4 md:p-6 min-h-screen pb-40">
       <div className="flex items-start md:items-center gap-3 md:gap-4 mb-16 md:mb-28">
-        <h2 className="font-graffiti text-3xl sm:text-4xl md:text-5xl tracking-wide -rotate-1 title-white-clean block text-center transform scale-105 md:scale-110 flex-1 mx-auto">
+        <h2 className="font-graffiti font-black text-3xl sm:text-4xl md:text-5xl tracking-wide -rotate-1 title-white-clean block text-center transform scale-105 md:scale-110 flex-1 mx-auto">
           Logros
         </h2>
         <HelpIcon modalTitle="Cómo funcionan los Logros" ariaLabel="Cómo funcionan los Logros">

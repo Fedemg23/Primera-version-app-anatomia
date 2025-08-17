@@ -106,7 +106,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onSelectMode, userData, onNavig
                 {/* Top Group: Title and Mode Buttons */}
                 <div className="flex flex-col items-center gap-8 w-full">
                     <div className="relative w-full flex items-center justify-center text-center">
-                        <h1 className="font-graffiti text-5xl md:text-6xl tracking-wide -rotate-2 title-white-clean inline-block transform scale-110 md:scale-125">
+                        <h1 className="font-graffiti font-black text-5xl md:text-6xl tracking-wide -rotate-2 title-white-clean inline-block transform scale-110 md:scale-125">
                             Elige tu Modo
                         </h1>
                         <HelpIcon modalTitle="Ayuda de Inicio" ariaLabel="Ayuda de Inicio" className="absolute -right-14 md:-right-24 top-0 md:top-1 -rotate-2 z-10">

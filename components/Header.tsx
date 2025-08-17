@@ -1,5 +1,5 @@
 import React, { memo, useRef, useEffect } from 'react';
-import { Heart, Shield, Settings, Gift, ArrowLeft, iconMap } from './icons';
+import { Heart, Shield, Settings, Gift, ArrowLeft, iconMap, Star } from './icons';
 import { useAnimation } from './AnimationProvider';
 import { StatusBarProps } from '../types';
 
@@ -38,7 +38,7 @@ const StatusBar: React.FC<StatusBarProps> = ({
     showBackButton 
 }) => {
     const { setTargetRef } = useAnimation();
-    const { hearts, bones, streak, streakFreezeActive, level, avatar } = userData;
+    const { hearts, bones, streak, streakFreezeActive, level, avatar, perfectStreak = 0 } = userData;
     
     const xpPercentage = xpForNextLevel > 0 ? (xpInCurrentLevel / xpForNextLevel) * 100 : 100;
     
@@ -151,6 +151,12 @@ const StatusBar: React.FC<StatusBarProps> = ({
                 {/* Right Side: Stats */}
                 <div className="flex items-center flex-nowrap gap-x-0 sm:gap-x-1">
                     <StatItem 
+                        icon={(() => { const S = Star; return <S className="w-full h-full text-emerald-400" /> })()} 
+                        value={perfectStreak} 
+                        title={`Racha Perfecta: ${perfectStreak}`}
+                        iconContainerClass={"h-10 w-10"}
+                    />
+                    <StatItem 
                         icon={streakFreezeActive ? <Shield className="w-full h-full text-cyan-400" /> : (() => { const L = iconMap['llama']; return <L className="w-full h-full" /> })()} 
                         value={streak} 
                         title={`Racha de ${streak} días`}
@@ -166,7 +172,7 @@ const StatusBar: React.FC<StatusBarProps> = ({
                     />
                     <StatItem 
                         ref={heartsRef}
-                        icon={<Heart className="w-full h-full" />} 
+                        icon={(() => { const HImg = iconMap['heart_img']; return <HImg className="w-full h-full" /> })()} 
                         value={hearts < 0 ? 0 : hearts} 
                         title={`${hearts} Vidas`}
                         iconContainerClass={""}

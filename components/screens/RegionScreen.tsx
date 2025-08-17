@@ -204,7 +204,7 @@ const RegionScreen: React.FC<RegionScreenProps> = ({
     }
     
     return (
-        <div className="p-3 md:p-4">
+        <div className="bg-black min-h-screen p-3 md:p-4">
             {renderContent()}
         </div>
     );

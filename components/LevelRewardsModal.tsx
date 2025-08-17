@@ -79,6 +79,43 @@ const LevelRewardsModal: React.FC<LevelRewardsModalProps> = ({ isOpen, userLevel
                                         )}
                                     </div>
                                 </div>
+                                {reward.lifelines && (
+                                    <div className="mt-3 flex flex-wrap gap-2">
+                                        {(() => {
+                                            const iconKeyByLifeline: Record<string, string> = {
+                                                fiftyFifty: 'lifeline_fifty_fifty',
+                                                quickReview: 'lifeline_quick_review',
+                                                secondChance: 'lifeline_second_chance',
+                                                adrenaline: 'lifeline_adrenaline',
+                                                skip: 'lifeline_skip',
+                                                double: 'lifeline_double',
+                                                immunity: 'lifeline_immunity',
+                                            };
+                                            const labelByLifeline: Record<string, string> = {
+                                                fiftyFifty: '50/50',
+                                                quickReview: 'Pista',
+                                                secondChance: 'Revivir',
+                                                adrenaline: 'Adrenalina',
+                                                skip: 'Salta',
+                                                double: 'Duplica',
+                                                immunity: 'Inmunidad',
+                                            };
+                                            return Object.entries(reward.lifelines).map(([key, val]) => {
+                                                if (!val || val <= 0) return null;
+                                                const iconKey = iconKeyByLifeline[key] || '';
+                                                const Label = labelByLifeline[key] || key;
+                                                const Icon = iconMap[iconKey] || null;
+                                                return (
+                                                    <div key={key} className={`flex items-center gap-1 px-2 py-1 rounded-full text-xs font-semibold bg-slate-700 text-slate-200`}>
+                                                        {Icon ? <Icon className="w-4 h-4" /> : null}
+                                                        <span>{Label}</span>
+                                                        <span className="ml-1 font-black">x{val}</span>
+                                                    </div>
+                                                );
+                                            });
+                                        })()}
+                                    </div>
+                                )}
                                 {userLevel === reward.level && <div className="absolute -left-2 top-1/2 -translate-y-1/2 w-8 h-8 bg-green-500 text-white rounded-full flex items-center justify-center border-4 border-gray-800 shadow-lg"><Star className="w-5 h-5 fill-current"/></div>}
                             </div>
                         )

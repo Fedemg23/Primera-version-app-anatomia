@@ -48,7 +48,8 @@ const InfoTooltip: React.FC<InfoTooltipProps> = ({ isOpen, onClose, type, hearts
     
     if (type === 'hearts') {
         const regenMinutes = HEART_REGEN_TIME / 60000;
-        icon = <Heart className="w-16 h-16 [filter:drop-shadow(0_0_8px_#ef4444)]" />;
+        const HImg = iconMap['heart_img'];
+        icon = <HImg className="w-16 h-16 [filter:drop-shadow(0_0_8px_#ef4444)]" />;
         title = "Vidas";
         description = (
             <p className="text-gray-600 dark:text-gray-300 text-base">

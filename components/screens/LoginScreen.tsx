@@ -49,35 +49,22 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ onSignIn }) => {
 
     return (
         <div className="bg-black min-h-screen w-screen flex items-center justify-center p-4">
-            {/* Columna izquierda de imágenes (oculta en pantallas pequeñas) */}
-            <div className="hidden md:flex flex-col items-center justify-center gap-4 mr-2 md:mr-0 md:translate-x-8 lg:translate-x-16">
-                {sideImages.slice(0, Math.ceil(sideImages.length / 2)).map((src, i) => (
-                    <img
-                        key={`left-${i}`}
-                        src={src}
-                        alt="decoración"
-                        className="w-24 h-24 object-contain opacity-80 select-none pointer-events-none float-bob"
-                        draggable={false}
-                    />
-                ))}
-            </div>
-
             {/* Contenido central sin contenedor/caja */}
-            <div className="text-center max-w-xl mx-auto">
-                <div className="mx-auto w-52 h-52 md:w-64 md:h-64 flex items-center justify-center mb-6 mt-6 md:mt-10">
+            <div className="text-center max-w-2xl mx-auto px-2">
+                <div className="mx-auto w-56 h-56 md:w-72 md:h-72 flex items-center justify-center mb-8 mt-6 md:mt-12">
                     {!showFallbackEmoji ? (
                         <img
                             src={candidateLogos[logoIdx]}
                             alt="AnatomyGO"
-                            className="h-full w-auto object-contain select-none pointer-events-none"
+                            className="h-full w-auto object-contain select-none pointer-events-none transform scale-[1.6] md:scale-[1.85] translate-y-8 md:translate-y-10"
                             onError={handleLogoError}
                         />
                     ) : (
-                        <span className="text-9xl" role="img" aria-label="AnatomyGO Logo">🦴</span>
+                        <span className="text-9xl transform scale-[1.6] md:scale-[1.85] translate-y-8 md:translate-y-10" role="img" aria-label="AnatomyGO Logo">🦴</span>
                     )}
                 </div>
-                <h1 className="text-5xl font-black title-white-clean">AnatomyGO</h1>
-                <p className="text-slate-300 mb-6 text-lg">Tu aventura de anatomía te espera.</p>
+                <h1 className="text-6xl md:text-7xl font-black title-white-clean">AnatomyGO</h1>
+                <p className="text-slate-300 mb-8 md:mb-10 text-lg">Tu aventura de anatomía te espera.</p>
 
                 <div className="space-y-3">
                     <button
@@ -101,19 +88,6 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ onSignIn }) => {
                         Modo Simulado (fallback)
                     </button>
                 </div>
-            </div>
-
-            {/* Columna derecha de imágenes (oculta en pantallas pequeñas) */}
-            <div className="hidden md:flex flex-col items-center justify-center gap-4 ml-2 md:ml-0 md:-translate-x-8 lg:-translate-x-16">
-                {sideImages.slice(Math.ceil(sideImages.length / 2)).map((src, i) => (
-                    <img
-                        key={`right-${i}`}
-                        src={src}
-                        alt="decoración"
-                        className="w-24 h-24 object-contain opacity-80 select-none pointer-events-none float-bob"
-                        draggable={false}
-                    />
-                ))}
             </div>
         </div>
     );

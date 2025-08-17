@@ -26,6 +26,11 @@ const ShopItemCard: React.FC<{
 	const isXpBoostItem = item.id === 'xp_boost';
 	const isDoubleOrNothingItem = item.id === 'double_or_nothing';
 
+	const getItemCount = (id: ShopItem['id']): number | null => {
+		if (id === 'buy_one_heart') return Math.max(0, Math.min(5, userData.hearts));
+		return null;
+	};
+
 	const isHeartDisabled = isHeartItem && userData.hearts >= 5;
 	const isStreakDisabled = isStreakItem && userData.streakFreezeActive;
 	const isXpBoostDisabled = isXpBoostItem && userData.xpBoostUntil > Date.now();
@@ -56,7 +61,7 @@ const ShopItemCard: React.FC<{
 		</div>
 	);
 
-	// Botón estilo "Regalo del Día" (coherente, sin invertir colores del contenedor)
+	// Botón estilo "Regalo del Día"
 	let buttonClass = 'w-full md:w-auto px-6 py-3 rounded-xl font-extrabold flex items-center justify-center gap-2 shadow-lg transition-all transform enabled:active:-translate-y-0.5 enabled:active:scale-95 touch-manipulation';
 	buttonClass += finalIsDisabled
 		? ' bg-slate-600 text-slate-400 cursor-not-allowed'
@@ -64,22 +69,27 @@ const ShopItemCard: React.FC<{
 
 	return (
 		<div className="group relative rounded-3xl border border-slate-700/60 overflow-hidden transition-all duration-500 bg-black hover:bg-white hover:text-black hover:border-white">
-			{/* halo sutil como en regalo diario */}
+			{/* Badge de cantidad (si aplica) */}
+			{(() => { const count = getItemCount(item.id); return (count !== null) ? (
+				<div className="absolute top-3 left-3 z-20">
+					<span className="min-w-[1.75rem] h-7 px-2 flex items-center justify-center rounded-full bg-emerald-500 text-white text-xs font-extrabold shadow ring-2 ring-emerald-300">
+						{count}
+					</span>
+				</div>
+			) : null; })()}
 			<div className="absolute inset-0 pointer-events-none opacity-0 group-hover:opacity-20 transition-opacity duration-500 bg-[radial-gradient(120px_60px_at_20%_20%,rgba(59,130,246,.5),transparent)]"/>
 			<div className="relative z-10 rounded-[20px] h-full flex flex-col p-5 text-center transition-all duration-300">
-				<div className="w-28 h-28 mx-auto mb-4 flex items-center justify-center bg-slate-900 rounded-2xl transition-transform duration-300 shadow-inner group-hover:scale-105 overflow-hidden p-1">
-					{Icon && <Icon className="w-full h-full" />}
-				</div>
+				{Icon && (
+					<div className="h-48 md:h-56 mx-auto mb-4 flex items-center justify-center transition-transform duration-300 group-hover:scale-105">
+						<Icon className="w-44 h-44 md:w-52 md:h-52 object-contain object-center" />
+					</div>
+				)}
 				<div className="flex-grow">
 					<h3 className="text-xl font-extrabold text-slate-100 group-hover:text-black">{item.name}</h3>
 					<p className="text-sm text-slate-400 mt-1 min-h-8 group-hover:text-slate-700">{item.description}</p>
 				</div>
 				<div className="mt-auto pt-4">
-					<button 
-						onClick={(e) => onPurchase(item.id, e.currentTarget)} 
-						disabled={finalIsDisabled} 
-						className={buttonClass}
-					>
+					<button onClick={(e) => onPurchase(item.id, e.currentTarget)} disabled={finalIsDisabled} className={buttonClass}>
 						{buttonText}
 					</button>
 				</div>
@@ -91,6 +101,7 @@ const ShopItemCard: React.FC<{
 const ShopScreen: React.FC<ShopScreenProps> = ({ userData, onPurchase, onClaimDailyReward }) => {
 	const [isReadyForInput, setIsReadyForInput] = useState(false);
 	const [mysteryImgError, setMysteryImgError] = useState(false);
+	const [flipped, setFlipped] = useState<Record<string, boolean>>({});
 
 	useEffect(() => {
 		const timer = setTimeout(() => setIsReadyForInput(true), 100);
@@ -109,10 +120,10 @@ const ShopScreen: React.FC<ShopScreenProps> = ({ userData, onPurchase, onClaimDa
 
 	return (
 		<div className="bg-black">
-			<div className="max-w-4xl mx-auto p-4 md:p-6 space-y-10">
+			<div className="max-w-4xl mx-auto p-4 md:p-6 space-y-20 md:space-y-24">
 				<div className="text-center mb-4">
 					<div className="inline-flex items-center gap-3">
-						<h2 className="inline-block font-graffiti text-4xl md:text-5xl tracking-wide -rotate-1 title-white-clean transform scale-100 md:scale-105">
+						<h2 className="inline-block font-graffiti font-black text-4xl md:text-5xl tracking-wide -rotate-1 title-white-clean transform scale-100 md:scale-105">
 							Tienda
 						</h2>
 						<HelpIcon modalTitle="Cómo funciona la Tienda" ariaLabel="Cómo funciona la Tienda" className="ml-1">
@@ -152,11 +163,14 @@ const ShopScreen: React.FC<ShopScreenProps> = ({ userData, onPurchase, onClaimDa
 					</button>
 				</div>
 
-				{/* Featured Item: Mystery Box */
-				/* Contenedor y layout parecidos al de "Regalo del Día" */}
+				{/* Featured Item: Mystery Box */}
+				{/* Contenedor y layout parecidos al de "Regalo del Día" */}
 				<div>
-					<h3 className="text-2xl font-bold text-slate-100 mb-5">Caja Misteriosa</h3>
-					<div className={`group relative w-full rounded-3xl border overflow-hidden transition-all duration-700 ease-out text-left hover:backdrop-blur-sm bg-black border-slate-700 hover:bg-white hover:text-black hover:border-white hover:[filter:brightness(0.98)]`}>
+					<div className="relative mb-3">
+						<div className="absolute -top-2 left-0 right-0 h-1 bg-gradient-to-r from-amber-500 via-amber-300 to-amber-500 rounded-full shadow-[0_0_18px_rgba(245,158,11,0.5)]"></div>
+						<h3 className="text-3xl md:text-4xl font-black section-amber-glow amber-pulse">Caja Misteriosa</h3>
+					</div>
+					<div className={`group relative w-full rounded-3xl border overflow-hidden transition-all duration-700 ease-out text-left hover:backdrop-blur-sm bg-black border-slate-700 ring-2 ring-amber-400/50 hover:ring-4 hover:ring-amber-300/80 hover:bg-white hover:text-black hover:border-white hover:[filter:drop-shadow(0_0_22px_rgba(245,158,11,0.5))]`}>
 						<div className="w-full h-72 md:h-96 flex items-center justify-center p-0 md:p-1 overflow-visible">
 							{!mysteryImgError ? (
 								<img
@@ -190,25 +204,99 @@ const ShopScreen: React.FC<ShopScreenProps> = ({ userData, onPurchase, onClaimDa
 					</div>
 				</div>
 
-				{/* Lifelines Section */}
+				{/* Botiquín (antes: Comodines) */}
 				<div>
-					<h3 className="text-2xl font-bold text-slate-100 mb-5">Comodines para el Quiz</h3>
-					<div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+					<div className="relative mb-3">
+						<div className="absolute -top-2 left-0 right-0 h-1 bg-gradient-to-r from-blue-600 via-sky-400 to-blue-600 rounded-full shadow-[0_0_18px_rgba(59,130,246,0.5)]"></div>
+						<h3 className="text-3xl md:text-4xl font-black botiquin-outline-glow botiquin-pulse">
+							Botiquín
+						</h3>
+					</div>
+					<div className="grid grid-cols-2 md:grid-cols-3 gap-6">
 						{lifelineItems.map(item => (
-							<ShopItemCard 
-								key={item.id} 
-								item={item} 
-								userData={userData} 
-								onPurchase={onPurchase} 
-								isReadyForInput={isReadyForInput} 
-							/>
+							<div key={item.id} className="group relative rounded-3xl border overflow-hidden bg-black text-slate-100 border-slate-700 hover:bg-white hover:text-slate-900 hover:border-white transition-all duration-500 ring-2 ring-blue-500/50 hover:ring-4 hover:ring-blue-400/80 hover:[filter:drop-shadow(0_0_22px_rgba(59,130,246,0.5))]">
+								{/* Badge de cantidad del Botiquín */}
+								{(() => {
+									const count = (() => {
+										switch (item.id) {
+											case 'lifeline_fifty_fifty': return userData.lifelineData.fiftyFifty;
+											case 'lifeline_quick_review': return userData.lifelineData.quickReview;
+											case 'lifeline_second_chance': return userData.lifelineData.secondChance;
+											case 'lifeline_adrenaline': return userData.lifelineData.adrenaline;
+											case 'lifeline_skip': return userData.lifelineData.skip;
+											case 'lifeline_double': return userData.lifelineData.double;
+											case 'lifeline_immunity': return userData.lifelineData.immunity;
+											default: return 0;
+										}
+									})();
+									return (
+										<div className="absolute top-3 left-3 z-20">
+											<span className="min-w-[1.75rem] h-7 px-2 flex items-center justify-center rounded-full bg-emerald-500 text-white text-xs font-extrabold shadow ring-2 ring-emerald-300">
+												{count}
+											</span>
+										</div>
+									);
+								})()}
+								{!flipped[item.id] ? (
+									<div className="p-5 flex flex-col items-center justify-between min-h-[22rem]">
+										<button 
+											className="absolute top-3 right-3 z-20 w-8 h-8 rounded-full bg-white/80 ring-1 ring-slate-300 text-slate-700 hover:text-blue-600 hover:ring-blue-400 transition"
+											onClick={(e) => { e.stopPropagation(); setFlipped(prev => ({ ...prev, [item.id]: true })); }}
+											title="Información"
+										>
+											<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
+										</button>
+										<div className="flex-1 w-full flex items-center justify-center">
+											<div className="h-48 md:h-56 w-full flex items-center justify-center">
+												{item.imageUrl ? (
+													<img src={item.imageUrl} alt={item.name} className="max-h-full w-auto object-contain" />
+												) : (
+													(() => { const I = iconMap[item.icon]; return I ? <I className="w-40 h-40 md:w-48 md:h-48" /> : null; })()
+												)}
+											</div>
+										</div>
+										{/* Nombre del ítem con glow sutil azul */}
+										<div className="mt-2 w-full text-center">
+											<div className="text-base md:text-lg font-bold botiquin-item-glow group-hover:botiquin-item-glow-dark">{item.name}</div>
+										</div>
+										<div className="pt-4 w-full">
+											<button 
+												onClick={(e) => onPurchase(item.id, e.currentTarget)} 
+												disabled={!isReadyForInput || (item.id !== 'double_or_nothing' && userData.bones < item.price)} 
+												className={`w-full px-6 py-3 rounded-xl font-extrabold flex items-center justify-center gap-2 shadow-lg transition-all transform enabled:active:-translate-y-0.5 enabled:active:scale-95 touch-manipulation ${userData.bones < item.price ? ' bg-slate-200 text-slate-400 cursor-not-allowed' : ' bg-gradient-to-r from-blue-500 to-blue-600 text-white hover:shadow-blue-500/30'}`}
+											>
+												{(() => { const B = iconMap['bones']; return <B className="w-5 h-5 -mt-0.5" /> })()}
+												<span>{item.price}</span>
+											</button>
+										</div>
+									</div>
+								) : (
+									<div className="p-5 bg-transparent text-slate-100 group-hover:text-slate-800 min-h-[22rem] flex flex-col">
+										<button 
+											className="absolute top-3 right-3 z-20 w-8 h-8 rounded-full bg-white/80 ring-1 ring-slate-300 text-slate-700 hover:text-blue-600 hover:ring-blue-400 transition"
+											onClick={(e) => { e.stopPropagation(); setFlipped(prev => ({ ...prev, [item.id]: false })); }}
+											title="Volver"
+										>
+											<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5"><path d="M15 18l-6-6 6-6"/></svg>
+										</button>
+										<div className="flex-1">
+											<h3 className="text-xl font-extrabold mb-2">{item.name}</h3>
+											<p className="text-sm leading-relaxed">{item.description}</p>
+											<p className="mt-3 text-xs opacity-80">Usa la flecha para volver a la imagen.</p>
+										</div>
+									</div>
+								)}
+							</div>
 						))}
 					</div>
 				</div>
 
 				{/* General Items Section */}
 				<div>
-					<h3 className="text-2xl font-bold text-slate-100 mb-5">Potenciadores y Vidas</h3>
+					<div className="relative mb-3">
+						<div className="absolute -top-2 left-0 right-0 h-1 bg-gradient-to-r from-emerald-500 via-emerald-300 to-emerald-500 rounded-full shadow-[0_0_18px_rgba(16,185,129,0.5)]"></div>
+						<h3 className="text-3xl md:text-4xl font-black section-emerald-glow emerald-pulse">Potenciadores y Vidas</h3>
+					</div>
 					<div className="grid grid-cols-2 md:grid-cols-4 gap-5">
 						{generalItems.map(item => (
 							<ShopItemCard 

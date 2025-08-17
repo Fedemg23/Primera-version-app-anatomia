@@ -32,12 +32,10 @@ const MysteryBoxModal: React.FC<MysteryBoxModalProps> = ({ isOpen, onClose, rewa
     if (reward.type === 'avatar') {
         rewardIconElement = <span className="text-6xl">{reward.icon}</span>;
     } else {
-        const IconComponent = reward.icon === '🦴' ? iconMap['bones'] : iconMap[reward.icon];
-        if (IconComponent) {
-            rewardIconElement = <IconComponent className="w-16 h-16 text-gray-700 dark:text-gray-300" />;
-        } else {
-            rewardIconElement = null;
-        }
+        // Mapear a imágenes actuales: huesitos, heart, lifelines
+        const key = reward.icon === '🦴' ? 'bones' : reward.icon;
+        const IconComponent = iconMap[key] || null;
+        rewardIconElement = IconComponent ? <IconComponent className="w-16 h-16" /> : null;
     }
 
     return (

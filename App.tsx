@@ -177,11 +177,12 @@ export default function App() {
         totalPerfectQuizzes: 0,
         totalBonesSpent: 0,
         unlockedAvatars: ['novice'],
-        lifelineData: { fiftyFifty: 1, quickReview: 1, secondChance: 1 },
+        lifelineData: { fiftyFifty: 1, quickReview: 1, secondChance: 1, adrenaline: 0, skip: 0, double: 0, immunity: 0 },
         claimedLevelRewards: [],
         lastDailyShopRewardClaim: new Date(0).toISOString(),
         masterNotes: [],
         userNotes: [],
+        perfectStreak: 0,
     };
     
     // --- Data Persistence & Initial Load ---
@@ -253,6 +254,8 @@ export default function App() {
         let loadedData: UserData = doc.exists() && doc.data() ? doc.data()! : defaultUserData;
         
         loadedData = { ...defaultUserData, ...loadedData };
+        // Deep-merge para estructuras anidadas que podrían carecer de nuevas keys
+        loadedData.lifelineData = { ...defaultUserData.lifelineData, ...(loadedData as any).lifelineData };
         if (!loadedData.unlockedAchievements || Array.isArray(loadedData.unlockedAchievements)) {
             loadedData.unlockedAchievements = defaultUserData.unlockedAchievements;
         }
@@ -722,6 +725,11 @@ export default function App() {
             newUserData.xp += earnedXp;
             newUserData.bones += earnedBones;
             if (isPerfect && !isPractice) newUserData.totalPerfectQuizzes++;
+            // Actualizar racha perfecta
+            if (!isPractice) {
+                if (isPerfect) newUserData.perfectStreak = (oldUserData.perfectStreak || 0) + 1;
+                else newUserData.perfectStreak = 0;
+            }
             
             newUserData.dailyStats = {
                 ...oldUserData.dailyStats,
@@ -957,18 +965,18 @@ export default function App() {
                 case 'buy_one_heart':
                     newUserData.hearts = Math.min(5, newUserData.hearts + 1);
                     toastMessage = '¡Vida comprada!';
-                    toastIcon = <Heart className="w-5 h-5 text-red-500" />;
+                    toastIcon = (() => { const H = iconMap['heart_img']; return <H className="w-5 h-5" /> })();
                     triggerAnimation({ type: 'heart', count: 1, startElement });
                     break;
                 case 'streak_freeze':
                     newUserData.streakFreezeActive = true;
                     toastMessage = '¡Protector de racha equipado!';
-                    toastIcon = <Shield className="w-5 h-5 text-cyan-500" />;
+                    { const S = Shield; toastIcon = <S className="w-5 h-5 text-cyan-500" />; }
                     break;
                 case 'xp_boost':
                     newUserData.xpBoostUntil = Date.now() + 15 * 60 * 1000;
                     toastMessage = '¡Boost de XP activado!';
-                    toastIcon = <Zap className="w-5 h-5 text-yellow-400" />;
+                    { const Z = Zap; toastIcon = <Z className="w-5 h-5 text-yellow-400" />; }
                     break;
                 case 'double_or_nothing':
                     newUserData.doubleOrNothingActive = true;
@@ -978,17 +986,37 @@ export default function App() {
                  case 'lifeline_fifty_fifty':
                     newUserData.lifelineData.fiftyFifty++;
                     toastMessage = '¡Comodín 50/50 comprado!';
-                    toastIcon = <Split className="w-5 h-5 text-white" />;
+                    toastIcon = (() => { const I = iconMap['lifeline_fifty_fifty']; return <I className="w-5 h-5" /> })();
                     break;
                 case 'lifeline_quick_review':
                     newUserData.lifelineData.quickReview++;
                     toastMessage = '¡Repaso Rápido comprado!';
-                    toastIcon = <Lightbulb className="w-5 h-5 text-white" />;
+                    toastIcon = (() => { const I = iconMap['lifeline_quick_review']; return <I className="w-5 h-5" /> })();
                     break;
                 case 'lifeline_second_chance':
                     newUserData.lifelineData.secondChance++;
                     toastMessage = '¡Segunda Oportunidad comprada!';
-                    toastIcon = <Undo2 className="w-5 h-5 text-white" />;
+                    toastIcon = (() => { const I = iconMap['lifeline_second_chance']; return <I className="w-5 h-5" /> })();
+                    break;
+                case 'lifeline_adrenaline':
+                    newUserData.lifelineData.adrenaline++;
+                    toastMessage = '¡Adrenalina comprada!';
+                    toastIcon = (() => { const I = iconMap['lifeline_adrenaline']; return <I className="w-5 h-5" /> })();
+                    break;
+                case 'lifeline_skip':
+                    newUserData.lifelineData.skip++;
+                    toastMessage = '¡Salto comprado!';
+                    toastIcon = (() => { const I = iconMap['lifeline_skip']; return <I className="w-5 h-5" /> })();
+                    break;
+                case 'lifeline_double':
+                    newUserData.lifelineData.double++;
+                    toastMessage = '¡Duplica comprado!';
+                    toastIcon = (() => { const I = iconMap['lifeline_double']; return <I className="w-5 h-5" /> })();
+                    break;
+                case 'lifeline_immunity':
+                    newUserData.lifelineData.immunity++;
+                    toastMessage = '¡Inmunidad comprada!';
+                    toastIcon = (() => { const I = iconMap['lifeline_immunity']; return <I className="w-5 h-5" /> })();
                     break;
                 case 'mystery_box':
                     const rewards: MysteryReward[] = [
@@ -996,32 +1024,33 @@ export default function App() {
                         { type: 'xp_boost' as const, name: 'Boost de XP', icon: 'xp_boost'},
                         { type: 'streak_freeze' as const, name: 'Protector de Racha', icon: 'streak_freeze' },
                         { type: 'heart' as const, name: '1 Vida', icon: 'buy_one_heart' },
+                        { type: 'lifeline_fifty_fifty' as const, name: '50/50', icon: 'lifeline_fifty_fifty' },
+                        { type: 'lifeline_quick_review' as const, name: 'Pista', icon: 'lifeline_quick_review' },
+                        { type: 'lifeline_second_chance' as const, name: 'Revivir', icon: 'lifeline_second_chance' },
+                        { type: 'lifeline_adrenaline' as const, name: 'Adrenalina', icon: 'lifeline_adrenaline' },
+                        { type: 'lifeline_skip' as const, name: 'Salta', icon: 'lifeline_skip' },
+                        { type: 'lifeline_double' as const, name: 'Duplica', icon: 'lifeline_double' },
+                        { type: 'lifeline_immunity' as const, name: 'Inmunidad', icon: 'lifeline_immunity' },
                         ...AVATAR_DATA.filter(a => a.unlockCondition.type === 'achievement' && a.unlockCondition.value === 'mystery_box' && !newUserData.unlockedAvatars.includes(a.id))
                             .map(a => ({ type: 'avatar' as const, avatarId: a.id, name: a.name, icon: a.emoji }))
                     ];
                     const selectedReward = rewards[Math.floor(Math.random() * rewards.length)];
                     setMysteryBoxReward(selectedReward);
-                    
                     if (selectedReward.type === 'bones') newUserData.bones += selectedReward.amount!;
                     if (selectedReward.type === 'xp_boost') newUserData.xpBoostUntil = Date.now() + 15 * 60 * 1000;
                     if (selectedReward.type === 'streak_freeze') newUserData.streakFreezeActive = true;
                     if (selectedReward.type === 'heart') newUserData.hearts = Math.min(5, newUserData.hearts + 1);
+                    if (selectedReward.type === 'lifeline_fifty_fifty') newUserData.lifelineData.fiftyFifty++;
+                    if (selectedReward.type === 'lifeline_quick_review') newUserData.lifelineData.quickReview++;
+                    if (selectedReward.type === 'lifeline_second_chance') newUserData.lifelineData.secondChance++;
+                    if (selectedReward.type === 'lifeline_adrenaline') newUserData.lifelineData.adrenaline++;
+                    if (selectedReward.type === 'lifeline_skip') newUserData.lifelineData.skip++;
+                    if (selectedReward.type === 'lifeline_double') newUserData.lifelineData.double++;
+                    if (selectedReward.type === 'lifeline_immunity') newUserData.lifelineData.immunity++;
                     if (selectedReward.type === 'avatar' && selectedReward.avatarId) newUserData.unlockedAvatars.push(selectedReward.avatarId);
-
                     setTimeout(() => setActiveModal('mysteryBox'), 100);
                     return newUserData;
-                 case 'neural_eraser': {
-                    if (newUserData.weakPoints.length > 0) {
-                        const pointToForget = newUserData.weakPoints[Math.floor(Math.random() * newUserData.weakPoints.length)];
-                        newUserData.weakPoints = newUserData.weakPoints.filter(id => id !== pointToForget);
-                        toastMessage = "¡Punto débil olvidado!";
-                    } else {
-                        toastMessage = "No tienes puntos débiles para olvidar.";
-                        newUserData.bones += cost; // Refund
-                    }
-                    break;
-                }
-                 case 'xp_pack':
+                case 'xp_pack':
                     newUserData.xp += 50;
                     toastMessage = "+50 XP añadidos!";
                     toastIcon = <Zap className="w-5 h-5 text-yellow-400" />;
@@ -1127,6 +1156,10 @@ export default function App() {
                 { type: 'lifeline_fifty_fifty', name: 'Comodín 50/50', icon: 'lifeline_fifty_fifty' },
                 { type: 'lifeline_quick_review', name: 'Repaso Rápido', icon: 'lifeline_quick_review' },
                 { type: 'lifeline_second_chance', name: 'Segunda Oportunidad', icon: 'lifeline_second_chance' },
+                { type: 'lifeline_adrenaline', name: 'Adrenalina', icon: 'lifeline_adrenaline' },
+                { type: 'lifeline_skip', name: 'Salta', icon: 'lifeline_skip' },
+                { type: 'lifeline_double', name: 'Duplica', icon: 'lifeline_double' },
+                { type: 'lifeline_immunity', name: 'Inmunidad', icon: 'lifeline_immunity' },
                 { type: 'heart', name: '1 Vida', icon: 'buy_one_heart' }
             ];
             const reward = possibleRewards[Math.floor(Math.random() * possibleRewards.length)];
@@ -1150,22 +1183,42 @@ export default function App() {
                 case 'lifeline_fifty_fifty':
                     newUserData.lifelineData.fiftyFifty++;
                     toastMessage = '¡Has ganado un Comodín 50/50!';
-                    toastIcon = <Split className="w-5 h-5 text-white" />;
+                    toastIcon = (() => { const I = iconMap['lifeline_fifty_fifty']; return <I className="w-5 h-5" /> })();
                     break;
                 case 'lifeline_quick_review':
                     newUserData.lifelineData.quickReview++;
                     toastMessage = '¡Has ganado un Repaso Rápido!';
-                    toastIcon = <Lightbulb className="w-5 h-5 text-white" />;
+                    toastIcon = (() => { const I = iconMap['lifeline_quick_review']; return <I className="w-5 h-5" /> })();
                     break;
                 case 'lifeline_second_chance':
                     newUserData.lifelineData.secondChance++;
                     toastMessage = '¡Has ganado una Segunda Oportunidad!';
-                    toastIcon = <Undo2 className="w-5 h-5 text-white" />;
+                    toastIcon = (() => { const I = iconMap['lifeline_second_chance']; return <I className="w-5 h-5" /> })();
+                    break;
+                case 'lifeline_adrenaline':
+                    newUserData.lifelineData.adrenaline++;
+                    toastMessage = '¡Has ganado Adrenalina!';
+                    toastIcon = (() => { const I = iconMap['lifeline_adrenaline']; return <I className="w-5 h-5" /> })();
+                    break;
+                case 'lifeline_skip':
+                    newUserData.lifelineData.skip++;
+                    toastMessage = '¡Has ganado Salta!';
+                    toastIcon = (() => { const I = iconMap['lifeline_skip']; return <I className="w-5 h-5" /> })();
+                    break;
+                case 'lifeline_double':
+                    newUserData.lifelineData.double++;
+                    toastMessage = '¡Has ganado Duplica!';
+                    toastIcon = (() => { const I = iconMap['lifeline_double']; return <I className="w-5 h-5" /> })();
+                    break;
+                case 'lifeline_immunity':
+                    newUserData.lifelineData.immunity++;
+                    toastMessage = '¡Has ganado Inmunidad!';
+                    toastIcon = (() => { const I = iconMap['lifeline_immunity']; return <I className="w-5 h-5" /> })();
                     break;
                 case 'heart':
                     newUserData.hearts = Math.min(5, newUserData.hearts + 1);
                     toastMessage = '¡Has ganado una vida!';
-                    toastIcon = <Heart className="w-5 h-5 text-red-500" />;
+                    toastIcon = (() => { const H = iconMap['heart_img']; return <H className="w-5 h-5" /> })();
                     animationType = 'heart';
                     animationCount = 1;
                     break;
@@ -1210,6 +1263,19 @@ export default function App() {
                 if (avatar) {
                    showToast(`Avatar desbloqueado: ${avatar.name}`, 'success', <span>{avatar.emoji}</span>);
                 }
+            }
+            if (reward.lifelines) {
+                const ll = reward.lifelines;
+                newUserData.lifelineData = {
+                    ...newUserData.lifelineData,
+                    fiftyFifty: newUserData.lifelineData.fiftyFifty + (ll.fiftyFifty || 0),
+                    quickReview: newUserData.lifelineData.quickReview + (ll.quickReview || 0),
+                    secondChance: newUserData.lifelineData.secondChance + (ll.secondChance || 0),
+                    adrenaline: newUserData.lifelineData.adrenaline + (ll.adrenaline || 0),
+                    skip: newUserData.lifelineData.skip + (ll.skip || 0),
+                    double: newUserData.lifelineData.double + (ll.double || 0),
+                    immunity: newUserData.lifelineData.immunity + (ll.immunity || 0),
+                };
             }
             newUserData.claimedLevelRewards.push(level);
             
@@ -1347,7 +1413,7 @@ export default function App() {
                     onBack={handleBack} 
                     onMistake={handleMistake} 
                     immediateFeedback={!isExam}
-                    lifelines={isPractice ? { fiftyFifty: 0, quickReview: 0, secondChance: 0 } : userData.lifelineData}
+                    lifelines={isPractice ? { fiftyFifty: 0, quickReview: 0, secondChance: 0, adrenaline: 0, skip: 0, double: 0, immunity: 0 } : userData.lifelineData}
                     onUseLifeline={handleUseLifeline}
                     title={isExam ? 'Modo Examen' : isPractice ? 'Modo Práctica' : 'Modo Estudio'}
                     timeLimit={timeLimit}

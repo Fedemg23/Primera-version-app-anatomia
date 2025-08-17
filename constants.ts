@@ -296,12 +296,29 @@ export const AVATAR_DATA: Avatar[] = COMBINED_AVATARS.slice().sort((a, b) => {
 
 export const LEVEL_REWARDS: LevelReward[] = Array.from({ length: MAX_LEVEL }, (_, i) => {
 	const level = i + 1;
-	return {
+	const reward: LevelReward = {
 		level,
 		xp: Math.floor(100 * Math.pow(level - 1, 1.8)),
 		bones: 50 + (level * 5),
-		avatarId: AVATAR_DATA.find(a => a.unlockCondition.type === 'level' && a.unlockCondition.value === level)?.id || null
+		avatarId: AVATAR_DATA.find(a => a.unlockCondition.type === 'level' && a.unlockCondition.value === level)?.id || null,
 	};
+	// Cada 6 niveles, entrega un pack de botiquín variado
+	if (level > 1 && level % 6 === 0) {
+		reward.lifelines = {
+			fiftyFifty: 1,
+			quickReview: 1,
+			secondChance: 1,
+			adrenaline: 0,
+			skip: 0,
+			double: 0,
+			immunity: 0,
+		};
+	}
+	// Cada 10 niveles, extra de Revivir
+	if (level > 1 && level % 10 === 0) {
+		reward.lifelines = { ...(reward.lifelines || {}), secondChance: ((reward.lifelines?.secondChance) || 0) + 1 };
+	}
+	return reward;
 });
 
 export const shopItems: ShopItem[] = [
@@ -309,10 +326,14 @@ export const shopItems: ShopItem[] = [
     { id: 'streak_freeze', name: 'Protector de Racha', description: 'Protege tu racha de días si fallas uno.', price: 250, icon: 'streak_freeze' },
     { id: 'xp_boost', name: 'Boost de XP (15 min)', description: 'Duplica el XP que ganas durante 15 minutos.', price: 300, icon: 'xp_boost' },
     { id: 'double_or_nothing', name: 'Doble o Nada', description: 'Apuesta 50. ¡Haz un test perfecto para ganar 100!', price: 0, icon: 'double_or_nothing' },
-    { id: 'lifeline_fifty_fifty', name: 'Comodín 50/50', description: 'Elimina dos opciones incorrectas en una pregunta.', price: 200, icon: 'lifeline_fifty_fifty' },
-    { id: 'lifeline_quick_review', name: 'Repaso Rápido', description: 'Muestra la explicación antes de responder.', price: 150, icon: 'lifeline_quick_review' },
-    { id: 'lifeline_second_chance', name: 'Segunda Oportunidad', description: 'Permite un segundo intento si fallas.', price: 300, icon: 'lifeline_second_chance' },
-    { id: 'neural_eraser', name: 'Borrador Neuronal', description: 'Olvida una de tus preguntas falladas al azar.', price: 150, icon: 'neural_eraser' },
+    // Botiquín
+    { id: 'lifeline_fifty_fifty', name: 'Descarte (50/50)', description: 'Elimina dos opciones incorrectas en una pregunta.', price: 200, icon: 'lifeline_fifty_fifty', imageUrl: '/images/Descarte.png' },
+    { id: 'lifeline_quick_review', name: 'La Pista', description: 'Muestra una pista o dato clave sobre la pregunta.', price: 150, icon: 'lifeline_quick_review', imageUrl: '/images/Pista.png' },
+    { id: 'lifeline_adrenaline', name: 'Adrenalina', description: 'Añade tiempo extra al temporizador de la pregunta.', price: 180, icon: 'lifeline_adrenaline', imageUrl: '/images/Adrenalina.png' },
+    { id: 'lifeline_skip', name: 'Salta', description: 'Salta la pregunta sin perder vida ni racha.', price: 220, icon: 'lifeline_skip', imageUrl: '/images/Saltar.png' },
+    { id: 'lifeline_double', name: 'Duplica', description: 'Duplica los puntos si aciertas esta pregunta.', price: 260, icon: 'lifeline_double', imageUrl: '/images/Duplicar.png' },
+    { id: 'lifeline_second_chance', name: 'Revivir', description: 'Permite un segundo intento si fallas.', price: 300, icon: 'lifeline_second_chance', imageUrl: '/images/Revivir.png' },
+    { id: 'lifeline_immunity', name: 'Inmunidad', description: 'Protege tu racha si fallas una respuesta.', price: 240, icon: 'lifeline_immunity', imageUrl: '/images/Inmunidad.png' },
     { id: 'mystery_box', name: 'Caja Misteriosa', description: 'Contiene una recompensa aleatoria. ¡Puede ser cualquier cosa!', price: 500, icon: 'mystery_box' },
 ];
 
@@ -549,21 +570,6 @@ export const achievementsData: Achievement[] = [
             { level: 5, description: 'Activa Doble o Nada 100 veces.', target: 100, reward: { bones: 1000, xp: 1000 } },
         ],
         progress: (user) => user.purchases?.['double_or_nothing'] || 0,
-    },
-    {
-        id: 'clean_slate',
-        name: 'Mente Limpia',
-        description: 'Haz limpieza y borra tus puntos débiles.',
-        icon: '🧹',
-        action: { type: 'view', value: 'shop' },
-        tiers: [
-            { level: 1, description: 'Usa 1 Borrador Neuronal.', target: 1, reward: { xp: 25 } },
-            { level: 2, description: 'Usa 5 Borradores Neuronales.', target: 5, reward: { bones: 50, xp: 50 } },
-            { level: 3, description: 'Usa 10 Borradores Neuronales.', target: 10, reward: { bones: 100, xp: 100 } },
-            { level: 4, description: 'Usa 25 Borradores Neuronales.', target: 25, reward: { bones: 250, xp: 250 } },
-            { level: 5, description: 'Usa 50 Borradores Neuronales.', target: 50, reward: { bones: 500, xp: 500 } },
-        ],
-        progress: (user) => user.purchases?.['neural_eraser'] || 0,
     },
 ];
 

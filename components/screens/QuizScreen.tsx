@@ -5,8 +5,8 @@ import { QuizScreenProps, QuestionData, LifelineData } from '../../types';
 import { CheckCircle, XCircle, iconMap } from '../icons';
 import { bibliographyData } from '../../constants';
 
-const Timer: React.FC<{ timeLimit: number; onTimeUp: () => void }> = memo(({ timeLimit, onTimeUp }) => {
-    const [timeLeft, setTimeLeft] = useState(timeLimit);
+const Timer: React.FC<{ timeLimit: number; onTimeUp: () => void; externalIncrement?: number; }> = memo(({ timeLimit, onTimeUp, externalIncrement = 0 }) => {
+    const [timeLeft, setTimeLeft] = useState(timeLimit + externalIncrement);
     const radius = 20;
     const circumference = 2 * Math.PI * radius;
 
@@ -70,10 +70,10 @@ const LifelineButton: React.FC<{
     title={name}
     onClick={onClick}
     disabled={disabled}
-    className="relative flex flex-col items-center justify-center w-20 h-20 md:w-20 md:h-20 bg-slate-800/50 backdrop-blur-sm rounded-2xl border-2 border-slate-700/80 shadow-lg transition-all duration-200 enabled:active:scale-105 enabled:hover:border-blue-500/50 enabled:active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed touch-manipulation"
+    className="relative flex flex-col items-center justify-center w-24 h-24 md:w-28 md:h-28 bg-black rounded-2xl ring-2 ring-blue-500/50 shadow-lg transition-all duration-200 enabled:hover:ring-4 enabled:hover:ring-blue-400/80 enabled:[filter:drop-shadow(0_0_18px_rgba(59,130,246,0.5))] enabled:active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed touch-manipulation"
   >
     <div className="w-full h-full flex items-center justify-center overflow-hidden">{icon}</div>
-    <span className="absolute top-1 right-1.5 flex items-center justify-center w-5 h-5 bg-blue-500 text-white text-xs font-bold rounded-full border-2 border-slate-800/50">
+    <span className="absolute top-1.5 right-1.5 flex items-center justify-center w-6 h-6 bg-blue-500 text-white text-xs font-bold rounded-full border-2 border-slate-800/50">
       {count}
     </span>
   </button>
@@ -111,6 +111,9 @@ const QuizScreen: React.FC<QuizScreenProps> = ({ quizQuestions, onQuizComplete, 
     const [userAnswers, setUserAnswers] = useState<(number | string)[]>([]);
     const [blankInput, setBlankInput] = useState('');
     const inputRef = useRef<HTMLInputElement>(null);
+    const [timerIncrement, setTimerIncrement] = useState(0);
+    const [isDoubleActive, setIsDoubleActive] = useState(false);
+    const [isImmunityActive, setIsImmunityActive] = useState(false);
 
     // Lifeline State
     const [disabledOptions, setDisabledOptions] = useState<number[]>([]);
@@ -119,7 +122,7 @@ const QuizScreen: React.FC<QuizScreenProps> = ({ quizQuestions, onQuizComplete, 
     const [lifelinesUsedThisQuestion, setLifelinesUsedThisQuestion] = useState<{[key: string]: boolean}>({});
 
     const currentQuestion = quizQuestions?.[currentQuestionIndex];
-    const isFillInTheBlank = currentQuestion?.textoPregunta.includes('____');
+    const isFillInTheBlank = !!currentQuestion && !!currentQuestion.textoPregunta && currentQuestion.textoPregunta.includes('____');
 
     useEffect(() => {
         if (!quizQuestions || quizQuestions.length === 0) {
@@ -184,6 +187,9 @@ const QuizScreen: React.FC<QuizScreenProps> = ({ quizQuestions, onQuizComplete, 
             setShowExplanationHint(null);
             setIsSecondChanceActive(false);
             setLifelinesUsedThisQuestion({});
+            setTimerIncrement(0);
+            setIsDoubleActive(false);
+            setIsImmunityActive(false);
         } else {
             onQuizComplete(answers);
         }
@@ -211,6 +217,44 @@ const QuizScreen: React.FC<QuizScreenProps> = ({ quizQuestions, onQuizComplete, 
         onUseLifeline('secondChance');
         setLifelinesUsedThisQuestion(prev => ({ ...prev, secondChance: true }));
         setIsSecondChanceActive(true);
+        // Si ya respondió y falló, reabrir la pregunta para un segundo intento
+        if (isAnswered && !getIsCorrect(currentQuestion, selectedAnswer as number | string)) {
+            if (typeof selectedAnswer === 'number') {
+                setDisabledOptions(prev => Array.from(new Set([...prev, selectedAnswer as number])));
+            }
+            setIsAnswered(false);
+            setSelectedAnswer(null);
+        }
+    };
+
+    const useAdrenaline = () => {
+        if (lifelines.adrenaline <= 0 || lifelinesUsedThisQuestion.adrenaline) return;
+        onUseLifeline('adrenaline');
+        setLifelinesUsedThisQuestion(prev => ({ ...prev, adrenaline: true }));
+        setTimerIncrement(prev => prev + 10);
+    };
+
+    const useSkip = () => {
+        if (lifelines.skip <= 0 || lifelinesUsedThisQuestion.skip) return;
+        onUseLifeline('skip');
+        setLifelinesUsedThisQuestion(prev => ({ ...prev, skip: true }));
+        const answers = [...userAnswers, 'timeout'];
+        setUserAnswers(answers);
+        handleNextQuestion('timeout');
+    };
+
+    const useDouble = () => {
+        if (lifelines.double <= 0 || lifelinesUsedThisQuestion.double) return;
+        onUseLifeline('double');
+        setLifelinesUsedThisQuestion(prev => ({ ...prev, double: true }));
+        setIsDoubleActive(true);
+    };
+
+    const useImmunity = () => {
+        if (lifelines.immunity <= 0 || lifelinesUsedThisQuestion.immunity) return;
+        onUseLifeline('immunity');
+        setLifelinesUsedThisQuestion(prev => ({ ...prev, immunity: true }));
+        setIsImmunityActive(true);
     };
     
     if (!currentQuestion) {
@@ -243,8 +287,8 @@ const QuizScreen: React.FC<QuizScreenProps> = ({ quizQuestions, onQuizComplete, 
     };
 
     return (
-        <div className={`relative flex flex-col h-full overflow-hidden bg-slate-950 transition-colors duration-500`}>
-            {timeLimit && <Timer timeLimit={timeLimit} onTimeUp={handleTimeUp} />}
+        <div className={`relative flex flex-col min-h-screen overflow-hidden bg-black transition-colors duration-500`}>
+            {timeLimit && <Timer timeLimit={timeLimit} onTimeUp={handleTimeUp} externalIncrement={timerIncrement} />}
             <button onClick={onBack} className="absolute top-4 right-4 text-slate-400 active:text-white z-30 transition-transform active:scale-95 touch-manipulation">
                 <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
             </button>
@@ -263,21 +307,8 @@ const QuizScreen: React.FC<QuizScreenProps> = ({ quizQuestions, onQuizComplete, 
                 ) : (
                     <h2 className="text-lg md:text-xl font-semibold my-2 flex-shrink-0 text-slate-100">{currentQuestion.textoPregunta}</h2>
                 )}
-
-                 {immediateFeedback && !isAnswered && !isFillInTheBlank && (
-                    <div className="flex-shrink-0 py-4">
-                        <div className="flex justify-center items-center gap-4">
-                           {(() => { const I = iconMap['lifeline_fifty_fifty']; return <LifelineButton name="50/50" icon={<I className="w-8 h-8" />} count={lifelines.fiftyFifty} onClick={useFiftyFifty} disabled={lifelines.fiftyFifty <= 0 || lifelinesUsedThisQuestion.fiftyFifty} /> })()}
-                           {(() => { const I = iconMap['lifeline_quick_review']; return <LifelineButton name="Repaso Rápido" icon={<I className="w-8 h-8" />} count={lifelines.quickReview} onClick={useQuickReview} disabled={lifelines.quickReview <= 0 || lifelinesUsedThisQuestion.quickReview} /> })()}
-                           {(() => { const I = iconMap['lifeline_second_chance']; return <LifelineButton name="Segunda Oportunidad" icon={<I className="w-8 h-8" />} count={lifelines.secondChance} onClick={useSecondChance} disabled={lifelines.secondChance <= 0 || lifelinesUsedThisQuestion.secondChance || isSecondChanceActive} /> })()}
-                        </div>
-                         {/* Indicador del tutorial: muestra teclas/acciones sugeridas si el tour está activo */}
-                         {Boolean((window as any).__TOUR_ACTIVE__) && (
-                           <p className="mt-2 text-center text-xs text-slate-400">Sugerencia: prueba activar un comodín para ver su efecto.</p>
-                         )}
-                    </div>
-                )}
-
+                
+                
                 <div className="space-y-3 flex-grow overflow-y-auto pr-2">
                     {!isFillInTheBlank ? (
                         currentQuestion.opciones.map((option, index) => {
@@ -315,6 +346,46 @@ const QuizScreen: React.FC<QuizScreenProps> = ({ quizQuestions, onQuizComplete, 
                       </div>
                     )}
                 </div>
+
+                
+                {/* Botiquín: comodines antes de responder */}
+                {immediateFeedback && !isAnswered && (
+                  <div className="flex-shrink-0 pt-3 pb-2">
+                    <div className="flex justify-center items-center gap-3 md:gap-4 flex-wrap">
+                      {!isFillInTheBlank && (() => { const I = iconMap['lifeline_fifty_fifty']; return <LifelineButton name="50/50" icon={<I className="w-[90%] h-[90%] md:w-[92%] md:h-[92%]" />} count={lifelines.fiftyFifty} onClick={useFiftyFifty} disabled={lifelines.fiftyFifty <= 0 || lifelinesUsedThisQuestion.fiftyFifty} /> })()}
+                      {(() => { const I = iconMap['lifeline_quick_review']; return <LifelineButton name="La Pista" icon={<I className="w-[90%] h-[90%] md:w-[92%] md:h-[92%]" />} count={lifelines.quickReview} onClick={useQuickReview} disabled={lifelines.quickReview <= 0 || lifelinesUsedThisQuestion.quickReview} /> })()}
+                      {timeLimit ? (() => { const I = iconMap['lifeline_adrenaline']; return <LifelineButton name="Adrenalina" icon={<I className="w-[90%] h-[90%] md:w-[92%] md:h-[92%]" />} count={lifelines.adrenaline} onClick={useAdrenaline} disabled={lifelines.adrenaline <= 0 || lifelinesUsedThisQuestion.adrenaline} /> })() : null}
+                      {(() => { const I = iconMap['lifeline_skip']; return <LifelineButton name="Salta" icon={<I className="w-[90%] h-[90%] md:w-[92%] md:h-[92%]" />} count={lifelines.skip} onClick={useSkip} disabled={lifelines.skip <= 0 || lifelinesUsedThisQuestion.skip} /> })()}
+                      {(() => { const I = iconMap['lifeline_double']; return <LifelineButton name="Duplica" icon={<I className="w-[90%] h-[90%] md:w-[92%] md:h-[92%]" />} count={lifelines.double} onClick={useDouble} disabled={lifelines.double <= 0 || lifelinesUsedThisQuestion.double || isDoubleActive} /> })()}
+                      {(() => { const I = iconMap['lifeline_immunity']; return <LifelineButton name="Inmunidad" icon={<I className="w-[90%] h-[90%] md:w-[92%] md:h-[92%]" />} count={lifelines.immunity} onClick={useImmunity} disabled={lifelines.immunity <= 0 || lifelinesUsedThisQuestion.immunity || isImmunityActive} /> })()}
+                    </div>
+                  </div>
+                )}
+                {/* Botiquín: comodines después de responder (solo Revivir si fallaste) */}
+                {immediateFeedback && isAnswered && !isCorrect && (
+                  <div className="flex-shrink-0 pt-3">
+                    <div className="flex justify-center items-center gap-4 flex-wrap">
+                      {(() => { const I = iconMap['lifeline_second_chance']; return (
+                        <LifelineButton 
+                          name="Revivir" 
+                          icon={<I className="w-[90%] h-[90%] md:w-[92%] md:h-[92%]" />} 
+                          count={lifelines.secondChance} 
+                          onClick={useSecondChance} 
+                          disabled={lifelines.secondChance <= 0 || lifelinesUsedThisQuestion.secondChance}
+                        />
+                      ); })()}
+                      {(() => { const I = iconMap['lifeline_immunity']; return (
+                        <LifelineButton 
+                          name="Inmunidad" 
+                          icon={<I className="w-[90%] h-[90%] md:w-[92%] md:h-[92%]" />} 
+                          count={lifelines.immunity} 
+                          onClick={useImmunity} 
+                          disabled={lifelines.immunity <= 0 || lifelinesUsedThisQuestion.immunity}
+                        />
+                      ); })()}
+                    </div>
+                  </div>
+                )}
             </div>
             
              {showExplanationHint && (

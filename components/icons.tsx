@@ -7,7 +7,7 @@ import { IconComponent } from '../types';
 const makeImgIcon = (src: string, alt: string): React.FC<{ className?: string }> =>
   ({ className }) => (
     <div className={`relative ${className || ''} flex items-center justify-center`}>
-      <img src={src} alt={alt} className="w-full h-full object-contain" />
+      <img src={src} alt={alt} className="w-full h-full object-contain object-center select-none pointer-events-none" />
     </div>
   );
 
@@ -22,7 +22,7 @@ const makeImgIconFallback = (basename: string, alt: string): React.FC<{ classNam
     const src = `${basename}${exts[extIndex]}`;
     return (
       <div className={`relative ${className || ''} flex items-center justify-center`}>
-        <img src={src} alt={alt} onError={() => setExtIndex(i => Math.min(i + 1, exts.length - 1))} className="w-full h-full object-contain" />
+        <img src={src} alt={alt} onError={() => setExtIndex(i => Math.min(i + 1, exts.length - 1))} className="w-full h-full object-contain object-center select-none pointer-events-none" />
       </div>
     );
   };
@@ -435,15 +435,23 @@ export const iconMap: Record<string, any> = {
     'xp_pack': XpPackBold,
     'mystery_box': GiftBold,
     'neural_eraser': EraserBold,
-    // Comodines reemplazados por imágenes
-    'lifeline_fifty_fifty': makeImgIconFallback('/images/lifeline-5050', '50/50'),
-    'lifeline_quick_review': makeImgIconFallback('/images/lifeline-tips', 'Tips'),
-    'lifeline_second_chance': makeImgIconFallback('/images/lifeline-second-chance', 'Second Chance'),
+    // Override visual para compra de vidas en la Tienda con imagen Heart
+    'buy_one_heart': makeImgIconFallback('/images/Heart', 'Vida'),
+    // Comodines reemplazados por imágenes (Botiquín)
+    'lifeline_fifty_fifty': makeImgIconFallback('/images/Descarte', '50/50'),
+    'lifeline_quick_review': makeImgIconFallback('/images/Pista', 'Pista'),
+    'lifeline_second_chance': makeImgIconFallback('/images/Revivir', 'Revivir'),
+    'lifeline_adrenaline': makeImgIconFallback('/images/Adrenalina', 'Adrenalina'),
+    'lifeline_skip': makeImgIconFallback('/images/Saltar', 'Saltar'),
+    'lifeline_double': makeImgIconFallback('/images/Duplicar', 'Duplica'),
+    'lifeline_immunity': makeImgIconFallback('/images/Inmunidad', 'Inmunidad'),
     // Huesitos (moneda): usar imagen pública '/images/huesitos.*'
     'bones': makeImgIconFallback('/images/huesitos', 'Huesitos'),
     '🦴': () => <span>🦴</span>,
     'Swords': Swords,
     'ListCheck': ListCheck,
+    // Nuevo logo de vidas unificado: coloca tu imagen en public/images como "Heart.(png|webp|jpg|jpeg|svg|gif|avif)"
+    'heart_img': makeImgIconFallback('/images/Heart', 'Vidas'),
 };
 
 // Iconos mejorados para Home

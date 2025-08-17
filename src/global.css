@@ -68,3 +68,18 @@ p, span, button, input, select, textarea {
     -moz-osx-font-smoothing: grayscale;
   }
 } 
+
+/* Bloquear selección y menú táctil en imágenes (iOS/Android/Desktop) */
+img, svg {
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+  -webkit-user-drag: none;
+  pointer-events: auto;
+}
+
+img {
+  -webkit-tap-highlight-color: transparent;
+} 

@@ -57,9 +57,13 @@ export interface DailyStats {
 }
 
 export interface LifelineData {
-    fiftyFifty: number;
-    quickReview: number;
-    secondChance: number;
+    fiftyFifty: number;      // Descarte (50/50)
+    quickReview: number;     // La Pista
+    secondChance: number;    // Revivir
+    adrenaline: number;      // Adrenalina (tiempo extra)
+    skip: number;            // Salta
+    double: number;          // Duplica
+    immunity: number;        // Inmunidad
 }
 
 export interface MasterNote {
@@ -117,6 +121,7 @@ export interface UserData {
   lastDailyShopRewardClaim?: string;
   masterNotes: MasterNote[];
   userNotes: UserNote[];
+  perfectStreak?: number;
 }
 
 // TIPOS GENÉRICOS Y DE LA APP
@@ -132,11 +137,14 @@ export interface AnimationConfig {
 }
 
 export interface ShopItem {
-  id: 'buy_one_heart' | 'streak_freeze' | 'xp_boost' | 'double_or_nothing' | 'xp_pack' | 'mystery_box' | 'neural_eraser' | 'lifeline_fifty_fifty' | 'lifeline_quick_review' | 'lifeline_second_chance';
+  id: 'buy_one_heart' | 'streak_freeze' | 'xp_boost' | 'double_or_nothing' | 'xp_pack' | 'mystery_box'
+    | 'lifeline_fifty_fifty' | 'lifeline_quick_review' | 'lifeline_second_chance'
+    | 'lifeline_adrenaline' | 'lifeline_skip' | 'lifeline_double' | 'lifeline_immunity';
   name: string;
   description: string;
   price: number;
   icon: string;
+  imageUrl?: string; // opcional: imagen PNG en public/images
 }
 
 export interface ShopScreenProps {
@@ -205,6 +213,7 @@ export interface LevelReward {
     xp: number;
     bones: number;
     avatarId: string | null;
+    lifelines?: Partial<LifelineData>;
 }
 
 export interface LevelRewardsModalProps {
@@ -280,7 +289,9 @@ export interface AuthUser {
 }
 
 export type MysteryReward = {
-    type: 'bones' | 'xp_boost' | 'streak_freeze' | 'heart' | 'avatar' | 'lifeline_fifty_fifty' | 'lifeline_quick_review' | 'lifeline_second_chance';
+    type: 'bones' | 'xp_boost' | 'streak_freeze' | 'heart' | 'avatar'
+      | 'lifeline_fifty_fifty' | 'lifeline_quick_review' | 'lifeline_second_chance'
+      | 'lifeline_adrenaline' | 'lifeline_skip' | 'lifeline_double' | 'lifeline_immunity';
     amount?: number;
     name: string;
     icon: string;
