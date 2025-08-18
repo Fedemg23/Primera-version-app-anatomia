@@ -102,9 +102,9 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onSelectMode, userData, onNavig
                 onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }} 
             />
             
-            <div className="flex-grow flex flex-col justify-center">
+            <div className="flex-grow lg:flex-none flex flex-col md:justify-center lg:justify-start w-full max-w-4xl mx-auto">
                 {/* Top Group: Title and Mode Buttons */}
-                <div className="flex flex-col items-center gap-8 w-full">
+                <div className="flex flex-col items-center gap-6 md:gap-8 w-full">
                     <div className="relative w-full flex items-center justify-center text-center">
                         <h1 className="font-graffiti font-black text-5xl md:text-6xl tracking-wide -rotate-2 title-white-clean inline-block transform scale-110 md:scale-125">
                             Elige tu Modo
@@ -126,7 +126,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onSelectMode, userData, onNavig
                             disabled={!isReadyForInput}
                             className={`${modeButtonClasses(!isReadyForInput)}`}
                         >
-                            <div className="rounded-[22px] bg-slate-900/70 backdrop-blur-md border border-slate-700/60 p-6 w-full flex items-center text-left relative overflow-hidden">
+                            <div className="rounded-[22px] bg-slate-900/70 backdrop-blur-md border border-slate-700/60 p-5 md:p-6 w-full flex items-center text-left relative overflow-hidden">
                                 <div className="pointer-events-none absolute -inset-1 opacity-0 group-hover:opacity-20 transition-opacity bg-[radial-gradient(120px_60px_at_20%_20%,rgba(59,130,246,.5),transparent)]"/>
                                 <div className="text-5xl text-blue-400/80 mr-6 w-14 transition-all duration-300 group-hover:text-blue-400 group-hover:scale-110">
                                     <HomeIconStudy />
@@ -144,7 +144,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onSelectMode, userData, onNavig
                             disabled={!isReadyForInput}
                             className={`${modeButtonClasses(!isReadyForInput)}`}
                         >
-                            <div className="rounded-[22px] bg-slate-900/70 backdrop-blur-md border border-slate-700/60 p-6 w-full flex items-center text-left relative overflow-hidden">
+                            <div className="rounded-[22px] bg-slate-900/70 backdrop-blur-md border border-slate-700/60 p-5 md:p-6 w-full flex items-center text-left relative overflow-hidden">
                                 <div className="pointer-events-none absolute -inset-1 opacity-0 group-hover:opacity-20 transition-opacity bg-[radial-gradient(120px_60px_at_20%_20%,rgba(59,130,246,.5),transparent)]"/>
                                 <div className="text-5xl text-sky-400/80 mr-6 w-14 transition-all duration-300 group-hover:text-sky-400 group-hover:scale-110">
                                     <HomeIconExam />
@@ -162,7 +162,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onSelectMode, userData, onNavig
                             disabled={!isReadyForInput}
                             className={`${modeButtonClasses(!isReadyForInput)}`}
                         >
-                            <div className="rounded-[22px] bg-slate-900/70 backdrop-blur-md border border-slate-700/60 p-6 w-full flex items-center text-left relative overflow-hidden">
+                            <div className="rounded-[22px] bg-slate-900/70 backdrop-blur-md border border-slate-700/60 p-5 md:p-6 w-full flex items-center text-left relative overflow-hidden">
                                 <div className="pointer-events-none absolute -inset-1 opacity-0 group-hover:opacity-20 transition-opacity bg-[radial-gradient(120px_60px_at_20%_20%,rgba(59,130,246,.5),transparent)]"/>
                                 <div className="text-5xl text-cyan-400/80 mr-6 w-14 transition-all duration-300 group-hover:text-cyan-400 group-hover:scale-110">
                                     <HomeIconDuel />
@@ -180,7 +180,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onSelectMode, userData, onNavig
             </div>
 
             {/* Bottom Group: Secondary Navigation Hub */}
-            <div className="flex-shrink-0 pt-12">
+            <div className="flex-shrink-0 pt-6 md:pt-10 lg:pt-6">
                 <div className="flex justify-center items-center gap-2 md:gap-4">
                     <NavItem 
                         label="PROGRESO"

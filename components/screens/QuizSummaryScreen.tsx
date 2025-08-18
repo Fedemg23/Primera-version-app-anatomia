@@ -3,43 +3,42 @@ import { Trophy, StarFilled, CheckCircle, BrainCircuit, XCircle, iconMap } from 
 import { QuizSummaryScreenProps, QuestionData } from '../../types';
 import { questionBank } from '../../constants';
 
-const QuizSummaryScreen: React.FC<QuizSummaryScreenProps> = ({ earnedXp, earnedBones, isPerfect, onContinue, wasChallenge, mistakes, questionIds, answers, onReviewMistakes }) => {
-	
+const QuizSummaryScreen: React.FC<QuizSummaryScreenProps> = ({ earnedXp, earnedBones, isPerfect, onContinue, wasChallenge, mistakes, questionIds, answers, onReviewMistakes, leveledUpItems, onViewLeveledUp }) => {
 	const Bones = iconMap['bones'];
 	const wasVictory = earnedXp > 0 || earnedBones > 0;
 	let title = '¡Cuestionario Completado!';
-	let bgColor = 'from-slate-800 to-slate-900';
+	let bgColor = 'from-slate-950 via-slate-950 to-slate-950';
 	let textColor = 'text-slate-100';
 	let subTextColor = 'text-slate-400';
 	let xpTextColor = 'text-slate-100';
 	let boneTextColor = 'text-amber-400';
-	let icon: React.ReactNode = <CheckCircle className="w-32 h-32 text-green-500" />;
+	let icon: React.ReactNode = <CheckCircle className="w-28 h-28 text-emerald-400" />;
 
 	if(wasChallenge) {
 		if (isPerfect) {
 			title = '¡Desafío Ganado!';
-			bgColor = 'from-amber-500 to-orange-600';
-			textColor = 'text-white';
-			subTextColor = 'text-amber-100';
-			xpTextColor = 'text-white';
-			boneTextColor = 'text-white';
-			icon = <Trophy className="w-32 h-32 text-white" />;
-		} else {
-			title = 'Desafío Fallido';
-			bgColor = 'from-slate-700 to-slate-900';
+			bgColor = 'from-slate-950 via-slate-950 to-slate-950';
 			textColor = 'text-white';
 			subTextColor = 'text-slate-300';
-			icon = <XCircle className="w-32 h-32 text-red-500" />;
+			xpTextColor = 'text-white';
+			boneTextColor = 'text-white';
+			icon = <Trophy className="w-28 h-28 text-amber-400" />;
+		} else {
+			title = 'Desafío Fallido';
+			bgColor = 'from-slate-950 via-slate-950 to-slate-950';
+			textColor = 'text-white';
+			subTextColor = 'text-slate-300';
+			icon = <XCircle className="w-28 h-28 text-red-500" />;
 		}
 	} else if (isPerfect) {
 		title = '¡Estudio Perfecto!';
-		bgColor = 'from-emerald-700/30 via-emerald-900/20 to-slate-900';
-		icon = <StarFilled className="w-32 h-32 text-emerald-400" />;
+		bgColor = 'from-slate-950 via-slate-950 to-slate-950';
+		icon = <StarFilled className="w-28 h-28 text-emerald-400" />;
 	}
 
 	const xpRef = useRef<HTMLDivElement>(null);
 	const bonesRef = useRef<HTMLDivElement>(null);
-	
+
 	const handleContinue = () => {
 		const rewardPositions = {
 			xp: xpRef.current?.getBoundingClientRect() || null,
@@ -52,25 +51,17 @@ const QuizSummaryScreen: React.FC<QuizSummaryScreenProps> = ({ earnedXp, earnedB
 		const mistakenQuestions = questionIds.map((id, index) => {
 			const question = questionBank.find(q => q.id === id);
 			if (!question) return { question: null, isCorrect: false };
-		
 			const isFillInTheBlank = question.textoPregunta.includes('____');
 			const answer = answers[index];
-		
-			if (answer === null || answer === undefined) {
-				return { question, isCorrect: false };
-			}
-		
+			if (answer === null || answer === undefined) return { question, isCorrect: false };
 			const isCorrect = isFillInTheBlank
 				? typeof answer === 'string' && answer.trim().toLowerCase() === question.opciones[question.indiceRespuestaCorrecta].trim().toLowerCase()
 				: answer === question.indiceRespuestaCorrecta;
-			
 			return { question, isCorrect };
 		}).filter(item => !item.isCorrect && item.question).map(item => item.question!);
-		
 		onReviewMistakes(mistakenQuestions);
 	};
 
-	// Hook de contador animado
 	const useCountUp = (end: number, durationMs = 900) => {
 		const [value, setValue] = useState(0);
 		useEffect(() => {
@@ -79,9 +70,7 @@ const QuizSummaryScreen: React.FC<QuizSummaryScreenProps> = ({ earnedXp, earnedB
 			const tick = (now: number) => {
 				const progress = Math.min(1, (now - start) / durationMs);
 				setValue(Math.round(end * progress));
-				if (progress < 1) {
-					raf = requestAnimationFrame(tick);
-				}
+				if (progress < 1) raf = requestAnimationFrame(tick);
 			};
 			setValue(0);
 			raf = requestAnimationFrame(tick);
@@ -95,62 +84,43 @@ const QuizSummaryScreen: React.FC<QuizSummaryScreenProps> = ({ earnedXp, earnedB
 	const xpDisplay = useCountUp(targetXp);
 	const bonesDisplay = useCountUp(targetBones);
 
-	// Celebración especial para Estudio Perfecto
-	const PerfectCelebration = () => {
-		const pieces = Array.from({ length: 28 });
-		return (
-			<>
-				<style>{`
-				@keyframes confetti-fall { 0% { transform: translateY(-100vh) rotate(0deg); opacity: 0; } 10% {opacity:1;} 100% { transform: translateY(110vh) rotate(720deg); opacity: .95; } }
-				.confetti-piece { position: absolute; top: -10vh; width: 10px; height: 16px; border-radius: 2px; opacity: .9; animation: confetti-fall linear forwards; mix-blend-mode: screen; }
-				`}</style>
-				<div className="pointer-events-none absolute inset-0 overflow-hidden">
-					{pieces.map((_, i) => {
-						const left = Math.random() * 100;
-						const delay = Math.random() * 0.8;
-						const duration = 3 + Math.random() * 2.5;
-						const colors = ['#34d399', '#10b981', '#60a5fa', '#22d3ee', '#fbbf24'];
-						const color = colors[i % colors.length];
-						return (
-							<span
-								key={i}
-								className="confetti-piece"
-								style={{ left: `${left}%`, animationDuration: `${duration}s`, animationDelay: `${delay}s`, background: color }}
-							/>
-						);
-					})}
-				</div>
-				<div className="flex items-center justify-center gap-2 mb-2">
-					<span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-emerald-900 bg-emerald-300/90 text-sm font-bold shadow-sm">
-						<StarFilled className="w-4 h-4" /> Perfecto
-					</span>
-				</div>
-				<div className="flex items-center justify-center gap-2 mb-2">
-					<StarFilled className="w-8 h-8 text-emerald-400 animate-pulse" />
-					<h2 className={`text-6xl font-black tracking-tighter bg-clip-text text-transparent bg-gradient-to-r from-emerald-300 via-cyan-200 to-emerald-300`}>
-						¡Estudio Perfecto!
-					</h2>
-					<StarFilled className="w-8 h-8 text-emerald-400 animate-pulse" />
-				</div>
-				<p className="text-emerald-200/90 font-semibold -mt-1">¡Has acertado todas las preguntas!</p>
-			</>
-		);
+	const renderAchievementIcon = (ico: any): React.ReactNode => {
+		if (typeof ico === 'string') {
+			const Cmp: any = (iconMap as any)[ico];
+			if (Cmp) return <Cmp className="w-7 h-7" />;
+			return <span className="text-2xl leading-none">{ico}</span>;
+		}
+		// Si ya viene como ReactNode
+		return ico as React.ReactNode;
 	};
 
+	const PerfectCelebration = () => (
+		<>
+			<div className="flex items-center justify-center gap-2 mb-2">
+				<span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-emerald-900 bg-emerald-300 text-sm font-bold shadow-sm">
+					<StarFilled className="w-4 h-4" /> Perfecto
+				</span>
+			</div>
+			<div className="flex items-center justify-center gap-2 mb-2">
+				<StarFilled className="w-8 h-8 text-emerald-400" />
+				<h2 className={`text-6xl font-black tracking-tighter text-slate-100`}>
+					¡Estudio Perfecto!
+				</h2>
+				<StarFilled className="w-8 h-8 text-emerald-400" />
+			</div>
+			<p className="text-emerald-200 font-semibold -mt-1">¡Has acertado todas las preguntas!</p>
+		</>
+	);
+
 	return (
-		<div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 animate-fade-in p-4" onClick={handleContinue}>
-			<div 
-				className={`relative p-6 text-center flex flex-col items-center justify-center rounded-2xl shadow-2xl max-w-lg w-full bg-gradient-to-br ${bgColor} animate-scale-in overflow-hidden`}
-				onClick={(e) => e.stopPropagation()}
-			>
+		<div className="fixed inset-0 z-[9999] flex items-center justify-center animate-fade-in bg-black">
+			<div className={`relative w-full h-full max-w-none p-6 md:p-10 text-center flex flex-col items-center justify-center bg-black`}>
 				{isPerfect && !wasChallenge ? (
 					<PerfectCelebration />
 				) : (
 					<>
-						<div className="mb-4 animate-scale-in [filter:drop-shadow(0_10px_15px_rgba(0,0,0,0.2))]">
-							{icon}
-						</div>
-						<h2 className={`text-6xl font-black tracking-tighter mb-3 animate-slide-up ${textColor}`}>{title}</h2>
+						<div className="mb-4 [filter:drop-shadow(0_10px_15px_rgba(0,0,0,0.2))]">{icon}</div>
+						<h2 className={`text-5xl md:text-6xl font-black tracking-tighter mb-3 ${textColor}`}>{title}</h2>
 					</>
 				)}
 				{wasChallenge && !isPerfect && (
@@ -159,13 +129,12 @@ const QuizSummaryScreen: React.FC<QuizSummaryScreenProps> = ({ earnedXp, earnedB
 
 				{wasVictory && (
 					isPerfect && !wasChallenge ? (
-						<div className="w-full my-6 animate-slide-up" style={{animationDelay: '0.2s'}}>
-							<div className="rounded-2xl border border-emerald-400/20 bg-white/5 backdrop-blur-sm p-5 shadow-lg">
+						<div className="w-full max-w-xl my-6">
+							<div className="rounded-2xl border border-slate-800 bg-slate-900 p-5 shadow-lg">
 								<div className="grid grid-cols-2 gap-4">
-									<div ref={xpRef} className="relative rounded-xl bg-gradient-to-br from-emerald-500/20 to-cyan-400/10 border border-emerald-300/20 p-4 text-left overflow-hidden">
-										<div className="absolute -top-6 -right-6 w-20 h-20 rounded-full bg-emerald-400/20 blur-xl" aria-hidden/>
+									<div ref={xpRef} className="relative rounded-xl bg-gradient-to-br from-emerald-500/15 to-emerald-400/10 border border-emerald-500/25 p-4 text-left">
 										<div className="flex items-center gap-2">
-											<span className="inline-flex items-center justify-center w-9 h-9 rounded-full bg-emerald-400/20 text-emerald-200">
+											<span className="inline-flex items-center justify-center w-9 h-9 rounded-full bg-emerald-400/15 text-emerald-200">
 												<StarFilled className="w-5 h-5" />
 											</span>
 											<div>
@@ -174,10 +143,9 @@ const QuizSummaryScreen: React.FC<QuizSummaryScreenProps> = ({ earnedXp, earnedB
 											</div>
 										</div>
 									</div>
-									<div ref={bonesRef} className="relative rounded-xl bg-gradient-to-br from-amber-300/20 to-orange-200/10 border border-amber-300/20 p-4 text-left overflow-hidden">
-										<div className="absolute -top-6 -right-6 w-20 h-20 rounded-full bg-amber-300/20 blur-xl" aria-hidden/>
+									<div ref={bonesRef} className="relative rounded-xl bg-gradient-to-br from-amber-300/10 to-amber-200/5 border border-amber-400/25 p-4 text-left">
 										<div className="flex items-center gap-2">
-											<span className="inline-flex items-center justify-center w-9 h-9 rounded-full bg-amber-300/20 text-amber-200">
+											<span className="inline-flex items-center justify-center w-9 h-9 rounded-full bg-amber-300/15 text-amber-200">
 												<Bones className="w-5 h-5" />
 											</span>
 											<div>
@@ -190,7 +158,7 @@ const QuizSummaryScreen: React.FC<QuizSummaryScreenProps> = ({ earnedXp, earnedB
 							</div>
 						</div>
 					) : (
-						<div className="flex justify-center items-center my-8 animate-slide-up" style={{animationDelay: '0.2s'}}>
+						<div className="flex justify-center items-center my-8">
 							{(earnedXp > 0 && earnedBones > 0) ? (
 								<div className="flex flex-row items-start gap-x-16">
 									<div ref={xpRef} className="text-center">
@@ -221,21 +189,40 @@ const QuizSummaryScreen: React.FC<QuizSummaryScreenProps> = ({ earnedXp, earnedB
 					)
 				)}
 
-				<div className="w-full max-w-sm mt-8 space-y-3 animate-slide-up" style={{animationDelay: '0.4s'}}>
+				{Array.isArray(leveledUpItems) && leveledUpItems.length > 0 && (
+					<div className="w-full max-w-xl mt-4 mb-2">
+						<div className="rounded-2xl border border-slate-800 bg-slate-900 p-4 shadow-lg">
+							<div className="flex items-center justify-between mb-2">
+								<h3 className="text-lg font-extrabold text-slate-100">Nuevos niveles alcanzados</h3>
+								{onViewLeveledUp && (
+									<button onClick={onViewLeveledUp} className="px-3 py-1.5 rounded-lg text-sm font-bold bg-slate-800 text-slate-200 border border-slate-700 hover:bg-slate-700">Ir a Logros</button>
+								)}
+							</div>
+							<ul className="space-y-2 text-left max-h-48 overflow-y-auto pr-2">
+								{leveledUpItems.map((it, idx) => (
+									<li key={idx} className="flex items-center justify-between rounded-xl border border-slate-700 px-3 py-2 bg-slate-800">
+										<div className="flex items-center gap-3 min-w-0">
+											<div className="w-10 h-10 rounded-full bg-slate-900 flex items-center justify-center text-xl select-none">{renderAchievementIcon(it.icon)}</div>
+											<div className="min-w-0">
+												<p className="font-bold text-slate-200 truncate">{it.name}</p>
+												<p className="text-xs text-slate-400">Nivel {it.newLevel}</p>
+											</div>
+										</div>
+										<span className="px-2 py-0.5 rounded-full text-xs font-extrabold bg-emerald-500/20 text-emerald-300 border border-emerald-400/30">Nuevo</span>
+									</li>
+								))}
+							</ul>
+						</div>
+					</div>
+				)}
+
+				<div className="w-full max-w-sm mt-8 space-y-3">
 					{mistakes > 0 && (
-						<button 
-							onClick={handleReview}
-							className="w-full font-bold py-3 px-4 rounded-xl text-lg shadow-md hover:shadow-lg transition-shadow active:scale-95 flex items-center justify-center gap-2 bg-slate-800/80 backdrop-blur-sm text-slate-300 border border-slate-600 touch-manipulation"
-						>
+						<button onClick={handleReview} className="w-full font-bold py-3 px-4 rounded-xl text-lg shadow-md hover:shadow-lg active:scale-95 flex items-center justify-center gap-2 bg-slate-800 text-slate-300 border border-slate-700"> 
 							<BrainCircuit className="w-5 h-5"/> Repasar {mistakes} Errores
 						</button>
 					)}
-					<button 
-						onClick={handleContinue} 
-						className={`w-full font-extrabold py-5 px-4 rounded-2xl text-xl shadow-xl hover:shadow-2xl transition-shadow active:scale-95 touch-manipulation ${
-							isPerfect && !wasChallenge ? 'bg-gradient-to-r from-emerald-400 to-cyan-400 text-slate-900' : (wasChallenge && isPerfect ? 'bg-gradient-to-r from-amber-500 to-orange-500 text-white' : 'bg-slate-200 text-black')
-						}`}
-					>
+					<button onClick={handleContinue} className={`w-full font-extrabold py-5 px-4 rounded-2xl text-xl shadow-xl hover:shadow-2xl active:scale-95 ${isPerfect && !wasChallenge ? 'bg-emerald-500 text-slate-900' : (wasChallenge && isPerfect ? 'bg-amber-500 text-white' : 'bg-slate-200 text-black')}`}>
 						Continuar
 					</button>
 				</div>

@@ -298,7 +298,8 @@ export const LEVEL_REWARDS: LevelReward[] = Array.from({ length: MAX_LEVEL }, (_
 	const level = i + 1;
 	const reward: LevelReward = {
 		level,
-		xp: Math.floor(100 * Math.pow(level - 1, 1.8)),
+		// XP acumulada requerida para alcanzar el nivel (curva más amable y progresiva)
+		xp: level <= 1 ? 0 : Math.floor(150 * Math.pow(level - 1, 1.35)),
 		bones: 50 + (level * 5),
 		avatarId: AVATAR_DATA.find(a => a.unlockCondition.type === 'level' && a.unlockCondition.value === level)?.id || null,
 	};

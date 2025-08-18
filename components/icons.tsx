@@ -6,9 +6,9 @@ import { IconComponent } from '../types';
 // Utilidad para crear iconos basados en imágenes del directorio public/images
 const makeImgIcon = (src: string, alt: string): React.FC<{ className?: string }> =>
   ({ className }) => (
-    <div className={`relative ${className || ''} flex items-center justify-center`}>
+    <span className={`relative ${className || ''} inline-flex items-center justify-center`}>
       <img src={src} alt={alt} className="w-full h-full object-contain object-center select-none pointer-events-none" />
-    </div>
+    </span>
   );
 
 // Variante con fallback automático de extensión (png → webp → jpg → jpeg → svg)
@@ -21,9 +21,9 @@ const makeImgIconFallback = (basename: string, alt: string): React.FC<{ classNam
     const [extIndex, setExtIndex] = React.useState(0);
     const src = `${basename}${exts[extIndex]}`;
     return (
-      <div className={`relative ${className || ''} flex items-center justify-center`}>
+      <span className={`relative ${className || ''} inline-flex items-center justify-center`}>
         <img src={src} alt={alt} onError={() => setExtIndex(i => Math.min(i + 1, exts.length - 1))} className="w-full h-full object-contain object-center select-none pointer-events-none" />
-      </div>
+      </span>
     );
   };
 

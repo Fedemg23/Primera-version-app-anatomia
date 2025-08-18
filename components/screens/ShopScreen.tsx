@@ -119,7 +119,7 @@ const ShopScreen: React.FC<ShopScreenProps> = ({ userData, onPurchase, onClaimDa
 	const canClaimDailyReward = today !== lastClaimDate;
 
 	return (
-		<div className="bg-black">
+		<div className="bg-black overflow-x-hidden">
 			<div className="max-w-4xl mx-auto p-4 md:p-6 space-y-20 md:space-y-24">
 				<div className="text-center mb-4">
 					<div className="inline-flex items-center gap-3">

@@ -244,11 +244,13 @@ export interface LastQuizResult {
     mistakes: number;
     questionIds: string[];
     answers: (number | string)[];
+    leveledUpItems?: LeveledUpAchievement[];
 }
 
 export interface QuizSummaryScreenProps extends LastQuizResult {
     onContinue: (rewardPositions: { xp: DOMRect | null; bones: DOMRect | null; }) => void;
     onReviewMistakes: (mistakenQuestions: QuestionData[]) => void;
+    onViewLeveledUp?: () => void;
 }
 
 

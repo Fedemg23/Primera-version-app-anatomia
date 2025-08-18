@@ -20,7 +20,7 @@ const StatItem = memo(React.forwardRef<HTMLButtonElement, {
         <div className={`icon-container h-8 w-8 flex items-center justify-center ${iconContainerClass || "[filter:drop-shadow(0_0_2px_rgba(255,255,255,0.7))]"}`}>
             {icon}
         </div>
-        <span className="font-black text-lg text-slate-100 ml-1.5">{value}</span>
+        <span className="font-black text-lg text-slate-100 ml-1.5 tabular-nums min-w-[2ch] text-center">{value}</span>
     </button>
 )));
 
@@ -61,11 +61,20 @@ const StatusBar: React.FC<StatusBarProps> = ({
     const radius = 38; // en un viewBox de 80
     const circumference = 2 * Math.PI * radius;
     const strokeWidth = 4;
-    const xpOffset = circumference - (xpPercentage / 100) * circumference;
+    // Clamp del progreso para que nunca sobrepase el 100% y nunca sea negativo
+    const xpRatio = ((): number => {
+        if (!isFinite(xpPercentage)) return 0;
+        const current = Math.max(0, xpInCurrentLevel);
+        const needed = Math.max(1, xpForNextLevel); // evita división por 0
+        const ratio = current / needed;
+        return Math.max(0, Math.min(1, ratio));
+    })();
+    const xpOffset = circumference - xpRatio * circumference;
+    const neededXp = xpForNextLevel > 0 ? Math.max(0, Math.ceil(xpForNextLevel - Math.max(0, xpInCurrentLevel))) : 0;
 
     return (
-        <div className="w-full py-2 px-3 bg-black/70 backdrop-blur-sm z-20">
-            <div className="max-w-4xl mx-auto flex justify-between items-center gap-2">
+        <div className="w-full h-20 md:h-24 px-3 bg-black/70 backdrop-blur-sm z-20">
+            <div className="max-w-4xl mx-auto h-full flex justify-between items-center gap-2">
                 {/* Left Side: Back Button or Profile */}
                 <div className="flex-shrink-0 flex justify-start items-center gap-2">
                     {showBackButton ? (
@@ -79,7 +88,7 @@ const StatusBar: React.FC<StatusBarProps> = ({
                                 title="Ir al Perfil"
                                 className="relative group flex items-center gap-1 cursor-pointer transition-transform duration-200 active:scale-95 touch-manipulation"
                             >
-                                <div ref={xpRef} className="relative w-20 h-20 md:w-24 md:h-24 flex-shrink-0">
+                                <div ref={xpRef} className="relative w-20 h-20 md:w-24 md:h-24 flex-shrink-0" title={`XP ${Math.max(0, Math.floor(xpInCurrentLevel))}/${Math.max(0, Math.floor(xpForNextLevel))}${xpForNextLevel > 0 ? ` · Faltan ${neededXp}` : ''}`}>
                                     <svg className="w-full h-full" viewBox="0 0 80 80">
                                         <defs>
                                             <linearGradient id="xpGrad" x1="0" y1="0" x2="1" y2="1">
@@ -149,7 +158,7 @@ const StatusBar: React.FC<StatusBarProps> = ({
                 </div>
 
                 {/* Right Side: Stats */}
-                <div className="flex items-center flex-nowrap gap-x-0 sm:gap-x-1">
+                <div className="flex items-center flex-wrap md:flex-nowrap gap-x-0 sm:gap-x-1">
                     <StatItem 
                         icon={(() => { const S = Star; return <S className="w-full h-full text-emerald-400" /> })()} 
                         value={perfectStreak} 

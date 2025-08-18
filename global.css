@@ -15,6 +15,11 @@ html {
   -webkit-text-size-adjust: 100%;
   -ms-text-size-adjust: 100%;
   text-size-adjust: 100%;
+  overflow-x: hidden;
+  overscroll-behavior-x: none;
+  scrollbar-gutter: stable both-edges;
+  width: 100%;
+  max-width: 100%;
 }
 
 body {
@@ -30,6 +35,21 @@ body {
   font-kerning: normal;
   background-color: #000; /* Fondo negro mate para toda la app */
   color: #e5e7eb; /* Texto base slate-200 para buen contraste */
+  overflow-x: hidden;
+  width: 100%;
+  max-width: 100%;
+  touch-action: pan-y;
+}
+
+#root {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+/* Evitar que medios provoquen overflow horizontal */
+img, video, canvas {
+  max-width: 100%;
 }
 
 /* Mejoras específicas para texto */

@@ -60,7 +60,7 @@ const NoLivesModal: React.FC<{
     return (
         <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 animate-fade-in p-4">
             <div className="bg-slate-800/80 backdrop-blur-xl border border-slate-700 p-8 rounded-2xl shadow-2xl text-center max-w-sm mx-auto transform animate-scale-in w-full">
-                <HeartCrack className="w-24 h-24 text-red-500 mx-auto mb-4" />
+                {(() => { const H = iconMap['heart_img']; return <H className="w-24 h-24 mx-auto mb-4" /> })()}
                 <h2 className="text-4xl font-black tracking-tighter text-gray-100">¡Sin Vidas!</h2>
                 <p className="text-gray-300 text-lg mt-2 mb-8">
                     Necesitas más vidas para continuar. ¡Consíguelas en la tienda!
@@ -342,8 +342,8 @@ export default function App() {
 
     useEffect(() => {
         const isAnyModalOpen = activeModal !== null || infoTooltipType !== null || leveledUpItemsToShow !== null || lastQuizResult !== null || examResult !== null || duelSummary !== null;
-        // Bloquear scroll solo en vistas realmente de pantalla completa
-        const lockForView = ['quiz', 'duel'].includes(view);
+        // Bloquear scroll en pantallas de pantalla completa y en Home
+        const lockForView = ['quiz', 'duel', 'home'].includes(view);
         const shouldLockScroll = isAnyModalOpen || lockForView;
 
         if (shouldLockScroll) {
@@ -686,8 +686,7 @@ export default function App() {
             const percentage = total > 0 ? (score / total) * 100 : 0;
             
             setExamResult({ score, total, percentage, time: timeTaken, breakdown, questions, userAnswers: answers });
-            handleBack();
-            setUserData(newUserData);
+            setUserData(prev => ({ ...(prev as UserData), ...newUserData }));
     
         } else {
             let earnedXp = 0;
@@ -756,12 +755,12 @@ export default function App() {
                 answers,
             };
             
-            handleBack();
-            setUserData(newUserData);
+            setUserData(prev => ({ ...(prev as UserData), ...newUserData }));
         
             if (leveledUpItems.length > 0) {
-                setLeveledUpItemsToShow(leveledUpItems);
-                setPendingQuizResult(result);
+                // Mostrar también en el resumen
+                result.leveledUpItems = leveledUpItems;
+                setLastQuizResult(result);
             } else {
                 setLastQuizResult(result);
             }
@@ -1068,6 +1067,7 @@ export default function App() {
 
         setAnimatingAchievementId(achievementId);
 
+        let leveledUpFromClaim: LeveledUpAchievement[] = [];
         setUserData(prev => {
             if (!prev) return null;
     
@@ -1097,12 +1097,30 @@ export default function App() {
                 newUserData.unlockedAchievements[achievementId] = level;
             }
 
+            // Recalcular nivel y logros por subida de nivel tras ganar XP al reclamar
+            const { leveledUpItems, newUnclaimedRewards, finalLevel } = handleQuizCompletionAchievements(prev, newUserData);
+            newUserData.level = finalLevel;
+            if (newUnclaimedRewards.length > 0) {
+                newUserData.unclaimedAchievementRewards = [...new Set([...
+                    newUserData.unclaimedAchievementRewards,
+                    ...newUnclaimedRewards
+                ])];
+            }
+            if (leveledUpItems.length > 0) {
+                leveledUpFromClaim = leveledUpItems;
+            }
+
             return newUserData;
         });
         
         setTimeout(() => {
             setAnimatingAchievementId(null);
         }, 800);
+
+        // Mostrar modal de subidas de nivel si las hubo por la reclamación
+        if (leveledUpFromClaim.length > 0) {
+            setLeveledUpItemsToShow(leveledUpFromClaim);
+        }
     }, [triggerAnimation, animatingAchievementId]);
 
     const handleAchievementAction = useCallback((action: Achievement['action']) => {
@@ -1405,7 +1423,8 @@ export default function App() {
             case 'quiz': {
                 const isExam = currentQuiz.id === 'exam';
                 const isPractice = currentQuiz.id === 'practice';
-                const timeLimit = isExam ? 15 * currentQuiz.questions.length : undefined;
+                const timePerQuestion = isExam ? 15 : 20;
+                const timeLimit = timePerQuestion * currentQuiz.questions.length;
             
                 return <QuizScreen 
                     quizQuestions={currentQuiz.questions} 
@@ -1430,11 +1449,18 @@ export default function App() {
         }
     };
 
-    const xpForLevel = (level: number): number => LEVEL_REWARDS.find(r => r.level === level)?.xp || 0;
-    const xpInCurrentLevel = userData.xp - xpForLevel(userData.level);
-    const xpForNextLevel = xpForLevel(userData.level + 1) - xpForLevel(userData.level);
+    const xpForLevel = (level: number): number => {
+        if (level <= 1) return 0;
+        const reward = LEVEL_REWARDS.find(r => r.level === level);
+        return reward ? reward.xp : 0;
+    };
+    const baseXpThisLevel = xpForLevel(userData.level);
+    const baseXpNextLevel = xpForLevel(userData.level + 1);
+    const xpInCurrentLevel = Math.max(0, userData.xp - baseXpThisLevel);
+    const xpForNextLevel = Math.max(1, baseXpNextLevel - baseXpThisLevel);
 
     const isFullScreenView = ['quiz', 'duel'].includes(view);
+    const isHomeView = view === 'home';
 
     if (!showMainApp) {
         return (
@@ -1452,9 +1478,9 @@ export default function App() {
     }
 
     return (
-        <div className="relative min-h-screen w-screen bg-black text-gray-100 flex flex-col">
+        <div className="relative min-h-screen w-full overflow-x-hidden bg-black text-gray-100 flex flex-col">
             {!isFullScreenView && (
-                <header className="sticky top-0 left-0 right-0 z-20 flex-shrink-0">
+                <header className="fixed top-0 left-0 right-0 z-40 flex-shrink-0">
                     <StatusBar
                         userData={userData}
                         xpInCurrentLevel={xpInCurrentLevel}
@@ -1474,8 +1500,12 @@ export default function App() {
 
             <main 
                 ref={mainRef}
-                className={`flex-grow overflow-y-auto`}
-                style={{height: isFullScreenView ? '100vh' : 'auto'}}
+                className={`flex-grow overflow-x-hidden ${!isFullScreenView ? 'overflow-y-scroll' : 'overflow-y-auto'} ${!isFullScreenView ? 'pt-20 md:pt-24' : ''}`}
+                style={{
+                    height: isFullScreenView ? '100vh' : (isHomeView ? 'calc(100vh - 6rem)' : 'auto'),
+                    overscrollBehavior: isHomeView ? ('none' as any) : undefined,
+                    scrollbarGutter: 'stable both-edges'
+                }}
             >
                 {renderContent()}
             </main>
@@ -1490,7 +1520,17 @@ export default function App() {
             <MysteryBoxModal isOpen={activeModal === 'mysteryBox'} onClose={() => setActiveModal(null)} reward={mysteryBoxReward!} />
             <LevelRewardsModal isOpen={activeModal === 'levelRewards'} onClose={() => setActiveModal(null)} userLevel={userData.level} claimedLevelRewards={userData.claimedLevelRewards} onClaimReward={handleClaimLevelReward} />
             <AchievementUnlockedModal isOpen={!!leveledUpItemsToShow} onClose={handleLeveledUpItemsModalClose} achievements={leveledUpItemsToShow || []} />
-            {lastQuizResult && <QuizSummaryScreen {...lastQuizResult} onContinue={onStudySummaryContinue} onReviewMistakes={(qs) => { setLastQuizResult(null); handleStartPractice(qs); }} />}
+            {lastQuizResult ? (
+                <QuizSummaryScreen 
+                    {...lastQuizResult} 
+                    onContinue={(rewardPositions) => { 
+                        onStudySummaryContinue(rewardPositions); 
+                        setLastQuizResult(null);
+                    }} 
+                    onViewLeveledUp={() => { setLastQuizResult(null); handleNavigate('achievements'); }}
+                    onReviewMistakes={(qs) => { setLastQuizResult(null); handleStartPractice(qs); }} 
+                />
+            ) : null}
             {examResult && <ExamResultScreen result={examResult} onContinue={handleExamResultContinue} />}
             {duelSummary && (
                 <DuelSummaryScreen
