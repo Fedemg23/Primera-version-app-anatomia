@@ -1,8 +1,19 @@
-import React, { memo, useState, useEffect } from 'react';
+import React, { memo, useState, useEffect, useRef } from 'react';
 import { UserData, ShopItem, ShopScreenProps } from '../../types';
 import { shopItems } from '../../constants';
 import { iconMap, Gift, ShopCartBold } from '../icons';
 import HelpIcon from '../HelpIcon';
+import {
+    Rarity,
+    getRewardRarity,
+    rarityColors,
+    rarityPercentages,
+    commonRewards,
+    uncommonRewards,
+    rareRewards,
+    epicRewards,
+} from '../../src/features/rewards';
+import { MysteryReward } from '../../types';
 
 const toLocalDateString = (date: Date): string => {
 	if (!date || isNaN(new Date(date).getTime())) {
@@ -12,6 +23,44 @@ const toLocalDateString = (date: Date): string => {
 	return new Date(date).toLocaleDateString('en-CA', { year: 'numeric', month: '2-digit', day: '2-digit' });
 };
 
+const renderRewardIcon = (item: MysteryReward, large: boolean = false) => {
+    const size = large ? "w-32 h-32" : "w-12 h-12";
+    if (item.type === 'avatar') {
+        return <img src={item.icon} alt={item.name} className={`${size} object-contain`} />;
+    }
+    const IconComponent = iconMap[item.icon];
+    return IconComponent ? <IconComponent className={size} /> : <div className={`${size} bg-slate-500 rounded-md`} />;
+};
+
+const RewardInfoPanel: React.FC<{onClose: () => void}> = ({ onClose }) => (
+    <div className="fixed inset-0 bg-black/90 z-50 flex justify-center items-center animate-fade-in p-4" onClick={onClose}>
+        <div className="bg-slate-800 rounded-2xl p-6 md:p-8 max-w-4xl w-full max-h-[90vh] overflow-y-auto border-2 border-slate-600" onClick={e => e.stopPropagation()}>
+            <div className="flex justify-between items-center mb-6">
+                <h2 className="text-3xl md:text-4xl font-bold text-white text-center flex-grow">Probabilidades de Recompensa</h2>
+                <button onClick={onClose} className="text-white text-4xl font-bold">&times;</button>
+            </div>
+
+            <div className="space-y-4">
+                {(['epic', 'rare', 'uncommon', 'common'] as Rarity[]).map(rarity => (
+                    <div key={rarity}>
+                        <h3 className={`text-xl md:text-2xl font-bold ${rarityColors[rarity].text}`}>{rarity.charAt(0).toUpperCase() + rarity.slice(1)} - {rarityPercentages[rarity]}</h3>
+                        <div className="flex flex-wrap gap-2 md:gap-4 mt-2">
+                            {
+                                {epic: epicRewards, rare: rareRewards, uncommon: uncommonRewards, common: commonRewards}[rarity]
+                                .map(item => (
+                                    <div key={`${item.name}-${item.amount || ''}`} className={`w-24 h-28 p-2 rounded-lg flex flex-col items-center justify-center text-center ${rarityColors[rarity].bg} border ${rarityColors[rarity].border}`}>
+                                        <div className="h-12 flex items-center">{renderRewardIcon(item, false)}</div>
+                                        <p className="text-xs font-semibold text-white mt-1 leading-tight">{item.name}</p>
+                                    </div>
+                                ))
+                            }
+                        </div>
+                    </div>
+                ))}
+            </div>
+        </div>
+    </div>
+);
 
 const ShopItemCard: React.FC<{
 	item: ShopItem;
@@ -35,13 +84,13 @@ const ShopItemCard: React.FC<{
 	const isStreakDisabled = isStreakItem && userData.streakFreezeActive;
 	const isXpBoostDisabled = isXpBoostItem && userData.xpBoostUntil > Date.now();
 	const isDoubleOrNothingDisabled = isDoubleOrNothingItem && userData.doubleOrNothingActive;
-	
+
 	const isUnaffordable = item.id !== 'double_or_nothing' && userData.bones < item.price;
 	const isDoubleOrNothingUnaffordable = isDoubleOrNothingItem && userData.bones < 50;
 
 	const isDisabledByState = isHeartDisabled || isStreakDisabled || isXpBoostDisabled || isDoubleOrNothingDisabled;
 	const isUnaffordableFinal = isUnaffordable || isDoubleOrNothingUnaffordable;
-	
+
 	const finalIsDisabled = !isReadyForInput || isDisabledByState || isUnaffordableFinal;
 
 	let buttonText: React.ReactNode;
@@ -98,10 +147,24 @@ const ShopItemCard: React.FC<{
 	);
 });
 
-const ShopScreen: React.FC<ShopScreenProps> = ({ userData, onPurchase, onClaimDailyReward }) => {
+export default function ShopScreen({ userData, onPurchase, onClaimDailyReward }: ShopScreenProps) {
 	const [isReadyForInput, setIsReadyForInput] = useState(false);
 	const [mysteryImgError, setMysteryImgError] = useState(false);
 	const [flipped, setFlipped] = useState<Record<string, boolean>>({});
+	const [isInfoVisible, setIsInfoVisible] = useState(false);
+
+	useEffect(() => {
+		const originalStyle = window.getComputedStyle(document.body).overflow;
+        if (isInfoVisible) {
+            document.body.style.overflow = 'hidden';
+        } else {
+            document.body.style.overflow = originalStyle;
+        }
+
+        return () => {
+            document.body.style.overflow = originalStyle;
+        };
+    }, [isInfoVisible]);
 
 	useEffect(() => {
 		const timer = setTimeout(() => setIsReadyForInput(true), 100);
@@ -111,7 +174,7 @@ const ShopScreen: React.FC<ShopScreenProps> = ({ userData, onPurchase, onClaimDa
 	const mysteryBoxItem = shopItems.find(item => item.id === 'mystery_box')!;
 	const lifelineItems = shopItems.filter(item => item.id.startsWith('lifeline'));
 	const generalItems = shopItems.filter(item => !item.id.startsWith('lifeline') && item.id !== 'mystery_box');
-	
+
 	const isMysteryBoxAffordable = userData.bones >= mysteryBoxItem.price;
 
 	const today = toLocalDateString(new Date());
@@ -138,7 +201,7 @@ const ShopScreen: React.FC<ShopScreenProps> = ({ userData, onPurchase, onClaimDa
 						</HelpIcon>
 					</div>
 				</div>
-				
+
 				{/* Daily Reward Section (hero image as primary button) */}
 				<div>
 					<h3 className="text-2xl font-bold text-slate-100 mb-5">Recompensa Diaria Gratuita</h3>
@@ -171,6 +234,13 @@ const ShopScreen: React.FC<ShopScreenProps> = ({ userData, onPurchase, onClaimDa
 						<h3 className="text-3xl md:text-4xl font-black section-amber-glow amber-pulse">Caja Misteriosa</h3>
 					</div>
 					<div className={`group relative w-full rounded-3xl border overflow-hidden transition-all duration-700 ease-out text-left hover:backdrop-blur-sm bg-black border-slate-700 ring-2 ring-amber-400/50 hover:ring-4 hover:ring-amber-300/80 hover:bg-white hover:text-black hover:border-white hover:[filter:drop-shadow(0_0_22px_rgba(245,158,11,0.5))]`}>
+						<button 
+                            onClick={() => setIsInfoVisible(true)}
+                            className="absolute top-3 right-3 text-white text-xl font-bold bg-slate-800/80 rounded-full w-9 h-9 flex items-center justify-center border-2 border-slate-600 hover:bg-slate-700 z-20"
+							title="Ver probabilidades"
+                        >
+                            ?
+                        </button>
 						<div className="w-full h-72 md:h-96 flex items-center justify-center p-0 md:p-1 overflow-visible">
 							{!mysteryImgError ? (
 								<img
@@ -190,8 +260,8 @@ const ShopScreen: React.FC<ShopScreenProps> = ({ userData, onPurchase, onClaimDa
 									<div className="mt-1 text-xs md:text-sm transition-colors duration-700 text-purple-200/90 group-hover:text-slate-700">Contiene una recompensa aleatoria. ¡Podría ser un avatar exclusivo, potenciadores o un montón de Huesitos!</div>
 								</div>
 								<div className="w-full md:w-auto">
-									<button 
-										onClick={(e) => onPurchase(mysteryBoxItem.id, e.currentTarget)} 
+									<button
+										onClick={(e) => onPurchase(mysteryBoxItem.id, e.currentTarget)}
 										disabled={!isReadyForInput || !isMysteryBoxAffordable}
 										className={`w-full md:w-auto px-8 py-4 rounded-xl font-bold text-lg flex items-center justify-center gap-2 shadow-lg transition-all transform enabled:active:-translate-y-0.5 enabled:active:scale-95 touch-manipulation ${isMysteryBoxAffordable ? 'bg-gradient-to-r from-yellow-400 to-amber-500 text-slate-900' : 'bg-slate-600 text-slate-400 cursor-not-allowed'}`}
 									>
@@ -239,7 +309,7 @@ const ShopScreen: React.FC<ShopScreenProps> = ({ userData, onPurchase, onClaimDa
 								})()}
 								{!flipped[item.id] ? (
 									<div className="p-5 flex flex-col items-center justify-between min-h-[22rem]">
-										<button 
+										<button
 											className="absolute top-3 right-3 z-20 w-8 h-8 rounded-full bg-white/80 ring-1 ring-slate-300 text-slate-700 hover:text-blue-600 hover:ring-blue-400 transition"
 											onClick={(e) => { e.stopPropagation(); setFlipped(prev => ({ ...prev, [item.id]: true })); }}
 											title="Información"
@@ -260,9 +330,9 @@ const ShopScreen: React.FC<ShopScreenProps> = ({ userData, onPurchase, onClaimDa
 											<div className="text-base md:text-lg font-bold botiquin-item-glow group-hover:botiquin-item-glow-dark">{item.name}</div>
 										</div>
 										<div className="pt-4 w-full">
-											<button 
-												onClick={(e) => onPurchase(item.id, e.currentTarget)} 
-												disabled={!isReadyForInput || (item.id !== 'double_or_nothing' && userData.bones < item.price)} 
+											<button
+												onClick={(e) => onPurchase(item.id, e.currentTarget)}
+												disabled={!isReadyForInput || (item.id !== 'double_or_nothing' && userData.bones < item.price)}
 												className={`w-full px-6 py-3 rounded-xl font-extrabold flex items-center justify-center gap-2 shadow-lg transition-all transform enabled:active:-translate-y-0.5 enabled:active:scale-95 touch-manipulation ${userData.bones < item.price ? ' bg-slate-200 text-slate-400 cursor-not-allowed' : ' bg-gradient-to-r from-blue-500 to-blue-600 text-white hover:shadow-blue-500/30'}`}
 											>
 												{(() => { const B = iconMap['bones']; return <B className="w-5 h-5 -mt-0.5" /> })()}
@@ -272,7 +342,7 @@ const ShopScreen: React.FC<ShopScreenProps> = ({ userData, onPurchase, onClaimDa
 									</div>
 								) : (
 									<div className="p-5 bg-transparent text-slate-100 group-hover:text-slate-800 min-h-[22rem] flex flex-col">
-										<button 
+										<button
 											className="absolute top-3 right-3 z-20 w-8 h-8 rounded-full bg-white/80 ring-1 ring-slate-300 text-slate-700 hover:text-blue-600 hover:ring-blue-400 transition"
 											onClick={(e) => { e.stopPropagation(); setFlipped(prev => ({ ...prev, [item.id]: false })); }}
 											title="Volver"
@@ -299,19 +369,18 @@ const ShopScreen: React.FC<ShopScreenProps> = ({ userData, onPurchase, onClaimDa
 					</div>
 					<div className="grid grid-cols-2 md:grid-cols-4 gap-5">
 						{generalItems.map(item => (
-							<ShopItemCard 
-								key={item.id} 
-								item={item} 
-								userData={userData} 
-								onPurchase={onPurchase} 
-								isReadyForInput={isReadyForInput} 
+							<ShopItemCard
+								key={item.id}
+								item={item}
+								userData={userData}
+								onPurchase={onPurchase}
+								isReadyForInput={isReadyForInput}
 							/>
 						))}
 					</div>
 				</div>
 			</div>
+			{isInfoVisible && <RewardInfoPanel onClose={() => setIsInfoVisible(false)} />}
 		</div>
 	);
-};
-
-export default memo(ShopScreen);
+}

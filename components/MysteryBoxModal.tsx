@@ -1,79 +1,197 @@
-
-import React, { useState, useEffect, memo } from 'react';
-import { MysteryReward } from '../types';
-import { Gift, iconMap } from './icons';
+import React, { useState, useEffect } from 'react';
+import { MysteryReward, UserData } from '../types';
+import { iconMap } from './icons';
+import { 
+    Rarity,
+    getRewardRarity, 
+    rarityColors, 
+    rarityPercentages,
+    commonRewards,
+    uncommonRewards,
+    rareRewards,
+    epicRewards,
+} from '../src/features/rewards';
 
 interface MysteryBoxModalProps {
     isOpen: boolean;
     onClose: () => void;
     reward: MysteryReward;
+    onClaim: (reward: MysteryReward) => void;
+    userData: UserData;
 }
 
-const MysteryBoxModal: React.FC<MysteryBoxModalProps> = ({ isOpen, onClose, reward }) => {
-    const [isOpening, setIsOpening] = useState(false);
+const ITEM_WIDTH = 240; // w-60
+const MARGIN = 8; // mx-2 on each side = 8px
+const TOTAL_ITEM_WIDTH = ITEM_WIDTH + MARGIN * 2;
+
+const MysteryBoxModal: React.FC<MysteryBoxModalProps> = ({ isOpen, onClose, reward, onClaim, userData }) => {
+    const [isRolling, setIsRolling] = useState(false);
     const [isRevealed, setIsRevealed] = useState(false);
-    
+    const [rollSequence, setRollSequence] = useState<MysteryReward[]>([]);
+    const [translateX, setTranslateX] = useState(0);
+
     useEffect(() => {
-        if (isOpen) {
-            setIsOpening(false);
+        if (isOpen && reward) {
+            // Reset states
+            setIsRolling(false);
             setIsRevealed(false);
-            const openTimer = setTimeout(() => setIsOpening(true), 500);
-            const revealTimer = setTimeout(() => setIsRevealed(true), 1500);
+            setTranslateX(0);
+
+            const totalItems = 100;
+            const winningIndex = 85;
+
+            // Create a purely decorative random sequence
+            let sequence = Array.from({ length: totalItems }, (_, i) => {
+                const r = Math.random();
+                if (r < 0.05) return epicRewards[i % epicRewards.length];
+                if (r < 0.15) return rareRewards[i % rareRewards.length];
+                if (r < 0.40) return uncommonRewards[i % uncommonRewards.length];
+                return commonRewards[i % commonRewards.length];
+            });
+            setRollSequence(sequence);
+
+            // --- Animation Logic ---
+            const finalPosition = (winningIndex * TOTAL_ITEM_WIDTH) - (window.innerWidth / 2) + (TOTAL_ITEM_WIDTH / 2);
+            const startPosition = finalPosition - 20000; // Increased distance for more speed
+            
+            setTranslateX(-startPosition);
+
+            const rollTimer = setTimeout(() => {
+                setIsRolling(true);
+                setTranslateX(-finalPosition);
+            }, 100);
+
+            // Reveal the ACTUAL reward card after 3.5 seconds of spinning
+            const revealTimer = setTimeout(() => {
+                setIsRevealed(true);
+            }, 3500);
+
             return () => {
-                clearTimeout(openTimer);
+                clearTimeout(rollTimer);
                 clearTimeout(revealTimer);
             };
         }
-    }, [isOpen]);
+    }, [isOpen, reward]);
 
     if (!isOpen) return null;
 
-    let rewardIconElement: React.ReactNode;
-    if (reward.type === 'avatar') {
-        rewardIconElement = <span className="text-6xl">{reward.icon}</span>;
-    } else {
-        // Mapear a imágenes actuales: huesitos, heart, lifelines
-        const key = reward.icon === '🦴' ? 'bones' : reward.icon;
-        const IconComponent = iconMap[key] || null;
-        rewardIconElement = IconComponent ? <IconComponent className="w-16 h-16" /> : null;
-    }
+    const renderIcon = (item: MysteryReward, large: boolean = false) => {
+        const size = large ? "w-40 h-40" : "w-40 h-40"; // Increased size for spinning items
+        if (item.type === 'avatar') {
+            return <img src={item.icon} alt={item.name} className={`${size} object-contain`} />;
+        }
+        const IconComponent = iconMap[item.icon];
+        return IconComponent ? <IconComponent className={size} /> : <div className={`${size} bg-slate-500 rounded-md`} />;
+    };
+    
+    const rewardRarity = getRewardRarity(reward);
+    const colors = rarityColors[rewardRarity];
 
     return (
-        <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 animate-fade-in p-4" onClick={onClose}>
-            <div className="bg-white dark:bg-gray-800 p-8 rounded-2xl shadow-2xl text-center max-w-sm mx-auto transform animate-scale-in w-full" onClick={(e) => e.stopPropagation()}>
-                
-                {!isRevealed ? (
-                    <>
-                        <h2 className="text-3xl font-black tracking-tighter text-gray-800 dark:text-gray-200 mb-4">Caja Misteriosa</h2>
-                        <div className={`relative w-40 h-40 mx-auto transition-transform duration-1000 ${isOpening ? 'scale-110' : 'scale-100'}`}>
-                            <Gift className={`w-full h-full text-gray-500 transition-all duration-500 ${isOpening ? 'text-amber-500' : ''}`} />
-                            {isOpening && (
-                                <>
-                                    <div className="absolute top-0 left-0 w-full h-full animate-ping-slow bg-yellow-300 rounded-full opacity-50 -z-10"></div>
-                                    <div className="absolute top-0 left-0 w-full h-full animate-shine-pulse border-4 border-yellow-300 rounded-full"></div>
-                                </>
-                            )}
-                        </div>
-                        <p className="text-gray-500 dark:text-gray-400 mt-4 font-semibold">Abriendo...</p>
-                    </>
-                ) : (
-                    <div className="animate-fade-in">
-                         <h2 className="text-3xl font-black tracking-tighter text-gray-800 dark:text-gray-200 mb-4">¡Has conseguido!</h2>
-                         <div className="w-24 h-24 mx-auto my-4 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center animate-scale-in">
-                            {rewardIconElement}
-                         </div>
-                         <p className="font-black text-4xl text-gray-700 dark:text-amber-400">{reward.name}</p>
-                         <button 
-                            onClick={onClose} 
-                            className="mt-8 w-full bg-gray-800 dark:bg-gray-200 text-white dark:text-black font-bold py-3 px-4 rounded-xl text-lg shadow-lg hover:shadow-xl transition-shadow active:scale-95 touch-manipulation"
+        <div className="fixed inset-0 bg-black/90 z-50 flex flex-col justify-center items-center transition-opacity duration-300 overflow-hidden" style={{ opacity: isOpen ? 1 : 0 }}>
+            <div className="absolute top-4 right-4 flex items-center gap-4 z-30">
+                <button onClick={onClose} className="text-white text-4xl font-bold">&times;</button>
+            </div>
+            
+            <div className="w-full text-center mb-8 h-20 flex items-center justify-center">
+                <h1 className={`text-6xl font-black text-white uppercase tracking-widest transition-all duration-500 ${isRevealed ? 'scale-110' : 'scale-100'}`}>
+                    {isRevealed ? '¡Has Ganado!' : 'Abriendo Caja'}
+                </h1>
+            </div>
+            
+            <div className="relative w-full h-64">
+                {/* This container will fade out, taking both the glow and the bar with it */}
+                <div className={`absolute inset-0 transition-opacity duration-1000 ${isRevealed ? 'opacity-0' : 'opacity-100'}`}>
+                    
+                    {/* Illumination Effect */}
+                    <div className="absolute -bottom-10 left-1/2 -translate-x-1/2 w-3/4 h-3/4 bg-amber-400/20 rounded-full blur-3xl z-0"></div>
+
+                    {/* Spinning Bar Container */}
+                    <div className="relative w-full h-full overflow-hidden z-10">
+                        <div className="absolute top-1/2 left-0 w-full h-48 -translate-y-1/2 bg-black/30"></div>
+                        
+                        <div
+                            className="flex h-full items-center"
+                            style={{
+                                transform: `translateX(${translateX}px)`,
+                                transition: isRolling ? 'transform 5s cubic-bezier(0.25, 0.1, 0.25, 1)' : 'none',
+                            }}
                         >
-                            ¡Increíble!
+                            {rollSequence.map((item, index) => {
+                                const rarity = getRewardRarity(item);
+                                const itemColors = rarityColors[rarity];
+
+                                return (
+                                <div
+                                    key={index}
+                                    className={`flex-shrink-0 w-60 h-64 mx-2 ${itemColors.bg} border-2 ${itemColors.border} rounded-lg flex flex-col justify-center items-center p-2 shadow-lg ${itemColors.shadow}`}
+                                >
+                                    <div className="w-48 h-48 flex items-center justify-center mb-2">
+                                        {renderIcon(item)}
+                                    </div>
+                                    <p className="text-white font-bold text-center text-sm">{item.name}</p>
+                                    {item.type === 'bones' && <p className={`text-xs ${itemColors.text}`}>{item.amount}</p>}
+                                </div>
+                            )})}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            {/* --- Reward Reveal Card --- */}
+            {isRevealed && (() => {
+                let beforeValue: number | null = null;
+                let afterValue: number | null = null;
+
+                if (reward.type === 'bones' && reward.amount) {
+                    beforeValue = userData.bones;
+                    afterValue = userData.bones + reward.amount;
+                } else if (reward.type === 'heart') {
+                    beforeValue = userData.hearts;
+                    afterValue = userData.hearts + (reward.amount || 1);
+                } else if (reward.type.startsWith('lifeline')) {
+                    const lifelineKey = reward.type.replace('lifeline_', '') as keyof UserData['lifelineData'];
+                    beforeValue = userData.lifelineData[lifelineKey] as number;
+                    afterValue = (userData.lifelineData[lifelineKey] as number || 0) + 1;
+                }
+
+                return (
+                    <div className="absolute inset-0 z-30 flex flex-col justify-center items-center bg-black/50 backdrop-blur-sm animate-fade-in">
+                        <div className={`relative w-80 h-96 ${colors.bg} border-4 ${colors.border} rounded-2xl flex flex-col justify-between items-center p-6 shadow-2xl ${colors.shadow} animate-card-reveal`}>
+                            {/* Top Section: Icon and Name */}
+                            <div className="flex flex-col items-center">
+                                <div className="w-48 h-48 flex items-center justify-center mb-4">
+                                    {renderIcon(reward, true)}
+                                </div>
+                                <h2 className="text-white font-bold text-center text-3xl mb-1">{reward.name}</h2>
+                                {reward.type === 'bones' && <p className={`text-xl ${colors.text}`}>{reward.amount}</p>}
+                            </div>
+
+                            {/* Bottom Section: Rarity and Quantity Change */}
+                            <div className="flex flex-col items-center text-center">
+                                <p className={`font-bold uppercase text-lg ${colors.text} mb-2`}>{rewardRarity}</p>
+                                
+                                {beforeValue !== null && afterValue !== null && (
+                                    <div className="bg-black/40 px-4 py-2 rounded-lg">
+                                        <p className="text-white text-2xl font-semibold tracking-wider">
+                                            {beforeValue} <span className="text-amber-400 mx-2">→</span> {afterValue}
+                                        </p>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+
+                        <button 
+                            onClick={() => onClaim(reward)} 
+                            className="mt-8 bg-amber-500 text-black font-bold uppercase py-4 px-12 rounded-lg text-2xl tracking-wider hover:bg-amber-400 transition-all duration-300 active:scale-95"
+                        >
+                            Reclamar
                         </button>
                     </div>
-                )}
-            </div>
+                );
+            })()}
         </div>
     );
 };
 
-export default memo(MysteryBoxModal);
+export default MysteryBoxModal;

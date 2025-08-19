@@ -8,7 +8,7 @@ import {
     LEVEL_REWARDS, MAX_LEVEL, achievementsData, shopItems, questionBank, PASS_THRESHOLD, AVATAR_DATA, dailyChallengesData, navigationData, HEART_REGEN_TIME, aiOpponentsData
 } from './constants';
 import { mockFirebase } from './services/firebase';
-import { ChevronsUp, Award, Shield, Zap, Heart, Store, XCircle, HeartCrack, CheckCircle, Split, Lightbulb, Undo2, LogOut, Swords, BookOpen } from './components/icons';
+import { ChevronsUp, Award, Shield, Zap, Heart, Store, XCircle, HeartCrack, CheckCircle, Split, Lightbulb, Undo2, LogOut, Swords, BookOpen, Gift } from './components/icons';
 import { useAnimation } from './components/AnimationProvider';
 import { iconMap } from './components/icons';
 
@@ -36,6 +36,8 @@ import DuelLobbyScreen from './components/screens/DuelLobbyScreen';
 import DuelScreen from './components/screens/DuelScreen';
 import DuelSummaryScreen from './components/screens/DuelSummaryScreen';
 import CreateNoteScreen from './components/screens/CreateNoteScreen'; 
+import { imageAvatars } from './src/avatarLoader';
+import { getWeightedReward } from './src/features/rewards';
 
 
 type ModalType = 'dailyBonus' | 'mysteryBox' | 'levelRewards' | 'settings' | 'noLives';
@@ -470,20 +472,7 @@ export default function App() {
         });
     }, [showToast]);
 
-    // Exponer apertura de tour para el botón en Ajustes
-    useEffect(() => {
-        (window as any).__OPEN_TOUR__ = () => setIsTourOpen(true);
-        (window as any).__NAVIGATE__ = (v: View) => setView(v);
-        (window as any).__SCROLL_TO__ = (selector: string) => {
-            try {
-                const el = document.querySelector(selector) as HTMLElement | null;
-                el?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            } catch {}
-        };
-        return () => { delete (window as any).__OPEN_TOUR__; };
-    }, []);
-
-    const handleUnlockAll = useCallback(() => {
+    const handleUnlockAll = () => {
         setUserData(prev => {
             if (!prev) return null;
             
@@ -497,8 +486,21 @@ export default function App() {
             maxedOutUserData.unlockedAvatars = AVATAR_DATA.map(a => a.id);
             maxedOutUserData.claimedChallenges = dailyChallengesData.map(c => c.id);
             maxedOutUserData.purchases = { 'double_or_nothing': 100, 'neural_eraser': 50 };
-            maxedOutUserData.lifelineData = { fiftyFifty: 99, quickReview: 99, secondChance: 99 };
-            maxedOutUserData.bones = 50000;
+            
+            // Set resources to specific values for testing
+            maxedOutUserData.bones = 99999;
+            maxedOutUserData.hearts = 5;
+            maxedOutUserData.streakFreezeActive = true;
+            maxedOutUserData.xpBoostUntil = Date.now() + 365 * 24 * 60 * 60 * 1000; // 1 year
+            maxedOutUserData.lifelineData = { 
+                fiftyFifty: 50, 
+                quickReview: 50, 
+                secondChance: 50, 
+                adrenaline: 50, 
+                skip: 50, 
+                double: 50, 
+                immunity: 50 
+            };
 
             const allPassedProgress: { [key: string]: { bestScore: number; passed: boolean } } = {};
             navigationData.forEach(region => {
@@ -538,7 +540,20 @@ export default function App() {
             setActiveModal(null);
             return maxedOutUserData;
         });
-    }, [showToast]);
+    };
+
+    // Exponer apertura de tour para el botón en Ajustes
+    useEffect(() => {
+        (window as any).__OPEN_TOUR__ = () => setIsTourOpen(true);
+        (window as any).__NAVIGATE__ = (v: View) => setView(v);
+        (window as any).__SCROLL_TO__ = (selector: string) => {
+            try {
+                const el = document.querySelector(selector) as HTMLElement | null;
+                el?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            } catch {}
+        };
+        return () => { delete (window as any).__OPEN_TOUR__; };
+    }, []);
 
     const handleStartPractice = useCallback((practiceQuestions: QuestionData[]) => {
         if (practiceQuestions.length === 0) {
@@ -968,6 +983,44 @@ export default function App() {
         }
     }, [pendingQuizResult]);
 
+    const handleClaimReward = (reward: MysteryReward) => {
+        setUserData(prev => {
+            if (!prev) return null;
+            const newUserData = JSON.parse(JSON.stringify(prev));
+
+            switch (reward.type) {
+                case 'bones':
+                    newUserData.bones += reward.amount;
+                    break;
+                case 'heart':
+                    // Exception: Hearts from Mystery Box can overflow the normal cap
+                    newUserData.hearts += (reward.amount || 1);
+                    break;
+                case 'streak_freeze':
+                    newUserData.streakFreezeActive = true;
+                    break;
+                case 'xp_boost':
+                    newUserData.xpBoostUntil = Date.now() + 15 * 60 * 1000;
+                    break;
+                case 'avatar':
+                    if (reward.avatarId && !newUserData.unlockedAvatars.includes(reward.avatarId)) {
+                        newUserData.unlockedAvatars.push(reward.avatarId);
+                    }
+                    break;
+                default: // Lifelines
+                    if (reward.type.startsWith('lifeline')) {
+                        const lifelineKey = reward.type.replace('lifeline_', '') as keyof UserData['lifelineData'];
+                        if (typeof newUserData.lifelineData[lifelineKey] === 'number') {
+                            newUserData.lifelineData[lifelineKey] = newUserData.lifelineData[lifelineKey] + 1;
+                        }
+                    }
+                    break;
+            }
+            return newUserData;
+        });
+        setActiveModal(null); // Close the modal after claiming
+    };
+
     const handlePurchase = useCallback((itemId: ShopItem['id'], startElement: HTMLElement) => {
         setUserData(prev => {
             if (!prev) return null;
@@ -1048,38 +1101,15 @@ export default function App() {
                     toastMessage = '¡Inmunidad comprada!';
                     toastIcon = (() => { const I = iconMap['lifeline_immunity']; return <I className="w-5 h-5" /> })();
                     break;
-                case 'mystery_box':
-                    const rewards: MysteryReward[] = [
-                        { type: 'bones' as const, amount: Math.floor(Math.random() * 200) + 50, name: 'Huesitos', icon: 'bones' },
-                        { type: 'xp_boost' as const, name: 'Boost de XP', icon: 'xp_boost'},
-                        { type: 'streak_freeze' as const, name: 'Protector de Racha', icon: 'streak_freeze' },
-                        { type: 'heart' as const, name: '1 Vida', icon: 'buy_one_heart' },
-                        { type: 'lifeline_fifty_fifty' as const, name: '50/50', icon: 'lifeline_fifty_fifty' },
-                        { type: 'lifeline_quick_review' as const, name: 'Pista', icon: 'lifeline_quick_review' },
-                        { type: 'lifeline_second_chance' as const, name: 'Revivir', icon: 'lifeline_second_chance' },
-                        { type: 'lifeline_adrenaline' as const, name: 'Adrenalina', icon: 'lifeline_adrenaline' },
-                        { type: 'lifeline_skip' as const, name: 'Salta', icon: 'lifeline_skip' },
-                        { type: 'lifeline_double' as const, name: 'Duplica', icon: 'lifeline_double' },
-                        { type: 'lifeline_immunity' as const, name: 'Inmunidad', icon: 'lifeline_immunity' },
-                        ...AVATAR_DATA.filter(a => a.unlockCondition.type === 'achievement' && a.unlockCondition.value === 'mystery_box' && !newUserData.unlockedAvatars.includes(a.id))
-                            .map(a => ({ type: 'avatar' as const, avatarId: a.id, name: a.name, icon: a.emoji }))
-                    ];
-                    const selectedReward = rewards[Math.floor(Math.random() * rewards.length)];
-                    setMysteryBoxReward(selectedReward);
-                    if (selectedReward.type === 'bones') newUserData.bones += selectedReward.amount!;
-                    if (selectedReward.type === 'xp_boost') newUserData.xpBoostUntil = Date.now() + 15 * 60 * 1000;
-                    if (selectedReward.type === 'streak_freeze') newUserData.streakFreezeActive = true;
-                    if (selectedReward.type === 'heart') newUserData.hearts = Math.min(5, newUserData.hearts + 1);
-                    if (selectedReward.type === 'lifeline_fifty_fifty') newUserData.lifelineData.fiftyFifty++;
-                    if (selectedReward.type === 'lifeline_quick_review') newUserData.lifelineData.quickReview++;
-                    if (selectedReward.type === 'lifeline_second_chance') newUserData.lifelineData.secondChance++;
-                    if (selectedReward.type === 'lifeline_adrenaline') newUserData.lifelineData.adrenaline++;
-                    if (selectedReward.type === 'lifeline_skip') newUserData.lifelineData.skip++;
-                    if (selectedReward.type === 'lifeline_double') newUserData.lifelineData.double++;
-                    if (selectedReward.type === 'lifeline_immunity') newUserData.lifelineData.immunity++;
-                    if (selectedReward.type === 'avatar' && selectedReward.avatarId) newUserData.unlockedAvatars.push(selectedReward.avatarId);
+                case 'mystery_box': {
+                    const chosenReward = getWeightedReward();
+                    setMysteryBoxReward(chosenReward);
+                    
+                    toastMessage = '¡Caja Misteriosa abierta!';
+                    toastIcon = <Gift className="w-5 h-5 text-white"/>;
                     setTimeout(() => setActiveModal('mysteryBox'), 100);
-                    return newUserData;
+                    break;
+                }
                 case 'xp_pack':
                     newUserData.xp += 50;
                     toastMessage = "+50 XP añadidos!";
@@ -1115,9 +1145,19 @@ export default function App() {
             const tier = achievement.tiers.find(t => t.level === level);
             const bonesReward = tier?.reward?.bones || 0;
             const xpReward = tier?.reward?.xp || 0;
+            const avatarRewardId = tier?.reward?.avatarId;
     
             if (bonesReward > 0) triggerAnimation({ type: 'bone', count: Math.min(10, Math.ceil(bonesReward / 10)), startElement });
             if (xpReward > 0) triggerAnimation({ type: 'xp', count: Math.min(10, Math.ceil(xpReward / 20)), startElement });
+            
+            // Unlock avatar if it's part of the achievement reward
+            if (avatarRewardId && !newUserData.unlockedAvatars.includes(avatarRewardId)) {
+                newUserData.unlockedAvatars.push(avatarRewardId);
+                const avatar = AVATAR_DATA.find(a => a.id === avatarRewardId);
+                if (avatar) {
+                   showToast(`Avatar desbloqueado: ${avatar.name}`, 'success', <span>{avatar.emoji}</span>);
+                }
+            }
     
             newUserData.bones += bonesReward;
             newUserData.xp += xpReward;
@@ -1503,6 +1543,7 @@ export default function App() {
                         /* reclamo se procesa ya en handleCloseBonusModal o donde corresponda */
                     }}
                 />
+                {/* The Mystery Box Modal will now be handled in the main return block */}
             </>
         )
     }
@@ -1547,7 +1588,17 @@ export default function App() {
             <TourGuide isOpen={isTourOpen} onClose={() => setIsTourOpen(false)} />
             <InfoTooltip isOpen={!!infoTooltipType} onClose={() => setInfoTooltipType(null)} type={infoTooltipType} hearts={userData.hearts} nextHeartAt={userData.nextHeartAt} />
             <NoLivesModal isOpen={activeModal === 'noLives'} onClose={() => setActiveModal(null)} onGoToShop={() => { setActiveModal(null); handleNavigate('shop'); }} />
-            <MysteryBoxModal isOpen={activeModal === 'mysteryBox'} onClose={() => setActiveModal(null)} reward={mysteryBoxReward!} />
+            
+            {activeModal === 'mysteryBox' && mysteryBoxReward && (
+                <MysteryBoxModal 
+                    isOpen={true} 
+                    onClose={() => setActiveModal(null)} 
+                    reward={mysteryBoxReward}
+                    onClaim={handleClaimReward}
+                    userData={userData}
+                />
+            )}
+
             <LevelRewardsModal isOpen={activeModal === 'levelRewards'} onClose={() => setActiveModal(null)} userLevel={userData.level} claimedLevelRewards={userData.claimedLevelRewards} onClaimReward={handleClaimLevelReward} />
             <AchievementUnlockedModal isOpen={!!leveledUpItemsToShow} onClose={handleLeveledUpItemsModalClose} achievements={leveledUpItemsToShow || []} />
             {lastQuizResult ? (

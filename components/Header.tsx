@@ -74,15 +74,15 @@ const StatusBar: React.FC<StatusBarProps> = ({
 
     return (
         <div className="w-full h-20 md:h-24 px-3 bg-black z-20">
-            <div className="max-w-4xl mx-auto h-full flex justify-between items-center gap-2">
+            <div className="max-w-7xl mx-auto h-full flex justify-between items-center gap-4 md:gap-8">
                 {/* Left Side: Back Button or Profile */}
-                <div className="flex-shrink-0 flex justify-start items-center gap-2">
+                <div className="flex-shrink-0 flex justify-start items-center gap-2 md:gap-4">
                     {showBackButton ? (
                         <button onClick={onBack} title="Volver" className="p-2 rounded-full active:bg-slate-800 transition-colors active:scale-90 touch-manipulation">
                             <ArrowLeft className="w-7 h-7 text-slate-200" />
                         </button>
                     ) : (
-                        <div className="flex items-center gap-3">
+                        <div className="flex items-center gap-3 md:gap-5">
                             <button 
                                 onClick={onNavigateToProfile}
                                 title="Ir al Perfil"
@@ -159,7 +159,7 @@ const StatusBar: React.FC<StatusBarProps> = ({
                 </div>
 
                 {/* Right Side: Stats */}
-                <div className="flex items-center flex-wrap md:flex-nowrap gap-x-0 sm:gap-x-1">
+                <div className="flex items-center flex-wrap md:flex-nowrap gap-x-0 sm:gap-x-1 md:gap-x-3">
                     <StatItem 
                         icon={(() => { const S = Star; return <S className="w-full h-full text-white" /> })()} 
                         value={perfectStreak} 
@@ -189,7 +189,7 @@ const StatusBar: React.FC<StatusBarProps> = ({
                         onClick={() => onOpenInfoTooltip('hearts')}
                     />
                     
-                    <button onClick={onOpenSettings} title="Ajustes" className="ml-2 flex-shrink-0 transition-transform active:scale-95 p-2 rounded-full active:bg-slate-800 touch-manipulation">
+                    <button onClick={onOpenSettings} title="Ajustes" className="ml-2 md:ml-4 flex-shrink-0 transition-transform active:scale-95 p-2 rounded-full active:bg-slate-800 touch-manipulation">
                         <Settings className="w-6 h-6 text-slate-400 active:text-white" />
                     </button>
                 </div>
