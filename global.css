@@ -146,7 +146,7 @@ img, svg {
   user-select: none;
   -webkit-touch-callout: none;
   -webkit-user-drag: none;
-  pointer-events: auto; /* mantiene clics en botones que contengan imágenes */
+  pointer-events: none; /* evita long-press context menu/copy en iOS/Android */
 }
 
 /* Opcional: prevenir arrastre fantasma de imágenes */

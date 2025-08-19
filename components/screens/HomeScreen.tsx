@@ -84,7 +84,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onSelectMode, userData, onNavig
     `;
 
     return (
-        <div className="relative flex flex-col h-full items-center p-4">
+        <div className="relative flex flex-col h-full items-center p-4 pb-24 md:pb-28" style={{ paddingBottom: 'calc(6rem + env(safe-area-inset-bottom))' }}>
             <img 
                 src="/images/logo-bone.png" 
                 alt="AnatomyGO" 
@@ -153,7 +153,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onSelectMode, userData, onNavig
                             </div>
                         </button>
                     </div>
-                    <div className="w-full max-w-[300px] sm:max-w-[360px] mx-auto mt-3 md:mt-5">
+                    <div className="w-full max-w-[300px] sm:max-w-[360px] mx-auto mt-3 md:mt-5 sticky bottom-4 z-10">
                         <button
                             onClick={() => onNavigate('challenges')}
                             disabled={!isReadyForInput}

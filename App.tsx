@@ -1525,7 +1525,7 @@ export default function App() {
                         onStudySummaryContinue(rewardPositions); 
                         setLastQuizResult(null);
                     }} 
-                    onViewLeveledUp={() => { setLastQuizResult(null); handleNavigate('achievements'); }}
+                    onViewLeveledUp={() => { setLastQuizResult(null); viewHistory.current = ['home']; setView('home'); }}
                     onReviewMistakes={(qs) => { setLastQuizResult(null); handleStartPractice(qs); }} 
                 />
             ) : null}

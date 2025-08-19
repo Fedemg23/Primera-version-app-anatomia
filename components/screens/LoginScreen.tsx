@@ -48,7 +48,7 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ onSignIn }) => {
     };
 
     return (
-        <div className="bg-black min-h-screen w-screen flex items-center justify-center p-4">
+        <div className="bg-black min-h-screen w-screen flex items-center justify-center p-4 pb-8" style={{ paddingBottom: 'calc( env(safe-area-inset-bottom) + 2.5rem )' }}>
             {/* Contenido central sin contenedor/caja */}
             <div className="text-center max-w-2xl mx-auto px-2">
                 <div className="mx-auto w-56 h-56 md:w-72 md:h-72 flex items-center justify-center mb-8 mt-6 md:mt-12">
@@ -66,7 +66,7 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ onSignIn }) => {
                 <h1 className="text-6xl md:text-7xl font-black title-white-clean">AnatomyGO</h1>
                 <p className="text-slate-300 mb-8 md:mb-10 text-lg">Tu aventura de anatomía te espera.</p>
 
-                <div className="space-y-3">
+                <div className="space-y-3 max-w-sm mx-auto w-full">
                     <button
                         onClick={handleSignInReal}
                         disabled={isSigningIn}

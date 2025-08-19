@@ -287,13 +287,11 @@ const QuizScreen: React.FC<QuizScreenProps> = ({ quizQuestions, onQuizComplete, 
     };
 
     return (
-        <div className={`relative flex flex-col min-h-screen overflow-hidden bg-black transition-colors duration-500`}>
+        <div className={`relative flex flex-col h-screen overflow-hidden bg-black transition-colors duration-500`}>
             {timeLimit && <Timer timeLimit={timeLimit} onTimeUp={handleTimeUp} externalIncrement={timerIncrement} />}
-            <button onClick={onBack} className="absolute top-4 right-4 text-slate-400 active:text-white z-30 transition-transform active:scale-95 touch-manipulation">
-                <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-            </button>
+            {/* Botón de cerrar eliminado para que no se pueda salir del cuestionario hasta terminar */}
             
-            <div className="flex-grow p-4 flex flex-col pt-16 sm:pt-4">
+            <div className="flex-1 min-h-0 p-3 flex flex-col pt-14 sm:pt-4">
                 {title && <h2 className="text-center font-graffiti text-2xl text-slate-300 mb-2 tracking-wide -rotate-1">{title}</h2>}
                 
                 <div className="w-full bg-slate-700 rounded-full h-3 mb-4 flex-shrink-0">
@@ -309,7 +307,10 @@ const QuizScreen: React.FC<QuizScreenProps> = ({ quizQuestions, onQuizComplete, 
                 )}
                 
                 
-                <div className={`grid grid-cols-1 gap-2 md:gap-3 lg:gap-4 flex-none px-2 md:px-3 lg:px-4 pb-28 w-full max-w-none ${isAnswered ? 'pointer-events-none opacity-90' : ''}`}>
+                <div
+                    className={`grid grid-cols-1 grid-rows-4 gap-1.5 md:gap-2 lg:gap-3 flex-1 min-h-0 px-2 md:px-3 lg:px-4 w-full max-w-none ${isAnswered ? 'pointer-events-none opacity-90' : ''}`}
+                    style={{ paddingBottom: immediateFeedback && !isAnswered ? 'calc(env(safe-area-inset-bottom) + 4.5rem)' : 'calc(env(safe-area-inset-bottom) + 0rem)' }}
+                >
                     {!isFillInTheBlank ? (
                         currentQuestion.opciones.map((option, index) => {
                             let buttonClass = 'border-2 border-slate-700 bg-slate-800/60 hover:bg-slate-700/60 active:bg-slate-700 text-slate-200';
@@ -327,7 +328,7 @@ const QuizScreen: React.FC<QuizScreenProps> = ({ quizQuestions, onQuizComplete, 
                                 buttonClass += ' opacity-30 cursor-not-allowed line-through';
                             }
                             return (
-                                <button key={index} onClick={() => handleAnswerSubmit(index)} disabled={isAnswered || isDisabledByLifeline} className={`w-full text-left py-1 px-2 md:py-1.5 md:px-3 lg:py-2 lg:px-4 rounded-lg text-[11px] md:text-sm lg:text-base font-semibold transition-all duration-200 flex justify-between items-center gap-1.5 md:gap-2 min-w-0 touch-manipulation ${buttonClass}`}>
+                                <button key={index} onClick={() => handleAnswerSubmit(index)} disabled={isAnswered || isDisabledByLifeline} className={`w-full h-full text-left py-0.5 px-2 md:py-1 md:px-3 lg:py-1.5 lg:px-4 rounded-lg text-[11px] md:text-sm lg:text-base font-semibold transition-all duration-200 flex justify-between items-center gap-1.5 md:gap-2 min-w-0 touch-manipulation ${buttonClass}`}>
                                     <span className="flex-1 whitespace-normal break-words leading-snug md:leading-normal">{option}</span>
                                     {isAnswered && index === currentQuestion.indiceRespuestaCorrecta && <CheckCircle className="w-4 h-4 md:w-5 md:h-5 text-emerald-500" />}
                                     {isAnswered && index === selectedAnswer && index !== currentQuestion.indiceRespuestaCorrecta && <XCircle className="w-4 h-4 md:w-5 md:h-5 text-red-500" />}
@@ -350,7 +351,7 @@ const QuizScreen: React.FC<QuizScreenProps> = ({ quizQuestions, onQuizComplete, 
                 
                 {/* Botiquín: comodines antes de responder */}
                 {immediateFeedback && !isAnswered && (
-                  <div className="flex-shrink-0 pt-3 pb-3 px-3 fixed bottom-0 left-0 right-0 z-20 bg-black/80 backdrop-blur-sm" style={{ paddingBottom: 'calc(env(safe-area-inset-bottom) + 1rem)' }}>
+                  <div className="pt-2 pb-2 px-3 fixed bottom-0 left-0 right-0 z-20 bg-black/80 backdrop-blur-sm" style={{ paddingBottom: 'calc(env(safe-area-inset-bottom) + 0.75rem)' }}>
                     <div className="flex justify-center items-center gap-3 md:gap-4 flex-wrap">
                       {!isFillInTheBlank && (() => { const I = iconMap['lifeline_fifty_fifty']; return <LifelineButton name="50/50" icon={<I className="w-[90%] h-[90%] md:w-[92%] md:h-[92%]" />} count={lifelines.fiftyFifty} onClick={useFiftyFifty} disabled={lifelines.fiftyFifty <= 0 || lifelinesUsedThisQuestion.fiftyFifty} /> })()}
                       {(() => { const I = iconMap['lifeline_quick_review']; return <LifelineButton name="La Pista" icon={<I className="w-[90%] h-[90%] md:w-[92%] md:h-[92%]" />} count={lifelines.quickReview} onClick={useQuickReview} disabled={lifelines.quickReview <= 0 || lifelinesUsedThisQuestion.quickReview} /> })()}
@@ -374,7 +375,7 @@ const QuizScreen: React.FC<QuizScreenProps> = ({ quizQuestions, onQuizComplete, 
             )}
 
             {isAnswered && (
-                <div className={`fixed bottom-0 left-0 right-0 z-40 animate-slide-up-fade ${panelBg}`} style={{paddingBottom: 'calc(env(safe-area-inset-bottom) + 0.75rem)'}}>
+                <div className={`fixed bottom-0 left-0 right-0 z-40 animate-slide-up-fade ${panelBg}`} style={{paddingBottom: 'calc(env(safe-area-inset-bottom) + 0.5rem)'}}>
                     <div className={`p-4 pt-5`}>
                         <h3 className={`font-bold text-xl text-center text-white`}>{isCorrect ? '¡Correcto!' : 'Respuesta incorrecta'}</h3>
                          {!isCorrect && (
