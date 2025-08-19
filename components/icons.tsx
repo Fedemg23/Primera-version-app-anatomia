@@ -7,7 +7,7 @@ import { IconComponent } from '../types';
 const makeImgIcon = (src: string, alt: string): React.FC<{ className?: string }> =>
   ({ className }) => (
     <span className={`relative ${className || ''} inline-flex items-center justify-center`}>
-      <img src={src} alt={alt} className="w-full h-full object-contain object-center select-none pointer-events-none" />
+      <img src={src} alt={alt} className="w-full h-full object-contain object-center select-none pointer-events-none" draggable={false} onContextMenu={(e) => e.preventDefault()} />
     </span>
   );
 
@@ -22,7 +22,7 @@ const makeImgIconFallback = (basename: string, alt: string): React.FC<{ classNam
     const src = `${basename}${exts[extIndex]}`;
     return (
       <span className={`relative ${className || ''} inline-flex items-center justify-center`}>
-        <img src={src} alt={alt} onError={() => setExtIndex(i => Math.min(i + 1, exts.length - 1))} className="w-full h-full object-contain object-center select-none pointer-events-none" />
+        <img src={src} alt={alt} onError={() => setExtIndex(i => Math.min(i + 1, exts.length - 1))} className="w-full h-full object-contain object-center select-none pointer-events-none" draggable={false} onContextMenu={(e) => e.preventDefault()} />
       </span>
     );
   };

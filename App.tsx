@@ -243,6 +243,12 @@ export default function App() {
             }
         }
         
+        // Si estamos volviendo desde Logros, redirigir a inicio
+        if (currentView === 'achievements') {
+            viewHistory.current = ['home'];
+            setView('home');
+            return;
+        }
         setView(newView);
     }, []);
     
@@ -1525,7 +1531,7 @@ export default function App() {
                         onStudySummaryContinue(rewardPositions); 
                         setLastQuizResult(null);
                     }} 
-                    onViewLeveledUp={() => { setLastQuizResult(null); viewHistory.current = ['home']; setView('home'); }}
+                    onViewLeveledUp={() => { setLastQuizResult(null); handleNavigate('achievements'); }}
                     onReviewMistakes={(qs) => { setLastQuizResult(null); handleStartPractice(qs); }} 
                 />
             ) : null}

@@ -313,7 +313,7 @@ const QuizScreen: React.FC<QuizScreenProps> = ({ quizQuestions, onQuizComplete, 
                 >
                     {!isFillInTheBlank ? (
                         currentQuestion.opciones.map((option, index) => {
-                            let buttonClass = 'border-2 border-slate-700 bg-slate-800/60 hover:bg-slate-700/60 active:bg-slate-700 text-slate-200';
+                            let buttonClass = 'border border-slate-700 bg-slate-800/60 hover:bg-slate-700/60 active:bg-slate-700 text-slate-200';
                              const isDisabledByLifeline = disabledOptions.includes(index);
 
                             if (isAnswered) {
@@ -329,7 +329,7 @@ const QuizScreen: React.FC<QuizScreenProps> = ({ quizQuestions, onQuizComplete, 
                             }
                             return (
                                 <button key={index} onClick={() => handleAnswerSubmit(index)} disabled={isAnswered || isDisabledByLifeline} className={`w-full h-full text-left py-0.5 px-2 md:py-1 md:px-3 lg:py-1.5 lg:px-4 rounded-lg text-[11px] md:text-sm lg:text-base font-semibold transition-all duration-200 flex justify-between items-center gap-1.5 md:gap-2 min-w-0 touch-manipulation ${buttonClass}`}>
-                                    <span className="flex-1 whitespace-normal break-words leading-snug md:leading-normal">{option}</span>
+                                    <span className="flex-1 whitespace-normal break-words leading-tight md:leading-snug">{option}</span>
                                     {isAnswered && index === currentQuestion.indiceRespuestaCorrecta && <CheckCircle className="w-4 h-4 md:w-5 md:h-5 text-emerald-500" />}
                                     {isAnswered && index === selectedAnswer && index !== currentQuestion.indiceRespuestaCorrecta && <XCircle className="w-4 h-4 md:w-5 md:h-5 text-red-500" />}
                                 </button>

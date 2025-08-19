@@ -153,7 +153,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onSelectMode, userData, onNavig
                             </div>
                         </button>
                     </div>
-                    <div className="w-full max-w-[300px] sm:max-w-[360px] mx-auto mt-3 md:mt-5 sticky bottom-4 z-10">
+                    <div className="fixed left-1/2 -translate-x-1/2 bottom-[calc(4.25rem+env(safe-area-inset-bottom))] z-40 w-full max-w-[360px] px-4">
                         <button
                             onClick={() => onNavigate('challenges')}
                             disabled={!isReadyForInput}
