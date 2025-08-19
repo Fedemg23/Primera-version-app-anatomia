@@ -84,7 +84,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onSelectMode, userData, onNavig
     `;
 
     return (
-        <div className="relative flex flex-col h-full items-center p-4 pb-24 md:pb-28" style={{ paddingBottom: 'calc(6rem + env(safe-area-inset-bottom))' }}>
+        <div className="relative flex flex-col min-h-full items-center p-4 pb-24 md:pb-28 overflow-y-auto" style={{ paddingBottom: 'calc(6rem + env(safe-area-inset-bottom))' }}>
             <img 
                 src="/images/logo-bone.png" 
                 alt="AnatomyGO" 
@@ -92,7 +92,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onSelectMode, userData, onNavig
                 onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }} 
             />
             
-            <div className="flex-grow flex flex-col justify-start w-full max-w-4xl mx-auto">
+            <div className="flex flex-col justify-start w-full max-w-4xl mx-auto">
                 {/* Top Group: Title and Mode Buttons */}
                 <div className="flex flex-col items-center gap-6 md:gap-8 w-full mt-4 md:mt-6">
                     <div className="w-full max-w-[340px] sm:max-w-[400px] mx-auto">
