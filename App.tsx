@@ -228,6 +228,19 @@ export default function App() {
     const handleNavigate = useCallback((newView: View) => {
         viewHistory.current.push(newView);
         setView(newView);
+        // Resetear scroll al navegar para que cada pestaña sea independiente
+        try {
+            if (mainRef.current) mainRef.current.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+            window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+            document.documentElement.scrollTop = 0;
+            document.body.scrollTop = 0;
+        } catch {}
+        requestAnimationFrame(() => {
+            try {
+                if (mainRef.current) mainRef.current.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+                window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+            } catch {}
+        });
     }, []);
 
     const handleBack = useCallback(() => {
@@ -250,6 +263,19 @@ export default function App() {
             return;
         }
         setView(newView);
+        // Siempre resetea scroll al volver
+        try {
+            if (mainRef.current) mainRef.current.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+            window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+            document.documentElement.scrollTop = 0;
+            document.body.scrollTop = 0;
+        } catch {}
+        requestAnimationFrame(() => {
+            try {
+                if (mainRef.current) mainRef.current.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+                window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+            } catch {}
+        });
     }, []);
     
     const handleSignIn = useCallback(async () => {
@@ -1504,7 +1530,7 @@ export default function App() {
 
             <main 
                 ref={mainRef}
-                className={`flex-grow overflow-x-hidden ${!isFullScreenView ? 'overflow-y-scroll' : 'overflow-y-auto'} ${!isFullScreenView ? 'pt-20 md:pt-24' : ''}`}
+                className={`flex-grow overflow-x-hidden ${isHomeView ? 'overflow-y-hidden' : (isFullScreenView ? 'overflow-y-auto' : 'overflow-y-scroll')} ${!isFullScreenView ? 'pt-20 md:pt-24' : ''}`}
                 style={{
                     height: isFullScreenView ? '100vh' : (isHomeView ? 'calc(100vh - 6rem)' : 'auto'),
                     overscrollBehavior: isHomeView ? ('none' as any) : undefined,

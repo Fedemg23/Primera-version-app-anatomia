@@ -308,7 +308,7 @@ const QuizScreen: React.FC<QuizScreenProps> = ({ quizQuestions, onQuizComplete, 
                 
                 
                 <div
-                    className={`grid grid-cols-1 grid-rows-4 gap-1.5 md:gap-2 lg:gap-3 flex-1 min-h-0 px-2 md:px-3 lg:px-4 w-full max-w-none ${isAnswered ? 'pointer-events-none opacity-90' : ''}`}
+                    className={`grid grid-cols-1 gap-1.5 md:gap-2 lg:gap-2 flex-none px-2 md:px-3 lg:px-4 w-full max-w-none ${isAnswered ? 'pointer-events-none opacity-90' : ''}`}
                     style={{ paddingBottom: immediateFeedback && !isAnswered ? 'calc(env(safe-area-inset-bottom) + 4.5rem)' : 'calc(env(safe-area-inset-bottom) + 0rem)' }}
                 >
                     {!isFillInTheBlank ? (
@@ -328,10 +328,10 @@ const QuizScreen: React.FC<QuizScreenProps> = ({ quizQuestions, onQuizComplete, 
                                 buttonClass += ' opacity-30 cursor-not-allowed line-through';
                             }
                             return (
-                                <button key={index} onClick={() => handleAnswerSubmit(index)} disabled={isAnswered || isDisabledByLifeline} className={`w-full h-full text-left py-0.5 px-2 md:py-1 md:px-3 lg:py-1.5 lg:px-4 rounded-lg text-[11px] md:text-sm lg:text-base font-semibold transition-all duration-200 flex justify-between items-center gap-1.5 md:gap-2 min-w-0 touch-manipulation ${buttonClass}`}>
-                                    <span className="flex-1 whitespace-normal break-words leading-tight md:leading-snug">{option}</span>
-                                    {isAnswered && index === currentQuestion.indiceRespuestaCorrecta && <CheckCircle className="w-4 h-4 md:w-5 md:h-5 text-emerald-500" />}
-                                    {isAnswered && index === selectedAnswer && index !== currentQuestion.indiceRespuestaCorrecta && <XCircle className="w-4 h-4 md:w-5 md:h-5 text-red-500" />}
+                                <button key={index} onClick={() => handleAnswerSubmit(index)} disabled={isAnswered || isDisabledByLifeline} className={`w-full text-left py-0.5 md:py-1 lg:py-1 px-2 md:px-3 lg:px-4 rounded-lg text-[10px] md:text-xs lg:text-xs font-semibold transition-all duration-200 flex justify-between items-center gap-1 md:gap-1.5 min-w-0 touch-manipulation min-h-9 md:min-h-10 ${buttonClass}`}>
+                                    <span className="flex-1 whitespace-normal break-words leading-tight">{option}</span>
+                                    {isAnswered && index === currentQuestion.indiceRespuestaCorrecta && <CheckCircle className="w-3.5 h-3.5 md:w-4 md:h-4 text-emerald-500" />}
+                                    {isAnswered && index === selectedAnswer && index !== currentQuestion.indiceRespuestaCorrecta && <XCircle className="w-3.5 h-3.5 md:w-4 md:h-4 text-red-500" />}
                                 </button>
                             );
                         })

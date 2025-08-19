@@ -21,10 +21,17 @@ root.render(
 (() => {
   if (typeof window === 'undefined' || typeof document === 'undefined') return;
 
-  const isImageLike = (el: HTMLElement | null): boolean => {
+  const isImageLike = (el: EventTarget | null): boolean => {
     if (!el) return false;
-    const tag = el.tagName;
-    return tag === 'IMG' || tag === 'SVG' || !!el.closest('img');
+    // Algunos targets pueden ser nodos de texto u otros sin closest/tagName
+    const node = el as any;
+    const tag = (node?.tagName || '').toUpperCase();
+    if (tag === 'IMG' || tag === 'SVG') return true;
+    try {
+      return typeof node.closest === 'function' && !!node.closest('img, svg');
+    } catch {
+      return false;
+    }
   };
 
   const blockContextMenu = (e: Event) => {

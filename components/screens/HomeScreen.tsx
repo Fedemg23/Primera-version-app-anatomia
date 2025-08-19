@@ -153,11 +153,13 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onSelectMode, userData, onNavig
                             </div>
                         </button>
                     </div>
-                    <div className="fixed left-1/2 -translate-x-1/2 bottom-[calc(4.25rem+env(safe-area-inset-bottom))] z-40 w-full max-w-[360px] px-4">
+                    {/* Espaciador para que el botón fijo no tape la cuadrícula */}
+                    <div aria-hidden className="h-16 md:h-20"></div>
+                    <div className="fixed left-1/2 -translate-x-1/2 bottom-[calc(4.25rem+env(safe-area-inset-bottom))] z-40 w-full max-w-[360px] px-4 pointer-events-none">
                         <button
                             onClick={() => onNavigate('challenges')}
                             disabled={!isReadyForInput}
-                            className={`${modeButtonClasses(!isReadyForInput)} group`}
+                            className={`${modeButtonClasses(!isReadyForInput)} group pointer-events-auto`}
                         >
                             <div className="rounded-2xl bg-black w-2/3 mx-auto h-10 md:h-12 flex items-center justify-center text-center ring-4 ring-white/60 transition-[box-shadow,transform,ring] duration-200 group-hover:ring-white group-hover:shadow-[0_0_28px_rgba(255,255,255,0.5)] group-active:scale-95 group-active:-translate-y-0.5 group-active:shadow-[0_0_18px_rgba(255,255,255,0.4)]">
                                 <span className="text-base md:text-lg font-extrabold text-slate-100">Desafíos</span>
