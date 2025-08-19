@@ -94,9 +94,22 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onSelectMode, userData, onNavig
             
             <div className="flex-grow flex flex-col justify-start w-full max-w-4xl mx-auto">
                 {/* Top Group: Title and Mode Buttons */}
-                <div className="flex flex-col items-center gap-6 md:gap-8 w-full mt-8 md:mt-12">
+                <div className="flex flex-col items-center gap-6 md:gap-8 w-full mt-4 md:mt-6">
+                    <div className="w-full max-w-[340px] sm:max-w-[400px] mx-auto">
+                        {/* Botón Desafíos centrado encima de la cuadrícula */}
+                        <div className="flex justify-center mb-3 md:mb-4">
+                            <button
+                                onClick={() => onNavigate('challenges')}
+                                disabled={!isReadyForInput}
+                                className={`${modeButtonClasses(!isReadyForInput)} group w-2/3`}
+                            >
+                                <div className="rounded-2xl bg-black w-full h-10 md:h-12 flex items-center justify-center text-center ring-4 ring-white/60 transition-[box-shadow,transform,ring] duration-200 group-hover:ring-white group-hover:shadow-[0_0_28px_rgba(255,255,255,0.5)] group-active:scale-95 group-active:-translate-y-0.5 group-active:shadow-[0_0_18px_rgba(255,255,255,0.4)]">
+                                    <span className="text-base md:text-lg font-extrabold text-slate-100">Desafíos</span>
+                                </div>
+                            </button>
+                        </div>
 
-                    <div className="w-full max-w-[340px] sm:max-w-[400px] mx-auto grid grid-cols-2 gap-6 md:gap-8">
+                        <div className="grid grid-cols-2 gap-6 md:gap-8">
                         <button
                             data-tour="home-study-btn"
                             onClick={() => onSelectMode('study')}
@@ -152,20 +165,9 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onSelectMode, userData, onNavig
                                 <span className="text-base md:text-lg font-extrabold text-slate-100">Logros</span>
                             </div>
                         </button>
+                        </div>
                     </div>
-                    {/* Espaciador para que el botón fijo no tape la cuadrícula */}
-                    <div aria-hidden className="h-16 md:h-20"></div>
-                    <div className="fixed left-1/2 -translate-x-1/2 bottom-[calc(4.25rem+env(safe-area-inset-bottom))] z-40 w-full max-w-[360px] px-4 pointer-events-none">
-                        <button
-                            onClick={() => onNavigate('challenges')}
-                            disabled={!isReadyForInput}
-                            className={`${modeButtonClasses(!isReadyForInput)} group pointer-events-auto`}
-                        >
-                            <div className="rounded-2xl bg-black w-2/3 mx-auto h-10 md:h-12 flex items-center justify-center text-center ring-4 ring-white/60 transition-[box-shadow,transform,ring] duration-200 group-hover:ring-white group-hover:shadow-[0_0_28px_rgba(255,255,255,0.5)] group-active:scale-95 group-active:-translate-y-0.5 group-active:shadow-[0_0_18px_rgba(255,255,255,0.4)]">
-                                <span className="text-base md:text-lg font-extrabold text-slate-100">Desafíos</span>
-                            </div>
-                        </button>
-                    </div>
+                    
                 </div>
             </div>
 

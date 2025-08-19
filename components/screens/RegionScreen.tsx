@@ -17,7 +17,7 @@ const SubtemaItem: React.FC<{
 }> = memo(({ subtema, isPassed, bestScore, onPlay, disabled }) => {
     if (isPassed) {
         return (
-            <div className="p-3 rounded-xl bg-black text-slate-300 flex items-center justify-between transition-[box-shadow,transform,ring] duration-200 ring-4 ring-white/60 hover:ring-white hover:shadow-[0_0_20px_rgba(255,255,255,0.35)]">
+            <div className="p-2 rounded-xl bg-black text-slate-300 flex items-center justify-between transition-[box-shadow,transform,ring] duration-200 ring-4 ring-white/60 hover:ring-white hover:shadow-[0_0_20px_rgba(255,255,255,0.35)]">
                 <div className="flex items-center gap-3 overflow-hidden">
                     <CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0" />
                     <span className="font-semibold truncate text-sm">{subtema.name}</span>
@@ -42,7 +42,7 @@ const SubtemaItem: React.FC<{
         <button
             onClick={onPlay}
             disabled={disabled}
-            className="w-full p-3 rounded-xl flex items-center justify-between text-left transition-[box-shadow,transform,ring] duration-200 ease-in-out group bg-black ring-4 ring-white/60 hover:ring-white hover:shadow-[0_0_20px_rgba(255,255,255,0.35)] shadow-md hover:-translate-y-0.5 disabled:opacity-60 disabled:cursor-wait disabled:transform-none disabled:shadow-md touch-manipulation"
+            className="w-full p-2 rounded-xl flex items-center justify-between text-left transition-[box-shadow,transform,ring] duration-200 ease-in-out group bg-black ring-4 ring-white/60 hover:ring-white hover:shadow-[0_0_20px_rgba(255,255,255,0.35)] shadow-md hover:-translate-y-0.5 disabled:opacity-60 disabled:cursor-wait disabled:transform-none disabled:shadow-md touch-manipulation"
         >
             <div className="flex items-center gap-3 overflow-hidden">
                 <PlayCircleIcon className="w-6 h-6 flex-shrink-0 text-slate-300 group-hover:text-white transition-colors duration-200" />
@@ -87,14 +87,14 @@ const RegionScreen: React.FC<RegionScreenProps> = ({
         // Nivel 3: Vista de Subtemas (Cuestionarios)
         if (selectedRegion && selectedTema) {
             return (
-                 <div>
-                    <div className="text-center mb-4">
-                        <h2 className="font-graffiti text-4xl tracking-wide -rotate-1 title-white-clean inline-block transform scale-105">
+                 <div className="h-full flex flex-col">
+                    <div className="text-center mb-2">
+                        <h2 className="font-graffiti text-3xl md:text-4xl tracking-wide -rotate-1 title-white-clean inline-block transform scale-105">
                             {selectedTema.name}
                         </h2>
                     </div>
-                    <p className="text-slate-400 mb-3 text-center text-sm">Elige un subtema para empezar a estudiar.</p>
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
+                    <p className="text-slate-400 mb-2 text-center text-sm">Elige un subtema para empezar a estudiar.</p>
+                    <div className="flex-1 grid grid-cols-3 gap-2 content-start max-w-6xl mx-auto">
                         {selectedTema.subtemas.map((subtema) => {
                             const progress = userData.progress[subtema.id];
                             return (
@@ -117,20 +117,20 @@ const RegionScreen: React.FC<RegionScreenProps> = ({
         // Nivel 2: Vista de Temas
         if (selectedRegion) {
             return (
-                <div>
-                    <div className="text-center mb-4">
-                        <h2 className="font-graffiti text-4xl tracking-wide -rotate-1 title-white-clean inline-block transform scale-105">
+                <div className="h-full flex flex-col">
+                    <div className="text-center mb-2">
+                        <h2 className="font-graffiti text-3xl md:text-4xl tracking-wide -rotate-1 title-white-clean inline-block transform scale-105">
                             {selectedRegion.name}
                         </h2>
                     </div>
-                    <p className="text-slate-400 mb-3 text-center text-sm">Elige un tema para explorar.</p>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <p className="text-slate-400 mb-2 text-center text-sm">Elige un tema para explorar.</p>
+                    <div className="flex-1 grid grid-cols-3 gap-2 content-start max-w-6xl mx-auto">
                         {selectedRegion.temas.map((tema) => {
                             const completedCount = tema.subtemas.filter(st => userData.progress[st.id]?.passed).length;
                             const totalCount = tema.subtemas.length;
                             const isCompleted = completedCount === totalCount;
                             return (
-                                <button key={tema.id} data-tour="study-tema-btn" onClick={() => onSelectTema(tema.id)} disabled={!isReadyForInput} className="w-full bg-black p-4 rounded-xl shadow-md ring-4 ring-white/60 flex items-center justify-between text-left transition-[box-shadow,transform,ring] duration-200 ease-in-out hover:shadow-[0_0_20px_rgba(255,255,255,0.35)] hover:ring-white disabled:pointer-events-none disabled:opacity-60 disabled:transform-none touch-manipulation">
+                                <button key={tema.id} data-tour="study-tema-btn" onClick={() => onSelectTema(tema.id)} disabled={!isReadyForInput} className="w-full bg-black p-3 rounded-xl shadow-md ring-4 ring-white/60 flex items-center justify-between text-left transition-[box-shadow,transform,ring] duration-200 ease-in-out hover:shadow-[0_0_20px_rgba(255,255,255,0.35)] hover:ring-white disabled:pointer-events-none disabled:opacity-60 disabled:transform-none touch-manipulation">
                                     <div className="flex items-center">
                                         <div>
                                             <h3 className="text-md font-bold text-slate-100">{tema.name}</h3>
@@ -151,12 +151,12 @@ const RegionScreen: React.FC<RegionScreenProps> = ({
     
         // Nivel 1: Vista de Regiones
         return (
-            <div>
-                <div className="text-center mb-6">
-                    <h2 className="font-graffiti text-5xl md:text-5xl tracking-wide -rotate-1 title-white-clean inline-block transform scale-105">
+            <div className="h-full flex flex-col">
+                <div className="text-center mb-3">
+                    <h2 className="font-graffiti text-4xl md:text-5xl tracking-wide -rotate-1 title-white-clean inline-block transform scale-105">
                         Elige una Región
                     </h2>
-                    <div className="mt-2">
+                    <div className="mt-1">
                         <HelpIcon modalTitle="Cómo estudiar por regiones">
                             <ul>
                                 <li>Selecciona una <strong>región</strong> para ver sus <strong>temas</strong>.</li>
@@ -166,14 +166,14 @@ const RegionScreen: React.FC<RegionScreenProps> = ({
                         </HelpIcon>
                     </div>
                 </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div className="flex-1 grid grid-cols-3 gap-3 content-start max-w-6xl mx-auto">
                     {navigationData.map((region) => (
                         <div
                             key={region.id}
                             onClick={() => isReadyForInput && onSelectRegion(region.id)}
                             className={`
-                                relative p-5 rounded-2xl overflow-hidden
-                                flex flex-col justify-center items-center text-center h-40
+                                relative p-4 rounded-2xl overflow-hidden
+                                flex flex-col justify-center items-center text-center h-32
                                 transition-[box-shadow,transform,ring] duration-200 ease-in-out
                                 bg-black ring-4 ring-white/60 hover:ring-white
                                 transform hover:-translate-y-1
@@ -197,8 +197,10 @@ const RegionScreen: React.FC<RegionScreenProps> = ({
     }
     
     return (
-        <div className="bg-black min-h-screen p-3 md:p-4">
-            {renderContent()}
+        <div className="bg-black h-screen overflow-hidden flex flex-col p-6 md:p-8">
+            <div className="flex-1 overflow-y-auto">
+                {renderContent()}
+            </div>
         </div>
     );
 };
