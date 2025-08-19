@@ -305,11 +305,11 @@ const QuizScreen: React.FC<QuizScreenProps> = ({ quizQuestions, onQuizComplete, 
                         {renderQuestionTextWithBlank()}
                     </div>
                 ) : (
-                    <h2 className="text-lg md:text-xl font-semibold my-2 flex-shrink-0 text-slate-100 px-3">{currentQuestion.textoPregunta}</h2>
+                    <h2 className="text-base md:text-lg lg:text-xl font-semibold my-2 flex-shrink-0 text-slate-100 px-2 md:px-3 lg:px-4 text-center">{currentQuestion.textoPregunta}</h2>
                 )}
                 
                 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 flex-grow px-3 pb-32">
+                <div className={`grid grid-cols-1 gap-2 md:gap-3 lg:gap-4 flex-none px-2 md:px-3 lg:px-4 pb-28 w-full max-w-none ${isAnswered ? 'pointer-events-none opacity-90' : ''}`}>
                     {!isFillInTheBlank ? (
                         currentQuestion.opciones.map((option, index) => {
                             let buttonClass = 'border-2 border-slate-700 bg-slate-800/60 hover:bg-slate-700/60 active:bg-slate-700 text-slate-200';
@@ -327,10 +327,10 @@ const QuizScreen: React.FC<QuizScreenProps> = ({ quizQuestions, onQuizComplete, 
                                 buttonClass += ' opacity-30 cursor-not-allowed line-through';
                             }
                             return (
-                                <button key={index} onClick={() => handleAnswerSubmit(index)} disabled={isAnswered || isDisabledByLifeline} className={`w-full text-left py-1.5 px-3 sm:py-2.5 rounded-lg text-xs sm:text-sm font-semibold transition-all duration-200 flex justify-between items-center gap-2 min-w-0 touch-manipulation ${buttonClass}`}>
-                                    <span className="flex-1 whitespace-normal break-words">{option}</span>
-                                    {isAnswered && index === currentQuestion.indiceRespuestaCorrecta && <CheckCircle className="w-4 h-4 text-emerald-500" />}
-                                    {isAnswered && index === selectedAnswer && index !== currentQuestion.indiceRespuestaCorrecta && <XCircle className="w-4 h-4 text-red-500" />}
+                                <button key={index} onClick={() => handleAnswerSubmit(index)} disabled={isAnswered || isDisabledByLifeline} className={`w-full text-left py-1 px-2 md:py-1.5 md:px-3 lg:py-2 lg:px-4 rounded-lg text-[11px] md:text-sm lg:text-base font-semibold transition-all duration-200 flex justify-between items-center gap-1.5 md:gap-2 min-w-0 touch-manipulation ${buttonClass}`}>
+                                    <span className="flex-1 whitespace-normal break-words leading-snug md:leading-normal">{option}</span>
+                                    {isAnswered && index === currentQuestion.indiceRespuestaCorrecta && <CheckCircle className="w-4 h-4 md:w-5 md:h-5 text-emerald-500" />}
+                                    {isAnswered && index === selectedAnswer && index !== currentQuestion.indiceRespuestaCorrecta && <XCircle className="w-4 h-4 md:w-5 md:h-5 text-red-500" />}
                                 </button>
                             );
                         })
@@ -360,31 +360,7 @@ const QuizScreen: React.FC<QuizScreenProps> = ({ quizQuestions, onQuizComplete, 
                     </div>
                   </div>
                 )}
-                {/* Botiquín: comodines después de responder (solo Revivir si fallaste) */}
-                {immediateFeedback && isAnswered && !isCorrect && (
-                  <div className="flex-shrink-0 pt-3">
-                    <div className="flex justify-center items-center gap-4 flex-wrap">
-                      {(() => { const I = iconMap['lifeline_second_chance']; return (
-                        <LifelineButton 
-                          name="Revivir" 
-                          icon={<I className="w-[90%] h-[90%] md:w-[92%] md:h-[92%]" />} 
-                          count={lifelines.secondChance} 
-                          onClick={useSecondChance} 
-                          disabled={lifelines.secondChance <= 0 || lifelinesUsedThisQuestion.secondChance}
-                        />
-                      ); })()}
-                      {(() => { const I = iconMap['lifeline_immunity']; return (
-                        <LifelineButton 
-                          name="Inmunidad" 
-                          icon={<I className="w-[90%] h-[90%] md:w-[92%] md:h-[92%]" />} 
-                          count={lifelines.immunity} 
-                          onClick={useImmunity} 
-                          disabled={lifelines.immunity <= 0 || lifelinesUsedThisQuestion.immunity}
-                        />
-                      ); })()}
-                    </div>
-                  </div>
-                )}
+                {/* Botiquín post-respuesta se integra en el panel fijo inferior */}
             </div>
             
              {showExplanationHint && (
@@ -398,18 +374,42 @@ const QuizScreen: React.FC<QuizScreenProps> = ({ quizQuestions, onQuizComplete, 
             )}
 
             {isAnswered && (
-                <div className={`flex-shrink-0 relative animate-slide-up-fade pt-8 ${panelBg}`}>
-                    <div className={`p-4`}>
+                <div className={`fixed bottom-0 left-0 right-0 z-40 animate-slide-up-fade ${panelBg}`} style={{paddingBottom: 'calc(env(safe-area-inset-bottom) + 0.75rem)'}}>
+                    <div className={`p-4 pt-5`}>
                         <h3 className={`font-bold text-xl text-center text-white`}>{isCorrect ? '¡Correcto!' : 'Respuesta incorrecta'}</h3>
                          {!isCorrect && (
                             <p className={`mt-1 font-semibold text-center text-sm text-white/90`}>
                                 La respuesta correcta es: <strong className="underline">{currentQuestion.opciones[currentQuestion.indiceRespuestaCorrecta]}</strong>
                             </p>
                         )}
-                        <div className="max-h-[6rem] overflow-y-auto my-2 pr-2 text-left">
+                        <div className="max-h-[5rem] overflow-y-auto my-2 pr-2 text-left">
                             {currentQuestion.explicacion && <p className={`text-sm text-white/90 break-words`}>{formatExplanation(currentQuestion.explicacion)}</p>}
                         </div>
-                        <button onClick={() => handleNextQuestion()} className={`mt-2 w-full font-bold py-3 px-4 rounded-xl text-lg shadow-lg transition-transform active:scale-95 touch-manipulation ${nextButtonClass}`}>
+                        {!isCorrect && (
+                            <div className="mt-2 mb-1 flex items-center justify-center gap-3">
+                                {(() => { const I = iconMap['lifeline_second_chance']; return (
+                                    <button
+                                        onClick={useSecondChance}
+                                        disabled={lifelines.secondChance <= 0 || lifelinesUsedThisQuestion.secondChance}
+                                        className="px-3 py-2 rounded-xl bg-black/60 ring-2 ring-white/50 text-white text-xs font-bold disabled:opacity-40 disabled:cursor-not-allowed active:scale-95"
+                                        title="Revivir"
+                                    >
+                                        <span className="inline-flex items-center gap-2">{<I className="w-5 h-5" />} Revivir</span>
+                                    </button>
+                                ); })()}
+                                {(() => { const I = iconMap['lifeline_immunity']; return (
+                                    <button
+                                        onClick={useImmunity}
+                                        disabled={lifelines.immunity <= 0 || lifelinesUsedThisQuestion.immunity}
+                                        className="px-3 py-2 rounded-xl bg-black/60 ring-2 ring-white/50 text-white text-xs font-bold disabled:opacity-40 disabled:cursor-not-allowed active:scale-95"
+                                        title="Inmunidad"
+                                    >
+                                        <span className="inline-flex items-center gap-2">{<I className="w-5 h-5" />} Inmunidad</span>
+                                    </button>
+                                ); })()}
+                            </div>
+                        )}
+                        <button onClick={() => handleNextQuestion()} className={`mt-2 w-full font-bold py-2.5 px-4 rounded-xl text-base md:text-lg shadow-lg transition-transform active:scale-95 touch-manipulation ${nextButtonClass}`}>
                             {currentQuestionIndex < quizQuestions.length - 1 ? 'Siguiente' : 'Finalizar'}
                         </button>
                     </div>

@@ -163,7 +163,7 @@ export interface AchievementTier {
   };
 }
 
-export type View = 'home' | 'play' | 'shop' | 'achievements' | 'profile' | 'challenges' | 'atlas' | 'study' | 'exam' | 'practice' | 'quiz' | 'quiz_summary' | 'exam_results' | 'duel_lobby' | 'duel' | 'duel_summary';
+export type View = 'home' | 'play' | 'shop' | 'achievements' | 'profile' | 'challenges' | 'study' | 'exam' | 'practice' | 'quiz' | 'quiz_summary' | 'exam_results' | 'duel_lobby' | 'duel' | 'duel_summary';
 
 
 export interface Achievement {

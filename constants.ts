@@ -455,7 +455,7 @@ export const achievementsData: Achievement[] = [
         name: 'Trotamundos Anatómico',
         description: 'Demuestra tu conocimiento en todas las áreas.',
         icon: '🌍',
-        action: { type: 'view', value: 'atlas' },
+        action: { type: 'view', value: 'study' },
         tiers: [
             {
                 level: 1,

@@ -17,7 +17,7 @@ const SubtemaItem: React.FC<{
 }> = memo(({ subtema, isPassed, bestScore, onPlay, disabled }) => {
     if (isPassed) {
         return (
-            <div className="p-3 rounded-xl bg-slate-800/50 backdrop-blur-sm border border-slate-700/50 text-slate-300 flex items-center justify-between transition-colors duration-300">
+            <div className="p-3 rounded-xl bg-black text-slate-300 flex items-center justify-between transition-[box-shadow,transform,ring] duration-200 ring-4 ring-white/60 hover:ring-white hover:shadow-[0_0_20px_rgba(255,255,255,0.35)]">
                 <div className="flex items-center gap-3 overflow-hidden">
                     <CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0" />
                     <span className="font-semibold truncate text-sm">{subtema.name}</span>
@@ -30,7 +30,7 @@ const SubtemaItem: React.FC<{
                     <button 
                         onClick={onPlay} 
                         disabled={disabled}
-                        className="font-semibold text-xs px-2 py-1 rounded-full bg-slate-700 text-slate-300 active:bg-slate-600 transition-colors transform active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed touch-manipulation">
+                        className="font-semibold text-xs px-2 py-1 rounded-full text-slate-100 ring-1 ring-white/50 active:scale-95 transition-transform disabled:opacity-50 disabled:cursor-not-allowed touch-manipulation">
                         REPETIR
                     </button>
                 </div>
@@ -42,19 +42,14 @@ const SubtemaItem: React.FC<{
         <button
             onClick={onPlay}
             disabled={disabled}
-            className="w-full p-3 rounded-xl flex items-center justify-between text-left transition-all duration-300 ease-in-out group
-            bg-slate-800/40 backdrop-blur-sm hover:bg-slate-800/80
-            shadow-md hover:shadow-lg hover:-translate-y-0.5
-            border border-slate-700/50 hover:border-blue-500/50
-            disabled:opacity-60 disabled:cursor-wait disabled:transform-none disabled:shadow-md disabled:active:border-slate-700/50
-            touch-manipulation"
+            className="w-full p-3 rounded-xl flex items-center justify-between text-left transition-[box-shadow,transform,ring] duration-200 ease-in-out group bg-black ring-4 ring-white/60 hover:ring-white hover:shadow-[0_0_20px_rgba(255,255,255,0.35)] shadow-md hover:-translate-y-0.5 disabled:opacity-60 disabled:cursor-wait disabled:transform-none disabled:shadow-md touch-manipulation"
         >
             <div className="flex items-center gap-3 overflow-hidden">
-                <PlayCircleIcon className="w-6 h-6 flex-shrink-0 text-slate-400 group-hover:text-blue-400 transition-colors duration-300" />
+                <PlayCircleIcon className="w-6 h-6 flex-shrink-0 text-slate-300 group-hover:text-white transition-colors duration-200" />
                 <span className="font-bold text-sm text-slate-100 truncate">{subtema.name}</span>
             </div>
             <div className="text-right flex-shrink-0 ml-2">
-                <span className="text-xs font-semibold bg-blue-600 group-hover:bg-blue-500 text-white rounded-full px-3 py-1 transition-colors duration-300">
+                <span className="text-xs font-semibold text-slate-100 ring-1 ring-white/50 rounded-full px-3 py-1 transition-colors duration-200">
                     JUGAR
                 </span>
                 <p className="text-xs text-slate-400 mt-1">{subtema.questionCount} preguntas</p>
@@ -135,7 +130,7 @@ const RegionScreen: React.FC<RegionScreenProps> = ({
                             const totalCount = tema.subtemas.length;
                             const isCompleted = completedCount === totalCount;
                             return (
-                                <button key={tema.id} data-tour="study-tema-btn" onClick={() => onSelectTema(tema.id)} disabled={!isReadyForInput} className="w-full bg-slate-800/40 backdrop-blur-sm p-4 rounded-xl shadow-md border border-slate-700/50 flex items-center justify-between text-left transition-all duration-300 ease-in-out hover:shadow-lg hover:-translate-y-0.5 hover:border-blue-500/60 disabled:pointer-events-none disabled:opacity-60 disabled:transform-none touch-manipulation">
+                                <button key={tema.id} data-tour="study-tema-btn" onClick={() => onSelectTema(tema.id)} disabled={!isReadyForInput} className="w-full bg-black p-4 rounded-xl shadow-md ring-4 ring-white/60 flex items-center justify-between text-left transition-[box-shadow,transform,ring] duration-200 ease-in-out hover:shadow-[0_0_20px_rgba(255,255,255,0.35)] hover:ring-white disabled:pointer-events-none disabled:opacity-60 disabled:transform-none touch-manipulation">
                                     <div className="flex items-center">
                                         <div>
                                             <h3 className="text-md font-bold text-slate-100">{tema.name}</h3>
@@ -144,7 +139,7 @@ const RegionScreen: React.FC<RegionScreenProps> = ({
                                     </div>
                                     <div className="flex items-center gap-2">
                                          {isCompleted && <StarFilled className="w-5 h-5 text-amber-400" />}
-                                        <ChevronRight className="w-6 h-6 text-slate-400 transition-transform duration-300 group-hover:translate-x-1" />
+                                        <ChevronRight className="w-6 h-6 text-slate-300 transition-transform duration-200 group-hover:translate-x-1" />
                                     </div>
                                 </button>
                             );
@@ -179,17 +174,15 @@ const RegionScreen: React.FC<RegionScreenProps> = ({
                             className={`
                                 relative p-5 rounded-2xl overflow-hidden
                                 flex flex-col justify-center items-center text-center h-40
-                                transition-all duration-300 ease-in-out
-                                bg-gradient-to-br ${region.visuals.gradient}
+                                transition-[box-shadow,transform,ring] duration-200 ease-in-out
+                                bg-black ring-4 ring-white/60 hover:ring-white
                                 transform hover:-translate-y-1
-                                shadow-lg hover:shadow-xl hover:shadow-[0_0_1.5rem_rgba(59,130,246,0.2)]
-                                border border-slate-700/50 hover:border-white/20
+                                shadow-lg hover:shadow-[0_0_24px_rgba(255,255,255,0.35)]
                                 text-white
                                 ${!isReadyForInput ? 'pointer-events-none' : 'cursor-pointer'}
                                 touch-manipulation
                             `}
                         >
-                            <div className="absolute inset-0 bg-black/40 hover:bg-black/20 transition-colors duration-300"></div>
                             <div className="relative z-10 w-full flex flex-col items-center">
                                 <h3 className="text-xl font-black tracking-tight text-white [text-shadow:0_2px_4px_rgba(0,0,0,0.5)] mb-1">{region.name}</h3>
                                 <p className="text-white/90 text-xs max-w-xs mx-auto [text-shadow:0_1px_2px_rgba(0,0,0,0.5)]">

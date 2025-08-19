@@ -73,7 +73,7 @@ const StatusBar: React.FC<StatusBarProps> = ({
     const neededXp = xpForNextLevel > 0 ? Math.max(0, Math.ceil(xpForNextLevel - Math.max(0, xpInCurrentLevel))) : 0;
 
     return (
-        <div className="w-full h-20 md:h-24 px-3 bg-black/70 backdrop-blur-sm z-20">
+        <div className="w-full h-20 md:h-24 px-3 bg-black z-20">
             <div className="max-w-4xl mx-auto h-full flex justify-between items-center gap-2">
                 {/* Left Side: Back Button or Profile */}
                 <div className="flex-shrink-0 flex justify-start items-center gap-2">
@@ -91,10 +91,9 @@ const StatusBar: React.FC<StatusBarProps> = ({
                                 <div ref={xpRef} className="relative w-20 h-20 md:w-24 md:h-24 flex-shrink-0" title={`XP ${Math.max(0, Math.floor(xpInCurrentLevel))}/${Math.max(0, Math.floor(xpForNextLevel))}${xpForNextLevel > 0 ? ` · Faltan ${neededXp}` : ''}`}>
                                     <svg className="w-full h-full" viewBox="0 0 80 80">
                                         <defs>
-                                            <linearGradient id="xpGrad" x1="0" y1="0" x2="1" y2="1">
-                                                <stop offset="0%" stopColor="#3b82f6" />
-                                                <stop offset="100%" stopColor="#22d3ee" />
-                                            </linearGradient>
+                                            <filter id="whiteGlow" x="-50%" y="-50%" width="200%" height="200%">
+                                                <feDropShadow dx="0" dy="0" stdDeviation="2" floodColor="#ffffff" floodOpacity="0.6" />
+                                            </filter>
                                         </defs>
                                         {/* marcas alrededor */}
                                         <g className="text-slate-600/70">
@@ -118,16 +117,18 @@ const StatusBar: React.FC<StatusBarProps> = ({
                                             strokeDasharray={circumference}
                                             strokeDashoffset={xpOffset}
                                             strokeLinecap="round"
-                                            stroke="url(#xpGrad)"
+                                            stroke="#ffffff"
                                             fill="transparent"
                                             r={radius}
                                             cx="40"
                                             cy="40"
                                             style={{ transform: 'rotate(-90deg)', transformOrigin: '50% 50%', transition: 'stroke-dashoffset 0.5s ease-out' }}
+                                            filter="url(#whiteGlow)"
+                                            opacity={0.85}
                                         />
                                     </svg>
                                     <div className="absolute inset-1">
-                                        <div className="w-full h-full bg-slate-800/80 group-hover:bg-slate-700/80 transition-colors duration-200 rounded-full flex items-center justify-center shadow-inner overflow-hidden">
+                                        <div className="w-full h-full bg-black/90 group-hover:bg-black/80 transition-colors duration-150 rounded-full flex items-center justify-center shadow-inner overflow-hidden border border-white/20">
                                             {typeof avatar === 'string' && /(png|webp|jpg|jpeg|svg)$/i.test(avatar) ? (
                                                 <img src={avatar} alt="Avatar" className="w-16 h-16 md:w-20 md:h-20 object-contain" />
                                             ) : (
@@ -138,7 +139,7 @@ const StatusBar: React.FC<StatusBarProps> = ({
                                 </div>
                                 <div
                                     key={levelUpAnimationKey}
-                                    className="absolute -bottom-1 -left-1 flex items-center justify-center animate-level-up-pop w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 via-sky-400 to-cyan-400 border-2 border-slate-950"
+                                    className="absolute -bottom-1 -left-1 flex items-center justify-center animate-level-up-pop w-8 h-8 rounded-full bg-black/85 ring-2 ring-white/70 shadow-[0_0_14px_rgba(255,255,255,0.45)]"
                                 >
                                     <span className="text-white font-black text-sm drop-shadow-md">{level}</span>
                                 </div>
@@ -148,7 +149,7 @@ const StatusBar: React.FC<StatusBarProps> = ({
                                 title="Ver Recompensas de Nivel" 
                                 className="relative flex-shrink-0 p-2 rounded-full active:bg-slate-700/50 transition-colors active:scale-95 touch-manipulation"
                             >
-                                <Gift className="w-7 h-7 text-amber-400" />
+                                <Gift className="w-7 h-7 text-white" />
                                 {pendingLevelRewards && (
                                     <span className="absolute top-1.5 right-1.5 block h-2.5 w-2.5 rounded-full bg-red-500 ring-2 ring-slate-950 animate-notification-pulse"></span>
                                 )}
@@ -160,7 +161,7 @@ const StatusBar: React.FC<StatusBarProps> = ({
                 {/* Right Side: Stats */}
                 <div className="flex items-center flex-wrap md:flex-nowrap gap-x-0 sm:gap-x-1">
                     <StatItem 
-                        icon={(() => { const S = Star; return <S className="w-full h-full text-emerald-400" /> })()} 
+                        icon={(() => { const S = Star; return <S className="w-full h-full text-white" /> })()} 
                         value={perfectStreak} 
                         title={`Racha Perfecta: ${perfectStreak}`}
                         iconContainerClass={"h-10 w-10"}
@@ -184,7 +185,7 @@ const StatusBar: React.FC<StatusBarProps> = ({
                         icon={(() => { const HImg = iconMap['heart_img']; return <HImg className="w-full h-full" /> })()} 
                         value={hearts < 0 ? 0 : hearts} 
                         title={`${hearts} Vidas`}
-                        iconContainerClass={""}
+                        iconContainerClass={"h-10 w-10"}
                         onClick={() => onOpenInfoTooltip('hearts')}
                     />
                     

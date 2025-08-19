@@ -20,7 +20,6 @@ import LevelRewardsModal from './components/LevelRewardsModal';
 import LoginScreen from './components/screens/LoginScreen';
 import HomeScreen from './components/screens/HomeScreen';
 import RegionScreen from './components/screens/RegionScreen';
-import AtlasScreen from './components/screens/AtlasScreen';
 import QuizScreen from './components/screens/QuizScreen';
 import QuizSummaryScreen from './components/screens/QuizSummaryScreen';
 import AchievementsScreen from './components/screens/AchievementsScreen';
@@ -239,7 +238,7 @@ export default function App() {
     
         if (currentView === 'quiz') {
             const quizSourceView = viewHistory.current[viewHistory.current.length - 1];
-            if (quizSourceView === 'study' || quizSourceView?.startsWith('atlas')) {
+            if (quizSourceView === 'study' || quizSourceView?.startsWith('study')) {
                 setUserData(p => p ? { ...p, hearts: Math.min(5, p.hearts + 1) } : null);
             }
         }
@@ -595,7 +594,7 @@ export default function App() {
             }
 
             setCurrentQuiz({
-                id: `atlas_${regionId}`,
+                id: `study_${regionId}`,
                 questions: selectedQuestions,
                 xp: { base: 15, bonus: 5 }
             });
@@ -711,7 +710,7 @@ export default function App() {
                     newUserData.doubleOrNothingActive = false;
                 }
         
-                if (quizId.includes('-') && !quizId.startsWith('atlas_')) {
+                if (quizId.includes('-') && !quizId.startsWith('study_')) {
                     const wasPassed = score >= PASS_THRESHOLD;
                     const existingProgress = newUserData.progress[quizId] || { bestScore: 0, passed: false };
                     newUserData.progress[quizId] = {
@@ -1412,8 +1411,7 @@ export default function App() {
                 />;
             case 'exam':
                 return <ExamConfigScreen onStartExam={handleStartExam} onBack={handleBack} numQuestions={examNumQuestions} onNumQuestionsChange={setExamNumQuestions} selection={examSelection} onSelectionChange={setExamSelection} />;
-            case 'atlas':
-                return <AtlasScreen userData={userData} onStartQuiz={handleStartAtlasQuiz} onNavigateToStudy={handleNavigateToStudyFromAtlas} />;
+            
             case 'shop':
                 return <ShopScreen userData={userData} onPurchase={handlePurchase} onClaimDailyReward={handleClaimDailyShopReward} />;
             case 'achievements':

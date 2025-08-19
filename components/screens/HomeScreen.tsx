@@ -1,6 +1,6 @@
 
 import React, { useState, memo, useEffect } from 'react';
-import { HomeIconStudy, HomeIconExam, HomeIconDuel, HomeIconProgress, HomeIconShop, HomeIconAchievements, HomeIconNotes, BookOpen, Target, Swords, iconMap } from '../icons';
+import { HomeIconStudy, HomeIconExam, HomeIconShop, HomeIconAchievements, HomeIconNotes, BookOpen, Target, iconMap } from '../icons';
 import HelpIcon from '../HelpIcon';
 import { HomeScreenProps, View } from '../../types';
 
@@ -18,10 +18,7 @@ const InfoModal: React.FC<InfoModalProps> = memo(({ onClose }) => (
                     <h3 className="font-bold text-lg text-gray-100 flex items-center gap-2"><Target className="w-5 h-5"/> Modo Examen</h3>
                     <p className="mt-1">Ponte a prueba en condiciones de examen. Mezcla preguntas de varios temas y recibe tu puntuación y resultados solo al final. Perfecto para evaluar tu conocimiento global.</p>
                 </div>
-                 <div>
-                    <h3 className="font-bold text-lg text-gray-100 flex items-center gap-2"><Swords className="w-5 h-5"/> Modo Duelo</h3>
-                    <p className="mt-1">Enfréntate a oponentes de IA con personalidades únicas. ¡Demuestra quién sabe más en un desafío cara a cara!</p>
-                </div>
+                
             </div>
             <button onClick={onClose} className="mt-8 w-full bg-slate-200 text-black font-bold py-3 px-4 rounded-xl text-lg shadow-lg active:shadow-xl transition-shadow active:scale-95 touch-manipulation">
                 ¡Entendido!
@@ -42,22 +39,19 @@ const NavItem: React.FC<{
     <button
         onClick={onClick}
         disabled={disabled}
-        className="group flex flex-col items-center justify-center w-24 text-center gap-2 transition-all duration-300 ease-in-out disabled:opacity-60 disabled:cursor-wait touch-manipulation"
+        className="group flex flex-col items-center justify-center w-28 md:w-32 text-center gap-2 transition-all duration-300 ease-in-out disabled:opacity-60 disabled:cursor-wait touch-manipulation"
     >
         <div className="
-            relative w-20 h-20 rounded-full
+            relative w-24 h-24 md:w-28 md:h-28 rounded-full
             flex items-center justify-center
-            bg-slate-800/40 backdrop-blur-sm
-            border border-slate-700/50
-            shadow-lg group-hover:shadow-blue-500/20
-            transition-all duration-300 ease-in-out
-            group-active:scale-95 group-active:shadow-lg
+            bg-black ring-4 ring-white/60
+            transition-[box-shadow,transform,ring] duration-200
+            group-hover:ring-white group-hover:shadow-[0_0_28px_rgba(255,255,255,0.5)]
+            group-active:scale-95 group-active:shadow-[0_0_18px_rgba(255,255,255,0.4)]
         ">
             <div className="absolute inset-0 rounded-full shadow-[inset_0_2px_6px_rgba(0,0,0,0.5)]"></div>
 
-            <div className="absolute -inset-px rounded-full bg-gradient-to-br from-blue-400 via-cyan-400 to-transparent opacity-0 group-hover:opacity-40 transition-opacity duration-300"></div>
-
-            <div className="relative text-slate-300 group-hover:text-white transition-all duration-300 [filter:drop-shadow(0_0_3px_rgba(255,255,255,0.3))] group-hover:[filter:drop-shadow(0_0_4px_rgba(255,255,255,0.5))_brightness(1.2)]">
+            <div className="relative text-slate-300 group-hover:text-slate-100 transition-colors duration-200 scale-110 md:scale-125">
                 {icon}
             </div>
 
@@ -66,7 +60,7 @@ const NavItem: React.FC<{
            )}
         </div>
         <span className="
-            font-semibold text-xs uppercase tracking-wider text-slate-400 group-hover:text-slate-200
+            font-extrabold text-xs md:text-sm uppercase tracking-wider text-slate-200
             transition-colors duration-300
         ">
             {label}
@@ -85,12 +79,8 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onSelectMode, userData, onNavig
     }, []);
 
     const modeButtonClasses = (disabled: boolean) => `
-        group relative
-        rounded-3xl p-[2px] w-full max-w-xl mx-auto
-        bg-gradient-to-br from-slate-600/40 via-slate-700/10 to-slate-800/40
-        hover:from-blue-600/30 hover:via-cyan-500/10 hover:to-blue-800/30
-        transition-all duration-300 ease-in-out
-        ${disabled ? 'opacity-60 cursor-wait pointer-events-none' : 'shadow-xl hover:shadow-2xl hover:shadow-blue-500/20 active:scale-[0.98]'}
+        group relative rounded-2xl w-full max-w-2xl mx-auto border-0
+        transition-colors duration-200 ${disabled ? 'opacity-60 cursor-wait pointer-events-none' : ''}
     `;
 
     return (
@@ -102,115 +92,82 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onSelectMode, userData, onNavig
                 onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }} 
             />
             
-            <div className="flex-grow lg:flex-none flex flex-col md:justify-center lg:justify-start w-full max-w-4xl mx-auto">
+            <div className="flex-grow flex flex-col justify-start w-full max-w-4xl mx-auto">
                 {/* Top Group: Title and Mode Buttons */}
-                <div className="flex flex-col items-center gap-6 md:gap-8 w-full">
-                    <div className="relative w-full flex items-center justify-center text-center">
-                        <h1 className="font-graffiti font-black text-5xl md:text-6xl tracking-wide -rotate-2 title-white-clean inline-block transform scale-110 md:scale-125">
-                            Elige tu Modo
-                        </h1>
-                        <HelpIcon modalTitle="Ayuda de Inicio" ariaLabel="Ayuda de Inicio" className="absolute -right-14 md:-right-24 top-0 md:top-1 -rotate-2 z-10">
-                            <ul>
-                                <li><strong>Estudio</strong>: repasa por regiones/temas y recibe feedback inmediato.</li>
-                                <li><strong>Examen</strong>: combina temas, establece nº de preguntas y tiempo fijo.</li>
-                                <li><strong>Duelo IA</strong>: reta a un Maestro para ganar un Apunte exclusivo.</li>
-                                <li>Abajo encuentras accesos a <strong>Progreso</strong>, <strong>Tienda</strong>, <strong>Logros</strong> y <strong>Desafíos</strong>.</li>
-                            </ul>
-                        </HelpIcon>
-                    </div>
+                <div className="flex flex-col items-center gap-6 md:gap-8 w-full mt-8 md:mt-12">
 
-                    <div className="flex flex-col gap-4 w-full">
+                    <div className="w-full max-w-[340px] sm:max-w-[400px] mx-auto grid grid-cols-2 gap-6 md:gap-8">
                         <button
                             data-tour="home-study-btn"
                             onClick={() => onSelectMode('study')}
                             disabled={!isReadyForInput}
-                            className={`${modeButtonClasses(!isReadyForInput)}`}
+                            className={`${modeButtonClasses(!isReadyForInput)} aspect-[3/4] group`}
                         >
-                            <div className="rounded-[22px] bg-slate-900/70 backdrop-blur-md border border-slate-700/60 p-5 md:p-6 w-full flex items-center text-left relative overflow-hidden">
-                                <div className="pointer-events-none absolute -inset-1 opacity-0 group-hover:opacity-20 transition-opacity bg-[radial-gradient(120px_60px_at_20%_20%,rgba(59,130,246,.5),transparent)]"/>
-                                <div className="text-5xl text-blue-400/80 mr-6 w-14 transition-all duration-300 group-hover:text-blue-400 group-hover:scale-110">
-                                    <HomeIconStudy />
+                            <div className="rounded-2xl bg-black w-full h-full flex flex-col items-center justify-center text-center ring-4 ring-white/60 transition-[box-shadow,transform,ring] duration-200 group-hover:ring-white group-hover:shadow-[0_0_28px_rgba(255,255,255,0.5)] group-active:scale-95 group-active:-translate-y-0.5 group-active:shadow-[0_0_18px_rgba(255,255,255,0.4)]">
+                                <div className="text-white/95 mb-1 md:mb-1.5">
+                                    <HomeIconStudy className="w-8 h-8 md:w-10 md:h-10" />
                                 </div>
-                                <div>
-                                    <span className="text-2xl font-extrabold block text-slate-100">Modo Estudio</span>
-                                    <p className="text-sm text-slate-400 mt-1 font-normal">
-                                        Aprende y repasa temas específicos a tu ritmo.
-                                    </p>
-                                </div>
+                                <span className="text-base md:text-lg font-extrabold text-slate-100 leading-tight">
+                                    <span className="block">Modo</span>
+                                    <span className="block">Estudio</span>
+                                </span>
                             </div>
                         </button>
                         <button
                             onClick={() => onSelectMode('exam')}
                             disabled={!isReadyForInput}
-                            className={`${modeButtonClasses(!isReadyForInput)}`}
+                            className={`${modeButtonClasses(!isReadyForInput)} aspect-[3/4] group`}
                         >
-                            <div className="rounded-[22px] bg-slate-900/70 backdrop-blur-md border border-slate-700/60 p-5 md:p-6 w-full flex items-center text-left relative overflow-hidden">
-                                <div className="pointer-events-none absolute -inset-1 opacity-0 group-hover:opacity-20 transition-opacity bg-[radial-gradient(120px_60px_at_20%_20%,rgba(59,130,246,.5),transparent)]"/>
-                                <div className="text-5xl text-sky-400/80 mr-6 w-14 transition-all duration-300 group-hover:text-sky-400 group-hover:scale-110">
-                                    <HomeIconExam />
+                            <div className="rounded-2xl bg-black w-full h-full flex flex-col items-center justify-center text-center ring-4 ring-white/60 transition-[box-shadow,transform,ring] duration-200 group-hover:ring-white group-hover:shadow-[0_0_28px_rgba(255,255,255,0.5)] group-active:scale-95 group-active:-translate-y-0.5 group-active:shadow-[0_0_18px_rgba(255,255,255,0.4)]">
+                                <div className="text-white/95 mb-1 md:mb-1.5">
+                                    <HomeIconExam className="w-8 h-8 md:w-10 md:h-10" />
                                 </div>
-                                <div>
-                                    <span className="text-2xl font-extrabold block text-slate-100">Modo Examen</span>
-                                    <p className="text-sm text-slate-400 mt-1 font-normal">
-                                        Ponte a prueba con quizzes aleatorios y contra el tiempo.
-                                    </p>
-                                </div>
+                                <span className="text-base md:text-lg font-extrabold text-slate-100 leading-tight">
+                                    <span className="block">Modo</span>
+                                    <span className="block">Examen</span>
+                                </span>
                             </div>
                         </button>
-                         <button
-                            onClick={() => onSelectMode('duel')}
+                        <button
+                            onClick={() => onNavigate('shop')}
                             disabled={!isReadyForInput}
-                            className={`${modeButtonClasses(!isReadyForInput)}`}
+                            className={`${modeButtonClasses(!isReadyForInput)} aspect-[3/4] group`}
                         >
-                            <div className="rounded-[22px] bg-slate-900/70 backdrop-blur-md border border-slate-700/60 p-5 md:p-6 w-full flex items-center text-left relative overflow-hidden">
-                                <div className="pointer-events-none absolute -inset-1 opacity-0 group-hover:opacity-20 transition-opacity bg-[radial-gradient(120px_60px_at_20%_20%,rgba(59,130,246,.5),transparent)]"/>
-                                <div className="text-5xl text-cyan-400/80 mr-6 w-14 transition-all duration-300 group-hover:text-cyan-400 group-hover:scale-110">
-                                    <HomeIconDuel />
+                            <div className="rounded-2xl bg-black w-full h-full flex flex-col items-center justify-center text-center ring-4 ring-white/60 transition-[box-shadow,transform,ring] duration-200 group-hover:ring-white group-hover:shadow-[0_0_28px_rgba(255,255,255,0.5)] group-active:scale-95 group-active:-translate-y-0.5 group-active:shadow-[0_0_18px_rgba(255,255,255,0.4)]">
+                                <div className="text-white/95 mb-1 md:mb-1.5">
+                                    {(() => { const S = iconMap['store_img']; return <S className="w-8 h-8 md:w-10 md:h-10" /> })()}
                                 </div>
-                                <div>
-                                    <span className="text-2xl font-extrabold block text-slate-100">Duelo IA</span>
-                                    <p className="text-sm text-slate-400 mt-1 font-normal">
-                                        Enfréntate a oponentes con personalidades únicas.
-                                    </p>
+                                <span className="text-base md:text-lg font-extrabold text-slate-100">Tienda</span>
+                            </div>
+                        </button>
+                        <button
+                            onClick={() => onNavigate('achievements')}
+                            disabled={!isReadyForInput}
+                            className={`${modeButtonClasses(!isReadyForInput)} aspect-[3/4] group`}
+                        >
+                            <div className="rounded-2xl bg-black w-full h-full flex flex-col items-center justify-center text-center ring-4 ring-white/60 transition-[box-shadow,transform,ring] duration-200 group-hover:ring-white group-hover:shadow-[0_0_28px_rgba(255,255,255,0.5)] group-active:scale-95 group-active:-translate-y-0.5 group-active:shadow-[0_0_18px_rgba(255,255,255,0.4)]">
+                                <div className="text-white/95 mb-1 md:mb-1.5">
+                                    <HomeIconAchievements className="w-8 h-8 md:w-10 md:h-10" />
                                 </div>
+                                <span className="text-base md:text-lg font-extrabold text-slate-100">Logros</span>
+                            </div>
+                        </button>
+                    </div>
+                    <div className="w-full max-w-[300px] sm:max-w-[360px] mx-auto mt-3 md:mt-5">
+                        <button
+                            onClick={() => onNavigate('challenges')}
+                            disabled={!isReadyForInput}
+                            className={`${modeButtonClasses(!isReadyForInput)} group`}
+                        >
+                            <div className="rounded-2xl bg-black w-2/3 mx-auto h-10 md:h-12 flex items-center justify-center text-center ring-4 ring-white/60 transition-[box-shadow,transform,ring] duration-200 group-hover:ring-white group-hover:shadow-[0_0_28px_rgba(255,255,255,0.5)] group-active:scale-95 group-active:-translate-y-0.5 group-active:shadow-[0_0_18px_rgba(255,255,255,0.4)]">
+                                <span className="text-base md:text-lg font-extrabold text-slate-100">Desafíos</span>
                             </div>
                         </button>
                     </div>
                 </div>
             </div>
 
-            {/* Bottom Group: Secondary Navigation Hub */}
-            <div className="flex-shrink-0 pt-6 md:pt-10 lg:pt-6">
-                <div className="flex justify-center items-center gap-2 md:gap-4">
-                    <NavItem 
-                        label="PROGRESO"
-                        icon={<HomeIconProgress className="w-9 h-9 text-slate-300"/>}
-                        onClick={() => onNavigate('atlas')}
-                        disabled={!isReadyForInput}
-                    />
-                    <NavItem 
-                        label="TIENDA"
-                        icon={(() => { const S = iconMap['store_img']; return <S className="w-14 h-14 opacity-80 [filter:grayscale(1)_brightness(1.05)_contrast(1.05)] group-hover:brightness-125" /> })()}
-                        onClick={() => onNavigate('shop')}
-                        disabled={!isReadyForInput}
-                        hasNotification={notifications.shop}
-                    />
-                    <NavItem 
-                        label="LOGROS"
-                        icon={<HomeIconAchievements className="w-9 h-9 text-slate-300"/>}
-                        onClick={() => onNavigate('achievements')}
-                        disabled={!isReadyForInput}
-                        hasNotification={notifications.achievements}
-                    />
-                    <NavItem 
-                        label="DESAFÍOS"
-                        icon={(() => { const Arch = iconMap['archery']; return <Arch className="w-14 h-14 opacity-80 [filter:grayscale(1)_brightness(1.05)_contrast(1.05)] group-hover:brightness-125" /> })()}
-                        onClick={() => onNavigate('challenges')}
-                        disabled={!isReadyForInput}
-                        hasNotification={notifications.challenges}
-                    />
-                </div>
-            </div>
+            
 
             {isInfoModalVisible && <InfoModal onClose={() => setIsInfoModalVisible(false)} />}
         </div>
