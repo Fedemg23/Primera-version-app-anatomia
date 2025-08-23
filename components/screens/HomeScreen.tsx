@@ -1,6 +1,7 @@
 
 import React, { useState, memo, useEffect } from 'react';
 import { HomeIconNotes, BookOpen, Target } from '../icons';
+import { useAudio } from '../../src/contexts/AudioProvider';
 import HelpIcon from '../HelpIcon';
 import { HomeScreenProps, View } from '../../types';
 
@@ -70,6 +71,7 @@ const NavItem: React.FC<{
 
 
 const HomeScreen: React.FC<HomeScreenProps> = ({ onSelectMode, userData, onNavigate, notifications }) => {
+    const { playSound } = useAudio();
     const [isInfoModalVisible, setIsInfoModalVisible] = useState(false);
     const [isReadyForInput, setIsReadyForInput] = useState(false);
 
@@ -82,6 +84,16 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onSelectMode, userData, onNavig
         group relative rounded-2xl w-full max-w-2xl mx-auto border-0
         transition-colors duration-200 ${disabled ? 'opacity-60 cursor-wait pointer-events-none' : ''}
     `;
+
+    const handleNavigation = (view: View) => {
+        // playSound('button-click.wav');
+        onNavigate(view);
+    };
+
+    const handleModeSelection = (mode: 'study' | 'exam') => {
+        // playSound('button-click.wav');
+        onSelectMode(mode);
+    };
 
     return (
         <div className="relative flex flex-col min-h-screen items-center p-4 pb-24 md:pb-28 overflow-y-scroll" style={{ paddingBottom: 'calc(6rem + env(safe-area-inset-bottom))' }}>
@@ -99,7 +111,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onSelectMode, userData, onNavig
                         {/* Botón Desafíos centrado encima de la cuadrícula */}
                         <div className="flex justify-center mb-2 md:mb-3">
                             <button
-                                onClick={() => onNavigate('challenges')}
+                                onClick={() => handleNavigation('challenges')}
                                 disabled={!isReadyForInput}
                                 className={`${modeButtonClasses(!isReadyForInput)} group w-1/2`}
                             >
@@ -112,7 +124,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onSelectMode, userData, onNavig
                         <div className="grid grid-cols-2 gap-4 md:gap-6 lg:gap-8">
                         <button
                             data-tour="home-study-btn"
-                            onClick={() => onSelectMode('study')}
+                            onClick={() => handleModeSelection('study')}
                             disabled={!isReadyForInput}
                             className={`${modeButtonClasses(!isReadyForInput)} aspect-[4/5] group`}
                         >
@@ -131,7 +143,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onSelectMode, userData, onNavig
                             </div>
                         </button>
                         <button
-                            onClick={() => onSelectMode('exam')}
+                            onClick={() => handleModeSelection('exam')}
                             disabled={!isReadyForInput}
                             className={`${modeButtonClasses(!isReadyForInput)} aspect-[4/5] group`}
                         >
@@ -150,7 +162,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onSelectMode, userData, onNavig
                             </div>
                         </button>
                         <button
-                            onClick={() => onNavigate('shop')}
+                            onClick={() => handleNavigation('shop')}
                             disabled={!isReadyForInput}
                             className={`${modeButtonClasses(!isReadyForInput)} aspect-[4/5] group`}
                         >
@@ -166,7 +178,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onSelectMode, userData, onNavig
                             </div>
                         </button>
                         <button
-                            onClick={() => onNavigate('achievements')}
+                            onClick={() => handleNavigation('achievements')}
                             disabled={!isReadyForInput}
                             className={`${modeButtonClasses(!isReadyForInput)} aspect-[4/5] group`}
                         >

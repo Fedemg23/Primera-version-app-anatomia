@@ -1,9 +1,18 @@
 import React, { memo, useRef, useEffect, useState } from 'react';
 import { Trophy, StarFilled, CheckCircle, XCircle, iconMap } from '../icons';
 import { QuizSummaryScreenProps, QuestionData } from '../../types';
+import { useAudio } from '../../src/contexts/AudioProvider';
 import { questionBank } from '../../constants';
 
 const QuizSummaryScreen: React.FC<QuizSummaryScreenProps> = ({ earnedXp, earnedBones, isPerfect, onContinue, wasChallenge, mistakes, questionIds, answers, onReviewMistakes, leveledUpItems, onViewLeveledUp }) => {
+	const { playSound } = useAudio();
+
+	useEffect(() => {
+		/* if (isPerfect || (wasChallenge && mistakes === 0)) {
+			playSound('level-up.wav');
+		} */
+	}, [isPerfect, wasChallenge, mistakes, playSound]);
+
 	const Bones = iconMap['bones'];
 	const wasVictory = earnedXp > 0 || earnedBones > 0;
 	// Determinar tipo de resultado

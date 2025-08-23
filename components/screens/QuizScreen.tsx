@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useRef, memo } from 'react';
 import { QuizScreenProps, QuestionData, LifelineData } from '../../types';
+import { useAudio } from '../../src/contexts/AudioProvider';
 import { CheckCircle, XCircle, iconMap } from '../icons';
 import { bibliographyData } from '../../constants';
 
@@ -105,6 +106,7 @@ const formatExplanation = (explanation: string) => {
 
 
 const QuizScreen: React.FC<QuizScreenProps> = ({ quizQuestions, onQuizComplete, onBack, onMistake, immediateFeedback, title, timeLimit, lifelines, onUseLifeline }) => {
+    const { playSound } = useAudio();
     const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
     const [selectedAnswer, setSelectedAnswer] = useState<number | string | null>(null);
     const [isAnswered, setIsAnswered] = useState(false);
@@ -153,6 +155,12 @@ const QuizScreen: React.FC<QuizScreenProps> = ({ quizQuestions, onQuizComplete, 
 
         const correct = getIsCorrect(currentQuestion, answer);
         
+        /* if (correct) {
+            playSound('correct-answer.wav');
+        } else {
+            playSound('incorrect-answer.wav');
+        } */
+
         if (!correct && isSecondChanceActive) {
             setIsSecondChanceActive(false); // Consume la segunda oportunidad
             setDisabledOptions(prev => [...prev, answer as number]); // Deshabilita la opción incorrecta elegida

@@ -38,6 +38,8 @@ import DuelSummaryScreen from './components/screens/DuelSummaryScreen';
 import CreateNoteScreen from './components/screens/CreateNoteScreen'; 
 import { imageAvatars } from './src/avatarLoader';
 import { getWeightedReward } from './src/features/rewards';
+import { AudioProvider } from './src/contexts/AudioProvider';
+import { AnimationProvider } from './components/AnimationProvider';
 
 
 type ModalType = 'dailyBonus' | 'mysteryBox' | 'levelRewards' | 'settings' | 'noLives';
@@ -88,7 +90,7 @@ const NoLivesModal: React.FC<{
 });
 
 
-export default function App() {
+const App: React.FC = () => {
     // --- STATE MANAGEMENT ---
     
     // User & Data State
@@ -472,7 +474,20 @@ export default function App() {
         });
     }, [showToast]);
 
-    const handleUnlockAll = () => {
+    // Exponer apertura de tour para el botón en Ajustes
+    useEffect(() => {
+        (window as any).__OPEN_TOUR__ = () => setIsTourOpen(true);
+        (window as any).__NAVIGATE__ = (v: View) => setView(v);
+        (window as any).__SCROLL_TO__ = (selector: string) => {
+            try {
+                const el = document.querySelector(selector) as HTMLElement | null;
+                el?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            } catch {}
+        };
+        return () => { delete (window as any).__OPEN_TOUR__; };
+    }, []);
+
+    const handleUnlockAll = useCallback(() => {
         setUserData(prev => {
             if (!prev) return null;
             
@@ -487,7 +502,7 @@ export default function App() {
             maxedOutUserData.claimedChallenges = dailyChallengesData.map(c => c.id);
             maxedOutUserData.purchases = { 'double_or_nothing': 100, 'neural_eraser': 50 };
             
-            // Set resources to specific values for testing
+            // Max out all resources
             maxedOutUserData.bones = 99999;
             maxedOutUserData.hearts = 5;
             maxedOutUserData.streakFreezeActive = true;
@@ -540,20 +555,7 @@ export default function App() {
             setActiveModal(null);
             return maxedOutUserData;
         });
-    };
-
-    // Exponer apertura de tour para el botón en Ajustes
-    useEffect(() => {
-        (window as any).__OPEN_TOUR__ = () => setIsTourOpen(true);
-        (window as any).__NAVIGATE__ = (v: View) => setView(v);
-        (window as any).__SCROLL_TO__ = (selector: string) => {
-            try {
-                const el = document.querySelector(selector) as HTMLElement | null;
-                el?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            } catch {}
-        };
-        return () => { delete (window as any).__OPEN_TOUR__; };
-    }, []);
+    }, [showToast]);
 
     const handleStartPractice = useCallback((practiceQuestions: QuestionData[]) => {
         if (practiceQuestions.length === 0) {
@@ -1623,3 +1625,31 @@ export default function App() {
         </div>
     );
 }
+
+const MemoizedApp = memo(App);
+
+const AppContainer: React.FC = () => {
+  const backgroundMusicPlaylist = [
+    'serene-background-music-for-gaming-sessions.mp3',
+    'smooth-gaming-atmosphere-.mp3',
+    'smooth-and-mellow-beats-for-gaming-.mp3',
+    'relaxed-gaming-vibes-.mp3',
+    'cozy-game-beats-.mp3',
+    'chill-gaming-soundscape-.mp3',
+    'calm-beats-for-gaming-.mp3',
+    'chill-gaming-session-.mp3',
+    'chill-gaming-relaxing-ambient-background-.mp3',
+    'chill-gaming-beats-.mp3',
+    'calm-gaming-flow-.mp3'
+  ]; 
+
+  return (
+    <AudioProvider playlist={backgroundMusicPlaylist}>
+      <AnimationProvider>
+        <MemoizedApp />
+      </AnimationProvider>
+    </AudioProvider>
+  );
+};
+
+export default AppContainer;

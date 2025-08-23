@@ -1,7 +1,7 @@
-import React, { memo, useState } from 'react';
+import React, { memo, useState, useEffect } from 'react';
 import { SettingsPopoverProps } from '../types';
-import HelpIcon from './HelpIcon';
-import { LogOut } from './icons';
+import { LogOut, Music, Sound, Muted, Volume1, Volume2, VolumeX } from './icons'; 
+import { useAudio } from '../src/contexts/AudioProvider';
 
 const SettingsPopover: React.FC<SettingsPopoverProps> = ({ 
     isOpen, 
@@ -12,9 +12,58 @@ const SettingsPopover: React.FC<SettingsPopoverProps> = ({
     onToggleDevMode, 
     onResetData 
 }) => {
-    if (!isOpen) return null;
+    const { 
+        isMusicPlaying, 
+        toggleMusic, 
+        musicVolume,
+        setMusicVolume,
+        isSoundEnabled, 
+        toggleSound,
+        audioRef,
+        currentTrackIndex
+    } = useAudio();
 
     const [devClicks, setDevClicks] = useState(0);
+    const [progress, setProgress] = useState({ currentTime: 0, duration: 0 });
+
+    useEffect(() => {
+        const audio = audioRef.current;
+        if (!audio || !isOpen) return;
+
+        const updateProgress = () => {
+            setProgress({
+                currentTime: audio.currentTime,
+                duration: audio.duration || 0,
+            });
+        };
+
+        audio.addEventListener('timeupdate', updateProgress);
+        audio.addEventListener('loadedmetadata', updateProgress);
+        updateProgress(); // Initial update
+
+        return () => {
+            audio.removeEventListener('timeupdate', updateProgress);
+            audio.removeEventListener('loadedmetadata', updateProgress);
+        };
+    }, [isOpen, audioRef, currentTrackIndex]);
+
+
+    if (!isOpen) return null;
+
+    const formatTime = (timeInSeconds: number) => {
+        const minutes = Math.floor(timeInSeconds / 60);
+        const seconds = Math.floor(timeInSeconds % 60);
+        return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+    };
+
+    const parseTrackName = (filename: string = '') => {
+        const cleaned = filename.replace('.mp3', '').replace(/-/g, ' ');
+        // Capitalize first letter of each word
+        return cleaned.split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+    };
+
+    const playlist = (audioRef.current?.parentElement?.parentElement?.querySelector('audio[preload="auto"]') as any)?.playlist || [];
+    const currentTrackName = playlist[currentTrackIndex] || '';
 
     const handleVersionClick = () => {
         const newClicks = devClicks + 1;
@@ -43,6 +92,55 @@ const SettingsPopover: React.FC<SettingsPopoverProps> = ({
                 onClick={(e) => e.stopPropagation()}
             >
                 <div className="space-y-1">
+                    <div className="grid grid-cols-1 gap-1">
+                        <div className="flex items-center gap-2 px-3 py-1">
+                            <button onClick={() => setMusicVolume(musicVolume > 0 ? 0 : 0.5)}>
+                                {musicVolume === 0 ? <VolumeX className="w-5 h-5 text-slate-300"/> : musicVolume < 0.5 ? <Volume1 className="w-5 h-5 text-slate-300"/> : <Volume2 className="w-5 h-5 text-slate-300"/>}
+                            </button>
+                            <input 
+                                type="range"
+                                min="0"
+                                max="1"
+                                step="0.01"
+                                value={musicVolume}
+                                onChange={(e) => setMusicVolume(parseFloat(e.target.value))}
+                                className="w-full h-2 bg-slate-600 rounded-lg appearance-none cursor-pointer accent-slate-200"
+                            />
+                        </div>
+                        <button
+                            onClick={toggleSound}
+                            className={`w-full flex items-center justify-center gap-2 text-left font-semibold px-3 py-2 rounded-md transition-colors touch-manipulation ${
+                                isSoundEnabled 
+                                    ? 'bg-green-900/40 hover:bg-green-900/60 text-green-300' 
+                                    : 'bg-slate-700/40 hover:bg-slate-700/60 text-slate-300'
+                            }`}
+                        >
+                            {isSoundEnabled ? <Sound className="w-5 h-5"/> : <Muted className="w-5 h-5"/>}
+                            <span>Efectos de Sonido</span>
+                        </button>
+                    </div>
+
+                    {isMusicPlaying && (
+                        <div className="!mt-2 pt-2 border-t border-gray-700">
+                            <p className="px-2 text-xs font-bold text-slate-300 truncate">{parseTrackName(currentTrackName)}</p>
+                            <p className="px-2 text-xs text-slate-400">Pripac</p>
+                            <div className="px-2 mt-1">
+                                <div className="w-full bg-slate-600 rounded-full h-1.5">
+                                    <div 
+                                        className="bg-slate-200 h-1.5 rounded-full" 
+                                        style={{ width: `${progress.duration > 0 ? (progress.currentTime / progress.duration) * 100 : 0}%` }}
+                                    ></div>
+                                </div>
+                                <div className="flex justify-between text-xs text-slate-400 mt-0.5">
+                                    <span>{formatTime(progress.currentTime)}</span>
+                                    <span>-{formatTime(progress.duration - progress.currentTime)}</span>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+                    
+                    <div className="!mt-2 border-t border-gray-700"></div>
+
                     <button
                         onClick={() => { (window as any).__OPEN_TOUR__?.(); onClose(); }}
                         className="w-full flex items-center gap-3 text-left text-blue-300 font-semibold px-3 py-2 rounded-md hover:bg-blue-900/30 transition-colors touch-manipulation"
