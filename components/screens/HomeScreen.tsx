@@ -98,7 +98,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onSelectMode, userData, onNavig
     return (
         <div className="relative flex flex-col min-h-screen items-center p-4 pb-24 md:pb-28 overflow-y-scroll" style={{ paddingBottom: 'calc(6rem + env(safe-area-inset-bottom))' }}>
             <img 
-                src="/images/logo-bone.png" 
+                src="/images/Emoji hueso png.png" 
                 alt="AnatomyGO" 
                 className="absolute top-2 left-4 h-20 md:h-24 w-auto object-contain select-none pointer-events-none z-0" 
                 onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }} 

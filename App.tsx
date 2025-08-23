@@ -36,6 +36,8 @@ import DuelLobbyScreen from './components/screens/DuelLobbyScreen';
 import DuelScreen from './components/screens/DuelScreen';
 import DuelSummaryScreen from './components/screens/DuelSummaryScreen';
 import CreateNoteScreen from './components/screens/CreateNoteScreen'; 
+import LoadingScreen from './components/LoadingScreen';
+import { preloadImages } from './src/utils';
 import { imageAvatars } from './src/avatarLoader';
 import { getWeightedReward } from './src/features/rewards';
 import { AudioProvider, useAudio } from './src/contexts/AudioProvider';
@@ -93,12 +95,12 @@ const NoLivesModal: React.FC<{
 const App: React.FC = () => {
     // --- STATE MANAGEMENT ---
     const { stopMusic } = useAudio();
+    const [isLoading, setIsLoading] = useState(true);
     
     // User & Data State
     const [auth, setAuth] = useState<AuthUser | null>(null);
     const [userData, setUserData] = useState<UserData | null>(null);
     const [isSaving, setIsSaving] = useState(false);
-    const [showMainApp, setShowMainApp] = useState(false);
     
     // Study/Exam Flow State
     const [selectedRegionId, setSelectedRegionId] = useState<string | null>(null);
@@ -211,7 +213,6 @@ const App: React.FC = () => {
     
     const handleCloseBonusModal = useCallback(() => {
         setActiveModal(null);
-        setShowMainApp(true);
         if (dailyBonus.reward > 0 && dailyBonusRewardRef.current) {
             triggerAnimation({
                 type: 'bone',
@@ -286,69 +287,90 @@ const App: React.FC = () => {
     const handleSignIn = useCallback(async () => {
         const { user } = await mockFirebase.auth.signIn();
         setAuth(user);
-        const doc = await mockFirebase.db.getDoc(user.uid);
-        let loadedData: UserData = doc.exists() && doc.data() ? doc.data()! : defaultUserData;
-        
-        loadedData = { ...defaultUserData, ...loadedData };
-        // Deep-merge para estructuras anidadas que podrían carecer de nuevas keys
-        loadedData.lifelineData = { ...defaultUserData.lifelineData, ...(loadedData as any).lifelineData };
-        if (!loadedData.unlockedAchievements || Array.isArray(loadedData.unlockedAchievements)) {
-            loadedData.unlockedAchievements = defaultUserData.unlockedAchievements;
-        }
-
-        const today = toLocalDateString(new Date());
-        const lastLogin = toLocalDateString(new Date(loadedData.lastLoginDate));
-
-        const showBonus = today !== lastLogin;
-
-        if (showBonus) {
-            const yesterday = toLocalDateString(new Date(new Date().setDate(new Date().getDate() - 1)));
-            
-            if (lastLogin === yesterday) { // Consecutive day
-                loadedData.streak += 1;
-            } else { // Missed at least one day
-                if (loadedData.streak > 1 && loadedData.streakFreezeActive) {
-                    loadedData.streakFreezeActive = false;
-                    setTimeout(() => showToast("¡Protector de racha usado!", "success", <Shield className="w-5 h-5 text-white" />), 500);
-                } else {
-                    loadedData.streak = 1;
-                }
-            }
-
-            const reward = 10 + Math.min(loadedData.streak, 7) * 5;
-            loadedData.bones += reward;
-            loadedData.lastLoginDate = new Date().toISOString();
-            
-            setDailyBonus({ reward, streak: loadedData.streak });
-            setActiveModal('dailyBonus');
-        }
-        
-        if (loadedData.dailyStats && loadedData.dailyStats.lastReset !== today) {
-            loadedData.dailyStats = { quizzesCompleted: 0, xpEarned: 0, perfectQuizzes: 0, lastReset: today };
-            loadedData.claimedChallenges = [];
-        }
-
-        setUserData(loadedData);
-
-        if (!showBonus) {
-            queueMicrotask(() => {
-                setShowMainApp(true);
-            });
-        }
-
-    }, [showToast]);
+    }, []);
 
     const handleSignOut = useCallback(async () => {
         if (userData) await saveData(userData);
         await mockFirebase.auth.signOut();
         setAuth(null);
-        setUserData(null);
-        setShowMainApp(false);
-        hasInitialDataLoaded.current = false;
-        viewHistory.current = ['home'];
-        setView('home');
         stopMusic();
     }, [userData, saveData, stopMusic]);
+
+    useEffect(() => {
+        if (!auth) {
+            setIsLoading(true);
+            setUserData(null);
+            return;
+        }
+
+        const loadAppData = async () => {
+            try {
+                const criticalImages = [
+                    '/images/Emoji hueso png.png',
+                    '/images/Modo estudio.png',
+                    '/images/Modo examen.png',
+                    '/images/Tienda.png',
+                    '/images/Logros.png',
+                    '/images/Heart.png',
+                    '/images/huesitos.png'
+                ];
+                
+                const docPromise = mockFirebase.db.getDoc(auth.uid);
+                const preloadPromise = preloadImages(criticalImages);
+
+                const [doc] = await Promise.all([docPromise, preloadPromise]);
+
+                let loadedData: UserData = doc.exists() && doc.data() ? doc.data()! : defaultUserData;
+                
+                loadedData = { ...defaultUserData, ...loadedData };
+                loadedData.lifelineData = { ...defaultUserData.lifelineData, ...(loadedData as any).lifelineData };
+                if (!loadedData.unlockedAchievements || Array.isArray(loadedData.unlockedAchievements)) {
+                    loadedData.unlockedAchievements = defaultUserData.unlockedAchievements;
+                }
+        
+                const today = toLocalDateString(new Date());
+                const lastLogin = toLocalDateString(new Date(loadedData.lastLoginDate));
+        
+                const showBonus = today !== lastLogin;
+        
+                if (showBonus) {
+                    const yesterday = toLocalDateString(new Date(new Date().setDate(new Date().getDate() - 1)));
+                    
+                    if (lastLogin === yesterday) {
+                        loadedData.streak += 1;
+                    } else {
+                        if (loadedData.streak > 1 && loadedData.streakFreezeActive) {
+                            loadedData.streakFreezeActive = false;
+                            setTimeout(() => showToast("¡Protector de racha usado!", "success", <Shield className="w-5 h-5 text-white" />), 500);
+                        } else {
+                            loadedData.streak = 1;
+                        }
+                    }
+        
+                    const reward = 10 + Math.min(loadedData.streak, 7) * 5;
+                    loadedData.bones += reward;
+                    loadedData.lastLoginDate = new Date().toISOString();
+                    
+                    setDailyBonus({ reward, streak: loadedData.streak });
+                    setActiveModal('dailyBonus');
+                }
+                
+                if (loadedData.dailyStats && loadedData.dailyStats.lastReset !== today) {
+                    loadedData.dailyStats = { quizzesCompleted: 0, xpEarned: 0, perfectQuizzes: 0, lastReset: today };
+                    loadedData.claimedChallenges = [];
+                }
+
+                setUserData(loadedData);
+            } catch (error) {
+                console.error("Failed to load app data:", error);
+                showToast("No se pudieron cargar los datos del usuario.", "error");
+            } finally {
+                setIsLoading(false);
+            }
+        };
+
+        loadAppData();
+    }, [auth, showToast]);
 
     useEffect(() => {
         if (!userData) return;
@@ -1458,15 +1480,34 @@ const App: React.FC = () => {
         showToast('Datos reiniciados.', 'success');
     }, [auth, showToast]);
 
+    useEffect(() => {
+        const criticalImages = [
+            '/images/Emoji hueso png.png',
+            '/images/Modo estudio.png',
+            '/images/Modo examen.png',
+            '/images/Tienda.png',
+            '/images/Logros.png',
+            '/images/Heart.png',
+            '/images/huesitos.png'
+        ];
+        preloadImages(criticalImages)
+            .catch(err => console.error("Error preloading images:", err))
+            .finally(() => setIsLoading(false));
+    }, []);
+
     // --- Guards and Early returns ---
     if (!auth) {
         return <LoginScreen onSignIn={handleSignIn} />;
     }
 
+    if (isLoading) {
+        return <LoadingScreen />;
+    }
+
     if (!userData) {
         return (
             <div className="bg-black min-h-screen w-screen flex items-center justify-center">
-                <div className="text-white text-lg font-semibold animate-pulse">Cargando...</div>
+                <div className="text-white text-lg font-semibold">Error al cargar datos del usuario.</div>
             </div>
         );
     }
@@ -1535,22 +1576,6 @@ const App: React.FC = () => {
 
     const isFullScreenView = ['quiz', 'duel'].includes(view);
     const isHomeView = view === 'home';
-
-    if (!showMainApp) {
-        return (
-            <>
-                <DailyBonusModal 
-                    isOpen={activeModal === 'dailyBonus'} 
-                    onClose={handleCloseBonusModal} 
-                    rewardAmount={dailyBonus.reward}
-                    onClaim={() => {
-                        /* reclamo se procesa ya en handleCloseBonusModal o donde corresponda */
-                    }}
-                />
-                {/* The Mystery Box Modal will now be handled in the main return block */}
-            </>
-        )
-    }
 
     return (
         <div className="relative min-h-screen w-full overflow-x-hidden bg-black text-gray-100 flex flex-col">

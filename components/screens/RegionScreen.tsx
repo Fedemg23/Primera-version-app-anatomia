@@ -111,7 +111,7 @@ const RegionScreen: React.FC<RegionScreenProps> = ({
                         </h2>
                     </div>
                     <p className="text-slate-400 mb-2 text-center text-sm">Elige un subtema para empezar a estudiar.</p>
-                    <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2 content-start max-w-6xl mx-auto w-full">
+                    <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 content-start max-w-6xl mx-auto w-full">
                         {selectedTema.subtemas.map((subtema) => {
                             const progress = userData.progress[subtema.id];
                             return (
@@ -141,7 +141,7 @@ const RegionScreen: React.FC<RegionScreenProps> = ({
                         </h2>
                     </div>
                     <p className="text-slate-400 mb-2 text-center text-sm">Elige un tema para explorar.</p>
-                    <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2 content-start max-w-6xl mx-auto w-full">
+                    <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 content-start max-w-6xl mx-auto w-full">
                         {selectedRegion.temas.map((tema) => {
                             const completedCount = tema.subtemas.filter(st => userData.progress[st.id]?.passed).length;
                             const totalCount = tema.subtemas.length;
@@ -183,7 +183,7 @@ const RegionScreen: React.FC<RegionScreenProps> = ({
                         </HelpIcon>
                     </div>
                 </div>
-                <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 content-start max-w-6xl mx-auto w-full">
+                <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 content-start max-w-6xl mx-auto w-full">
                     {navigationData.map((region) => (
                         <div
                             key={region.id}
@@ -214,7 +214,7 @@ const RegionScreen: React.FC<RegionScreenProps> = ({
     }
     
     return (
-        <div className="bg-black h-screen overflow-hidden flex flex-col p-6 md:p-8">
+        <div className="bg-black h-screen overflow-hidden flex flex-col px-4 py-6 sm:px-6 sm:py-8">
             <div className="flex-1 overflow-y-auto">
                 {renderContent()}
             </div>
