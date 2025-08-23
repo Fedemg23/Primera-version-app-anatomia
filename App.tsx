@@ -38,7 +38,7 @@ import DuelSummaryScreen from './components/screens/DuelSummaryScreen';
 import CreateNoteScreen from './components/screens/CreateNoteScreen'; 
 import { imageAvatars } from './src/avatarLoader';
 import { getWeightedReward } from './src/features/rewards';
-import { AudioProvider } from './src/contexts/AudioProvider';
+import { AudioProvider, useAudio } from './src/contexts/AudioProvider';
 import { AnimationProvider } from './components/AnimationProvider';
 
 
@@ -92,6 +92,7 @@ const NoLivesModal: React.FC<{
 
 const App: React.FC = () => {
     // --- STATE MANAGEMENT ---
+    const { stopMusic } = useAudio();
     
     // User & Data State
     const [auth, setAuth] = useState<AuthUser | null>(null);
@@ -346,7 +347,8 @@ const App: React.FC = () => {
         hasInitialDataLoaded.current = false;
         viewHistory.current = ['home'];
         setView('home');
-    }, [userData, saveData]);
+        stopMusic();
+    }, [userData, saveData, stopMusic]);
 
     useEffect(() => {
         if (!userData) return;

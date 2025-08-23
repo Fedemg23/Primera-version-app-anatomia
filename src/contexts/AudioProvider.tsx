@@ -1,16 +1,18 @@
 import React, { createContext, useContext, useState, useRef, useEffect, useCallback } from 'react';
+import { soundMap, SoundKey } from '../soundLoader';
 
 const SOUNDS_PATH = '/sounds/';
 
 interface AudioContextType {
   isMusicPlaying: boolean;
   toggleMusic: () => void;
+  stopMusic: () => void;
   playMusic: () => void;
   musicVolume: number;
   setMusicVolume: (volume: number) => void;
-  isSoundEnabled: boolean;
-  toggleSound: () => void;
-  playSound: (soundFile: string) => void;
+  soundVolume: number;
+  setSoundVolume: (volume: number) => void;
+  playSound: (soundKey: SoundKey, volumeMultiplier?: number) => void;
   audioRef: React.RefObject<HTMLAudioElement>;
   currentTrackIndex: number;
 }
@@ -33,12 +35,24 @@ interface AudioProviderProps {
 export const AudioProvider: React.FC<AudioProviderProps> = ({ children, playlist }) => {
   const [isMusicPlaying, setIsMusicPlaying] = useState(true);
   const [musicVolume, setMusicVolume] = useState(0.5); // Default volume at 50%
-  const [isSoundEnabled, setIsSoundEnabled] = useState(true);
-  const [currentTrackIndex, setCurrentTrackIndex] = useState(0);
+  const [soundVolume, setSoundVolume] = useState(0.7); // Default at 70%
+  const [currentTrackIndex, setCurrentTrackIndex] = useState(() => 
+    playlist.length > 0 ? Math.floor(Math.random() * playlist.length) : 0
+  );
   
   const audioRef = useRef<HTMLAudioElement>(null);
-  const soundRef = useRef<HTMLAudioElement>(null);
+  const audioPoolRef = useRef<HTMLAudioElement[]>([]);
   const hasInteracted = useRef(false);
+
+  useEffect(() => {
+    // Create a pool of audio elements for sound effects
+    const poolSize = 5;
+    for (let i = 0; i < poolSize; i++) {
+        const audio = new Audio();
+        audio.preload = 'auto';
+        audioPoolRef.current.push(audio);
+    }
+  }, []);
 
   const playMusic = useCallback(() => {
     if (audioRef.current && hasInteracted.current) {
@@ -77,6 +91,10 @@ export const AudioProvider: React.FC<AudioProviderProps> = ({ children, playlist
     setIsMusicPlaying(prev => !prev);
   };
 
+  const stopMusic = () => {
+    setIsMusicPlaying(false);
+  };
+
   useEffect(() => {
     if (audioRef.current) {
       if (isMusicPlaying && hasInteracted.current) {
@@ -92,15 +110,27 @@ export const AudioProvider: React.FC<AudioProviderProps> = ({ children, playlist
       audioRef.current.volume = musicVolume;
     }
   }, [musicVolume]);
-
-  const toggleSound = () => {
-    setIsSoundEnabled(prev => !prev);
-  };
   
-  const playSound = (soundFile: string) => {
-    if (isSoundEnabled && soundRef.current) {
-      soundRef.current.src = `${SOUNDS_PATH}${soundFile}`;
-      soundRef.current.play().catch(e => console.error("Error playing sound:", e));
+  const playSound = (soundKey: SoundKey, volumeMultiplier: number = 1) => {
+    if (soundVolume > 0) {
+      const soundSrc = soundMap[soundKey];
+      if (!soundSrc) {
+        console.error(`Sound key not found: ${soundKey}`);
+        return;
+      }
+
+      const finalVolume = Math.max(0, Math.min(1, soundVolume * volumeMultiplier));
+
+      const sound = audioPoolRef.current.find(a => a.paused);
+      if (sound) {
+        sound.src = soundSrc;
+        sound.volume = finalVolume;
+        sound.play().catch(e => console.error(`Error playing sound ${soundKey}:`, e));
+      } else {
+        const newSound = new Audio(soundSrc);
+        newSound.volume = finalVolume;
+        newSound.play().catch(e => console.error(`Error playing sound ${soundKey} (new audio):`, e));
+      }
     }
   };
 
@@ -121,17 +151,17 @@ export const AudioProvider: React.FC<AudioProviderProps> = ({ children, playlist
     <AudioContext.Provider value={{ 
       isMusicPlaying, 
       toggleMusic, 
+      stopMusic,
       playMusic, 
       musicVolume,
       setMusicVolume,
-      isSoundEnabled, 
-      toggleSound, 
+      soundVolume,
+      setSoundVolume,
       playSound,
       audioRef,
       currentTrackIndex
     }}>
       <audio ref={audioRef} onEnded={handleTrackEnd} loop={playlist.length === 1} preload="auto" />
-      <audio ref={soundRef} preload="auto" />
       {children}
     </AudioContext.Provider>
   );

@@ -86,12 +86,12 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onSelectMode, userData, onNavig
     `;
 
     const handleNavigation = (view: View) => {
-        // playSound('button-click.wav');
+        playSound('button-click');
         onNavigate(view);
     };
 
     const handleModeSelection = (mode: 'study' | 'exam') => {
-        // playSound('button-click.wav');
+        playSound('button-click');
         onSelectMode(mode);
     };
 

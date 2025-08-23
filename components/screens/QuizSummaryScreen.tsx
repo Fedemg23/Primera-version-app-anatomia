@@ -8,9 +8,9 @@ const QuizSummaryScreen: React.FC<QuizSummaryScreenProps> = ({ earnedXp, earnedB
 	const { playSound } = useAudio();
 
 	useEffect(() => {
-		/* if (isPerfect || (wasChallenge && mistakes === 0)) {
-			playSound('level-up.wav');
-		} */
+		if (isPerfect || (wasChallenge && mistakes === 0)) {
+			playSound('level-up', 0.6); // Bajar volumen al 60%
+		}
 	}, [isPerfect, wasChallenge, mistakes, playSound]);
 
 	const Bones = iconMap['bones'];

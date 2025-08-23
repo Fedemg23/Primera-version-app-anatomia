@@ -2,6 +2,7 @@ import React, { memo, useState, useEffect } from 'react';
 import { UserData, NavigationRegion, NavigationTema, NavigationSubtema } from '../../types';
 import { navigationData } from '../../constants';
 import { Lock, StarFilled, CheckCircle, ChevronRight, iconMap, PlayCircleIcon } from '../icons';
+import { useAudio } from '../../src/contexts/AudioProvider';
 import HelpIcon from '../HelpIcon';
 
 // ==========================================================================================
@@ -72,6 +73,7 @@ const RegionScreen: React.FC<RegionScreenProps> = ({
     onStartQuiz, onBack, userData, 
     selectedRegionId, selectedTemaId, onSelectRegion, onSelectTema 
 }) => {
+    const { playSound } = useAudio();
     const [isReadyForInput, setIsReadyForInput] = useState(false);
     
     useEffect(() => {
@@ -82,6 +84,21 @@ const RegionScreen: React.FC<RegionScreenProps> = ({
 
     const selectedRegion = selectedRegionId ? navigationData.find(r => r.id === selectedRegionId) : null;
     const selectedTema = selectedRegion && selectedTemaId ? selectedRegion.temas.find(t => t.id === selectedTemaId) : null;
+    
+    const handleSelectSubtema = (subtemaId: string) => {
+        playSound('button-click');
+        onStartQuiz(subtemaId);
+    };
+
+    const handleSelectTema = (temaId: string) => {
+        playSound('button-click');
+        onSelectTema(temaId);
+    };
+
+    const handleSelectRegion = (regionId: string) => {
+        playSound('button-click');
+        onSelectRegion(regionId);
+    };
     
     const renderContent = () => {
         // Nivel 3: Vista de Subtemas (Cuestionarios)
@@ -94,7 +111,7 @@ const RegionScreen: React.FC<RegionScreenProps> = ({
                         </h2>
                     </div>
                     <p className="text-slate-400 mb-2 text-center text-sm">Elige un subtema para empezar a estudiar.</p>
-                    <div className="flex-1 grid grid-cols-3 gap-2 content-start max-w-6xl mx-auto">
+                    <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2 content-start max-w-6xl mx-auto w-full">
                         {selectedTema.subtemas.map((subtema) => {
                             const progress = userData.progress[subtema.id];
                             return (
@@ -103,7 +120,7 @@ const RegionScreen: React.FC<RegionScreenProps> = ({
                                         subtema={subtema}
                                         isPassed={progress?.passed ?? false}
                                         bestScore={progress?.bestScore || 0}
-                                        onPlay={() => onStartQuiz(subtema.id)}
+                                        onPlay={() => handleSelectSubtema(subtema.id)}
                                         disabled={!isReadyForInput}
                                     />
                                 </div>
@@ -124,16 +141,16 @@ const RegionScreen: React.FC<RegionScreenProps> = ({
                         </h2>
                     </div>
                     <p className="text-slate-400 mb-2 text-center text-sm">Elige un tema para explorar.</p>
-                    <div className="flex-1 grid grid-cols-3 gap-2 content-start max-w-6xl mx-auto">
+                    <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2 content-start max-w-6xl mx-auto w-full">
                         {selectedRegion.temas.map((tema) => {
                             const completedCount = tema.subtemas.filter(st => userData.progress[st.id]?.passed).length;
                             const totalCount = tema.subtemas.length;
                             const isCompleted = completedCount === totalCount;
                             return (
-                                <button key={tema.id} data-tour="study-tema-btn" onClick={() => onSelectTema(tema.id)} disabled={!isReadyForInput} className="w-full bg-black p-3 rounded-xl shadow-md ring-4 ring-white/60 flex items-center justify-between text-left transition-[box-shadow,transform,ring] duration-200 ease-in-out hover:shadow-[0_0_20px_rgba(255,255,255,0.35)] hover:ring-white disabled:pointer-events-none disabled:opacity-60 disabled:transform-none touch-manipulation">
+                                <button key={tema.id} data-tour="study-tema-btn" onClick={() => handleSelectTema(tema.id)} disabled={!isReadyForInput} className="w-full bg-black p-3 rounded-xl shadow-md ring-4 ring-white/60 flex items-center justify-between text-left transition-[box-shadow,transform,ring] duration-200 ease-in-out hover:shadow-[0_0_20px_rgba(255,255,255,0.35)] hover:ring-white disabled:pointer-events-none disabled:opacity-60 disabled:transform-none touch-manipulation">
                                     <div className="flex items-center">
                                         <div>
-                                            <h3 className="text-md font-bold text-slate-100">{tema.name}</h3>
+                                            <h3 className="text-sm font-semibold text-slate-100">{tema.name}</h3>
                                             <p className="text-xs text-slate-400">{isCompleted ? 'Completado' : `${completedCount} / ${totalCount} completados`}</p>
                                         </div>
                                     </div>
@@ -166,11 +183,11 @@ const RegionScreen: React.FC<RegionScreenProps> = ({
                         </HelpIcon>
                     </div>
                 </div>
-                <div className="flex-1 grid grid-cols-3 gap-3 content-start max-w-6xl mx-auto">
+                <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 content-start max-w-6xl mx-auto w-full">
                     {navigationData.map((region) => (
                         <div
                             key={region.id}
-                            onClick={() => isReadyForInput && onSelectRegion(region.id)}
+                            onClick={() => isReadyForInput && handleSelectRegion(region.id)}
                             className={`
                                 relative p-4 rounded-2xl overflow-hidden
                                 flex flex-col justify-center items-center text-center h-32

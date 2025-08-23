@@ -14,11 +14,10 @@ const SettingsPopover: React.FC<SettingsPopoverProps> = ({
 }) => {
     const { 
         isMusicPlaying, 
-        toggleMusic, 
         musicVolume,
         setMusicVolume,
-        isSoundEnabled, 
-        toggleSound,
+        soundVolume,
+        setSoundVolume,
         audioRef,
         currentTrackIndex
     } = useAudio();
@@ -92,9 +91,9 @@ const SettingsPopover: React.FC<SettingsPopoverProps> = ({
                 onClick={(e) => e.stopPropagation()}
             >
                 <div className="space-y-1">
-                    <div className="grid grid-cols-1 gap-1">
+                    <div className="grid grid-cols-1 gap-2">
                         <div className="flex items-center gap-2 px-3 py-1">
-                            <button onClick={() => setMusicVolume(musicVolume > 0 ? 0 : 0.5)}>
+                            <button onClick={() => setMusicVolume(musicVolume > 0 ? 0 : 0.5)} title="Silenciar música">
                                 {musicVolume === 0 ? <VolumeX className="w-5 h-5 text-slate-300"/> : musicVolume < 0.5 ? <Volume1 className="w-5 h-5 text-slate-300"/> : <Volume2 className="w-5 h-5 text-slate-300"/>}
                             </button>
                             <input 
@@ -105,19 +104,24 @@ const SettingsPopover: React.FC<SettingsPopoverProps> = ({
                                 value={musicVolume}
                                 onChange={(e) => setMusicVolume(parseFloat(e.target.value))}
                                 className="w-full h-2 bg-slate-600 rounded-lg appearance-none cursor-pointer accent-slate-200"
+                                title="Volumen de la música"
                             />
                         </div>
-                        <button
-                            onClick={toggleSound}
-                            className={`w-full flex items-center justify-center gap-2 text-left font-semibold px-3 py-2 rounded-md transition-colors touch-manipulation ${
-                                isSoundEnabled 
-                                    ? 'bg-green-900/40 hover:bg-green-900/60 text-green-300' 
-                                    : 'bg-slate-700/40 hover:bg-slate-700/60 text-slate-300'
-                            }`}
-                        >
-                            {isSoundEnabled ? <Sound className="w-5 h-5"/> : <Muted className="w-5 h-5"/>}
-                            <span>Efectos de Sonido</span>
-                        </button>
+                        <div className="flex items-center gap-2 px-3 py-1">
+                             <button onClick={() => setSoundVolume(soundVolume > 0 ? 0 : 0.7)} title="Silenciar efectos">
+                                {soundVolume === 0 ? <VolumeX className="w-5 h-5 text-slate-300"/> : soundVolume < 0.5 ? <Volume1 className="w-5 h-5 text-slate-300"/> : <Volume2 className="w-5 h-5 text-slate-300"/>}
+                            </button>
+                            <input 
+                                type="range"
+                                min="0"
+                                max="1"
+                                step="0.01"
+                                value={soundVolume}
+                                onChange={(e) => setSoundVolume(parseFloat(e.target.value))}
+                                className="w-full h-2 bg-slate-600 rounded-lg appearance-none cursor-pointer accent-slate-200"
+                                title="Volumen de efectos de sonido"
+                            />
+                        </div>
                     </div>
 
                     {isMusicPlaying && (

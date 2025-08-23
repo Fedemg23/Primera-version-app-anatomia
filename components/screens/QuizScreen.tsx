@@ -155,11 +155,11 @@ const QuizScreen: React.FC<QuizScreenProps> = ({ quizQuestions, onQuizComplete, 
 
         const correct = getIsCorrect(currentQuestion, answer);
         
-        /* if (correct) {
-            playSound('correct-answer.wav');
+        if (correct) {
+            playSound('correct-answer');
         } else {
-            playSound('incorrect-answer.wav');
-        } */
+            playSound('incorrect-answer', 0.5); // Bajar volumen al 50%
+        }
 
         if (!correct && isSecondChanceActive) {
             setIsSecondChanceActive(false); // Consume la segunda oportunidad
