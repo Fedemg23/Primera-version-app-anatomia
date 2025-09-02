@@ -76,8 +76,8 @@ const StatusBar: React.FC<StatusBarProps> = ({
 
     return (
         <div className="w-full px-1 sm:px-3 z-20">
-            <div className="w-full h-20 md:h-24 bg-black rounded-b-2xl">
-                <div className="max-w-7xl mx-auto h-full grid grid-cols-3 items-center gap-1 sm:gap-4 md:gap-8 pt-4">
+            <div className="w-full h-16 md:h-20 bg-black rounded-b-2xl">
+                <div className="max-w-7xl mx-auto h-full grid grid-cols-3 items-center gap-1 sm:gap-4 md:gap-8 pt-2">
                     {/* Left Side: Back Button or Profile */}
                     <div className="flex-shrink-0 flex justify-start items-center gap-1 sm:gap-2 md:gap-4 ml-4">
                         {showBackButton ? (
@@ -86,7 +86,7 @@ const StatusBar: React.FC<StatusBarProps> = ({
                             </button>
                         ) : (
                             <div className="flex items-center gap-2 sm:gap-3 md:gap-5">
-                                <div className="flex flex-col items-center mt-16">
+                                <div className="flex flex-col items-center mt-4">
                                     <button 
                                         onClick={onNavigateToProfile}
                                         title="Ir al Perfil"

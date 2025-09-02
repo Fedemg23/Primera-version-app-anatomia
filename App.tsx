@@ -235,19 +235,6 @@ const App: React.FC = () => {
     const handleNavigate = useCallback((newView: View) => {
         viewHistory.current.push(newView);
         setView(newView);
-        // Resetear scroll al navegar para que cada pestaña sea independiente
-        try {
-            if (mainRef.current) mainRef.current.scrollTo({ top: 0, left: 0, behavior: 'auto' });
-            window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
-            document.documentElement.scrollTop = 0;
-            document.body.scrollTop = 0;
-        } catch {}
-        requestAnimationFrame(() => {
-            try {
-                if (mainRef.current) mainRef.current.scrollTo({ top: 0, left: 0, behavior: 'auto' });
-                window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
-            } catch {}
-        });
     }, []);
 
     const handleBack = useCallback(() => {
@@ -410,7 +397,15 @@ const App: React.FC = () => {
     }, [userData?.hearts, userData?.nextHeartAt]);
     
     useEffect(() => {
-        mainRef.current?.scrollTo({ top: 0, behavior: 'instant' });
+        // Se intenta de varias formas por consistencia entre navegadores y escenarios
+        try {
+            if (mainRef.current) {
+                mainRef.current.scrollTo({ top: 0, behavior: 'instant' });
+            }
+            window.scrollTo({ top: 0, behavior: 'instant' });
+        } catch (e) {
+            console.warn("Failed to scroll to top", e);
+        }
     }, [view]);
 
     useEffect(() => {
@@ -1629,7 +1624,7 @@ const App: React.FC = () => {
 
             <main 
                 ref={mainRef}
-                className={`flex-grow overflow-x-hidden ${isHomeView ? 'overflow-y-auto' : (isFullScreenView ? 'overflow-y-auto' : 'overflow-y-scroll')} ${!isFullScreenView ? 'pt-28 md:pt-32' : ''}`}
+                className={`flex-grow overflow-x-hidden ${isHomeView ? 'overflow-y-auto' : (isFullScreenView ? 'overflow-y-auto' : 'overflow-y-scroll')} ${!isFullScreenView ? 'pt-24 md:pt-28' : ''}`}
                 style={{
                     height: isFullScreenView ? '100vh' : (isHomeView ? 'calc(100vh - 6rem)' : 'auto'),
                     overscrollBehavior: isHomeView ? ('none' as any) : undefined,
