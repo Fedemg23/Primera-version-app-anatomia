@@ -77,7 +77,7 @@ const StatusBar: React.FC<StatusBarProps> = ({
     return (
         <div className="w-full px-1 sm:px-3 z-20">
             <div className="w-full h-20 md:h-24 bg-black rounded-b-2xl">
-                <div className="max-w-7xl mx-auto h-full flex justify-between items-center gap-1 sm:gap-4 md:gap-8 pt-4">
+                <div className="max-w-7xl mx-auto h-full grid grid-cols-3 items-center gap-1 sm:gap-4 md:gap-8 pt-4">
                     {/* Left Side: Back Button or Profile */}
                     <div className="flex-shrink-0 flex justify-start items-center gap-1 sm:gap-2 md:gap-4 ml-4">
                         {showBackButton ? (
@@ -163,8 +163,17 @@ const StatusBar: React.FC<StatusBarProps> = ({
                         )}
                     </div>
 
+                    {/* Center Title */}
+                    <div className="text-center">
+                        {!showBackButton && (
+                            <h1 className="font-graffiti text-2xl md:text-3xl font-black text-white title-white-clean -rotate-1">
+                                AnatomyGO
+                            </h1>
+                        )}
+                    </div>
+
                     {/* Right Side: Stats */}
-                    <div className="flex items-center flex-wrap md:flex-nowrap gap-x-0 sm:gap-x-1 md:gap-x-3">
+                    <div className="flex justify-end items-center flex-wrap md:flex-nowrap gap-x-0 sm:gap-x-1 md:gap-x-3">
                         <StatItem 
                             icon={(() => { const S = Star; return <S className="w-full h-full text-white" /> })()} 
                             value={perfectStreak} 

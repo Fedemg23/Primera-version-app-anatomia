@@ -101,12 +101,12 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onSelectMode, userData, onNavig
             <div className="flex flex-col justify-start w-full max-w-6xl mx-auto min-h-full">
                 {/* Top Group: Title and Mode Buttons */}
                 <div className="flex flex-col items-center gap-4 md:gap-6 w-full mt-16 md:mt-4">
-                    <div className="w-11/12 max-w-[320px] sm:max-w-[480px] md:max-w-[720px] lg:max-w-[800px] mx-auto">
+                    <div className="w-11/12 max-w-[300px] sm:max-w-[440px] md:max-w-[680px] lg:max-w-[760px] mx-auto">
                         <div className="grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-6 lg:gap-8">
                             <button
                                 onClick={() => handleNavigation('challenges')}
                                 disabled={!isReadyForInput}
-                                className={`${modeButtonClasses(!isReadyForInput)} aspect-[4/5] group relative`}
+                                className={`${modeButtonClasses(!isReadyForInput)} aspect-square group relative`}
                             >
                                 <div className="rounded-2xl bg-black w-full h-full flex flex-col items-center justify-center text-center ring-4 ring-white/60 transition-[box-shadow,transform,ring] duration-200 group-hover:ring-white group-hover:shadow-[0_0_28px_rgba(255,255,255,0.5)] group-active:scale-95 group-active:-translate-y-0.5 group-active:shadow-[0_0_18px_rgba(255,255,255,0.4)]">
                                     <div className="mb-1 md:mb-2">
@@ -128,7 +128,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onSelectMode, userData, onNavig
                                 data-tour="home-study-btn"
                                 onClick={() => handleModeSelection('study')}
                                 disabled={!isReadyForInput}
-                                className={`${modeButtonClasses(!isReadyForInput)} aspect-[4/5] group relative`}
+                                className={`${modeButtonClasses(!isReadyForInput)} aspect-square group relative`}
                             >
                                 <div className="rounded-2xl bg-black w-full h-full flex flex-col items-center justify-center text-center ring-4 ring-white/60 transition-[box-shadow,transform,ring] duration-200 group-hover:ring-white group-hover:shadow-[0_0_28px_rgba(255,255,255,0.5)] group-active:scale-95 group-active:-translate-y-0.5 group-active:shadow-[0_0_18px_rgba(255,255,255,0.4)]">
                                     <div className="mb-1 md:mb-2">
@@ -152,7 +152,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onSelectMode, userData, onNavig
                             <button
                                 onClick={() => handleModeSelection('exam')}
                                 disabled={!isReadyForInput}
-                                className={`${modeButtonClasses(!isReadyForInput)} aspect-[4/5] group relative`}
+                                className={`${modeButtonClasses(!isReadyForInput)} aspect-square group relative`}
                             >
                                 <div className="rounded-2xl bg-black w-full h-full flex flex-col items-center justify-center text-center ring-4 ring-white/60 transition-[box-shadow,transform,ring] duration-200 group-hover:ring-white group-hover:shadow-[0_0_28px_rgba(255,255,255,0.5)] group-active:scale-95 group-active:-translate-y-0.5 group-active:shadow-[0_0_18px_rgba(255,255,255,0.4)]">
                                     <div className="mb-1 md:mb-2">
@@ -176,7 +176,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onSelectMode, userData, onNavig
                             <button
                                 onClick={() => handleNavigation('shop')}
                                 disabled={!isReadyForInput}
-                                className={`${modeButtonClasses(!isReadyForInput)} aspect-[4/5] group relative`}
+                                className={`${modeButtonClasses(!isReadyForInput)} aspect-square group relative`}
                             >
                                 <div className="rounded-2xl bg-black w-full h-full flex flex-col items-center justify-center text-center ring-4 ring-white/60 transition-[box-shadow,transform,ring] duration-200 group-hover:ring-white group-hover:shadow-[0_0_28px_rgba(255,255,255,0.5)] group-active:scale-95 group-active:-translate-y-0.5 group-active:shadow-[0_0_18px_rgba(255,255,255,0.4)]">
                                     <div className="mb-1 md:mb-2">
@@ -197,7 +197,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onSelectMode, userData, onNavig
                             <button
                                 onClick={() => handleNavigation('achievements')}
                                 disabled={!isReadyForInput}
-                                className={`${modeButtonClasses(!isReadyForInput)} aspect-[4/5] group relative`}
+                                className={`${modeButtonClasses(!isReadyForInput)} aspect-square group relative`}
                             >
                                 <div className="rounded-2xl bg-black w-full h-full flex flex-col items-center justify-center text-center ring-4 ring-white/60 transition-[box-shadow,transform,ring] duration-200 group-hover:ring-white group-hover:shadow-[0_0_28px_rgba(255,255,255,0.5)] group-active:scale-95 group-active:-translate-y-0.5 group-active:shadow-[0_0_18px_rgba(255,255,255,0.4)]">
                                     <div className="mb-1 md:mb-2">
@@ -218,7 +218,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onSelectMode, userData, onNavig
                         <button
                             onClick={() => handleNavigation('profile')}
                             disabled={!isReadyForInput}
-                            className={`${modeButtonClasses(!isReadyForInput)} aspect-[4/5] group relative`}
+                            className={`${modeButtonClasses(!isReadyForInput)} aspect-square group relative`}
                         >
                             <div className="rounded-2xl bg-black w-full h-full flex flex-col items-center justify-center text-center ring-4 ring-white/60 transition-[box-shadow,transform,ring] duration-200 group-hover:ring-white group-hover:shadow-[0_0_28px_rgba(255,255,255,0.5)] group-active:scale-95 group-active:-translate-y-0.5 group-active:shadow-[0_0_18px_rgba(255,255,255,0.4)]">
                                 <div className="mb-1 md:mb-2">
