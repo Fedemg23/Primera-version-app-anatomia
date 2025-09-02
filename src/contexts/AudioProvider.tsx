@@ -121,15 +121,30 @@ export const AudioProvider: React.FC<AudioProviderProps> = ({ children, playlist
 
       const finalVolume = Math.max(0, Math.min(1, soundVolume * volumeMultiplier));
 
-      const sound = audioPoolRef.current.find(a => a.paused);
-      if (sound) {
-        sound.src = soundSrc;
-        sound.volume = finalVolume;
-        sound.play().catch(e => console.error(`Error playing sound ${soundKey}:`, e));
-      } else {
-        const newSound = new Audio(soundSrc);
-        newSound.volume = finalVolume;
-        newSound.play().catch(e => console.error(`Error playing sound ${soundKey} (new audio):`, e));
+      try {
+        const sound = audioPoolRef.current.find(a => a.paused);
+        if (sound) {
+          sound.src = soundSrc;
+          sound.volume = finalVolume;
+          sound.load(); // Ensure the audio is loaded before playing
+          sound.play().catch(e => {
+            console.error(`Error playing sound ${soundKey}:`, e);
+            console.error(`Sound source: ${soundSrc}`);
+          });
+        } else {
+          const newSound = new Audio();
+          newSound.volume = finalVolume;
+          newSound.src = soundSrc;
+          newSound.load(); // Ensure the audio is loaded before playing
+          newSound.play().catch(e => {
+            console.error(`Error playing sound ${soundKey} (new audio):`, e);
+            console.error(`Sound source: ${soundSrc}`);
+          });
+          audioPoolRef.current.push(newSound);
+        }
+      } catch (error) {
+        console.error(`Error creating/playing sound ${soundKey}:`, error);
+        console.error(`Sound source: ${soundSrc}`);
       }
     }
   };

@@ -163,7 +163,7 @@ export interface AchievementTier {
   };
 }
 
-export type View = 'home' | 'play' | 'shop' | 'achievements' | 'profile' | 'challenges' | 'study' | 'exam' | 'practice' | 'quiz' | 'quiz_summary' | 'exam_results' | 'duel_lobby' | 'duel' | 'duel_summary';
+export type View = 'home' | 'play' | 'shop' | 'achievements' | 'level_rewards' | 'profile' | 'challenges' | 'study' | 'exam' | 'practice' | 'quiz' | 'quiz_summary' | 'exam_results' | 'duel_lobby' | 'duel' | 'duel_summary';
 
 
 export interface Achievement {
@@ -305,7 +305,6 @@ export interface StatusBarProps {
     xpInCurrentLevel: number;
     xpForNextLevel: number;
     onOpenSettings: () => void;
-    onOpenRewardsModal: () => void;
     onOpenInfoTooltip: (type: 'streak' | 'bones' | 'hearts') => void;
     levelUpAnimationKey: number;
     isSaving: boolean;
@@ -313,6 +312,7 @@ export interface StatusBarProps {
     onBack: () => void;
     onNavigateToProfile: () => void;
     showBackButton: boolean;
+    onNavigate: (view: View) => void;
 }
 
 export interface SettingsPopoverProps {
@@ -333,6 +333,8 @@ export interface HomeScreenProps {
         shop: boolean;
         achievements: boolean;
         challenges: boolean;
+        study: boolean;
+        levelRewards: boolean;
     };
 }
 

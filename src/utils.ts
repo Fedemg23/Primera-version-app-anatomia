@@ -14,3 +14,4 @@ export const preloadImages = (urls: string[]): Promise<void[]> => {
   });
   return Promise.all(promises);
 };
+

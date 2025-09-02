@@ -16,7 +16,6 @@ import StatusBar from './components/Header';
 import Toast from './components/Toast';
 import DailyBonusModal from './components/DailyBonusModal';
 import MysteryBoxModal from './components/MysteryBoxModal';
-import LevelRewardsModal from './components/LevelRewardsModal';
 import LoginScreen from './components/screens/LoginScreen';
 import HomeScreen from './components/screens/HomeScreen';
 import RegionScreen from './components/screens/RegionScreen';
@@ -37,6 +36,7 @@ import DuelScreen from './components/screens/DuelScreen';
 import DuelSummaryScreen from './components/screens/DuelSummaryScreen';
 import CreateNoteScreen from './components/screens/CreateNoteScreen'; 
 import LoadingScreen from './components/LoadingScreen';
+import LevelRewardsScreen from './components/screens/LevelRewardsScreen';
 import { preloadImages } from './src/utils';
 import { imageAvatars } from './src/avatarLoader';
 import { getWeightedReward } from './src/features/rewards';
@@ -44,7 +44,7 @@ import { AudioProvider, useAudio } from './src/contexts/AudioProvider';
 import { AnimationProvider } from './components/AnimationProvider';
 
 
-type ModalType = 'dailyBonus' | 'mysteryBox' | 'levelRewards' | 'settings' | 'noLives';
+type ModalType = 'dailyBonus' | 'mysteryBox' | 'settings' | 'noLives';
 
 
 const toLocalDateString = (date: Date) => {
@@ -94,8 +94,9 @@ const NoLivesModal: React.FC<{
 
 const App: React.FC = () => {
     // --- STATE MANAGEMENT ---
-    const { stopMusic } = useAudio();
+    const { playMusic, stopMusic } = useAudio();
     const [isLoading, setIsLoading] = useState(true);
+    const [isInitialLoad, setIsInitialLoad] = useState(true);
     
     // User & Data State
     const [auth, setAuth] = useState<AuthUser | null>(null);
@@ -304,6 +305,7 @@ const App: React.FC = () => {
         }
 
         const loadAppData = async () => {
+            const startTime = Date.now();
             try {
                 const criticalImages = [
                     '/images/Emoji hueso png.png',
@@ -365,7 +367,19 @@ const App: React.FC = () => {
                 console.error("Failed to load app data:", error);
                 showToast("No se pudieron cargar los datos del usuario.", "error");
             } finally {
-                setIsLoading(false);
+                const elapsedTime = Date.now() - startTime;
+                const remainingTime = 5000 - elapsedTime;
+
+                const finishLoading = () => {
+                    setIsLoading(false);
+                    setIsInitialLoad(false); // Marcar que la carga inicial ha terminado
+                };
+
+                if (remainingTime > 0) {
+                    setTimeout(finishLoading, remainingTime);
+                } else {
+                    finishLoading();
+                }
             }
         };
 
@@ -401,8 +415,8 @@ const App: React.FC = () => {
 
     useEffect(() => {
         const isAnyModalOpen = activeModal !== null || infoTooltipType !== null || leveledUpItemsToShow !== null || lastQuizResult !== null || examResult !== null || duelSummary !== null;
-        // Bloquear scroll en pantallas de pantalla completa y en Home
-        const lockForView = ['quiz', 'duel', 'home'].includes(view);
+        // Solo bloquear scroll en pantallas de pantalla completa (quiz y duel)
+        const lockForView = ['quiz', 'duel'].includes(view);
         const shouldLockScroll = isAnyModalOpen || lockForView;
 
         if (shouldLockScroll) {
@@ -422,6 +436,14 @@ const App: React.FC = () => {
     useEffect(() => {
         document.documentElement.classList.add('dark');
     }, []);
+
+    // Efecto para iniciar la música cuando la carga termina
+    useEffect(() => {
+        // Solo iniciar la música si no es la carga inicial y la carga ha terminado.
+        if (!isLoading && !isInitialLoad) {
+            playMusic();
+        }
+    }, [isLoading, isInitialLoad, playMusic]);
     
     const handleQuizCompletionAchievements = useCallback((oldUserData: UserData, newUserData: UserData) => {
         const leveledUpItems: LeveledUpAchievement[] = [];
@@ -1403,7 +1425,7 @@ const App: React.FC = () => {
     }, [triggerAnimation, showToast]);
 
     const notifications = useMemo(() => {
-        if (!userData) return { shop: false, achievements: false, challenges: false };
+        if (!userData) return { shop: false, achievements: false, challenges: false, study: false, levelRewards: false };
         
         const today = toLocalDateString(new Date());
         
@@ -1416,12 +1438,18 @@ const App: React.FC = () => {
         const lastClaimDate = userData.lastDailyShopRewardClaim ? toLocalDateString(new Date(userData.lastDailyShopRewardClaim)) : today;
         const canClaimDailyShopReward = today !== lastClaimDate;
 
+        const hasWeakPoints = userData.weakPoints.length > 0;
+
+        const hasUnclaimedLevelRewards = pendingLevelRewards;
+
         return {
             shop: canClaimDailyShopReward,
             achievements: hasUnclaimedAchievements,
             challenges: hasUnclaimedChallenges,
+            study: hasWeakPoints,
+            levelRewards: hasUnclaimedLevelRewards,
         };
-    }, [userData]);
+    }, [userData, pendingLevelRewards]);
 
     const handleStudyBack = useCallback(() => {
         if (selectedTemaId) {
@@ -1491,8 +1519,7 @@ const App: React.FC = () => {
             '/images/huesitos.png'
         ];
         preloadImages(criticalImages)
-            .catch(err => console.error("Error preloading images:", err))
-            .finally(() => setIsLoading(false));
+            .catch(err => console.error("Error preloading images:", err));
     }, []);
 
     // --- Guards and Early returns ---
@@ -1533,6 +1560,8 @@ const App: React.FC = () => {
                 return <ShopScreen userData={userData} onPurchase={handlePurchase} onClaimDailyReward={handleClaimDailyShopReward} />;
             case 'achievements':
                 return <AchievementsScreen userData={userData} onClaimReward={handleClaimAchievementReward} onAction={handleAchievementAction} animatingAchievementId={animatingAchievementId} />;
+            case 'level_rewards':
+                return <LevelRewardsScreen userData={userData} onBack={handleBack} onClaimReward={handleClaimLevelReward} />;
             case 'profile':
                 return <ProfileScreen userData={userData} onAvatarChange={(avatar) => setUserData(p => p ? { ...p, avatar } : null)} onNameChange={(name) => setUserData(p => p ? { ...p, name } : null)} xpInCurrentLevel={xpInCurrentLevel} xpNeededForNextLevel={xpForNextLevel} onSignOut={handleSignOut} />;
             case 'quiz': {
@@ -1586,7 +1615,6 @@ const App: React.FC = () => {
                         xpInCurrentLevel={xpInCurrentLevel}
                         xpForNextLevel={xpForNextLevel}
                         onOpenSettings={() => setActiveModal(prev => prev === 'settings' ? null : 'settings')}
-                        onOpenRewardsModal={() => setActiveModal('levelRewards')}
                         onOpenInfoTooltip={handleOpenInfoTooltip}
                         levelUpAnimationKey={levelUpAnimationKey}
                         isSaving={isSaving}
@@ -1594,13 +1622,14 @@ const App: React.FC = () => {
                         onBack={handleBack}
                         onNavigateToProfile={() => handleNavigate('profile')}
                         showBackButton={view !== 'home'}
+                        onNavigate={handleNavigate}
                     />
                 </header>
             )}
 
             <main 
                 ref={mainRef}
-                className={`flex-grow overflow-x-hidden ${isHomeView ? 'overflow-y-hidden' : (isFullScreenView ? 'overflow-y-auto' : 'overflow-y-scroll')} ${!isFullScreenView ? 'pt-20 md:pt-24' : ''}`}
+                className={`flex-grow overflow-x-hidden ${isHomeView ? 'overflow-y-hidden' : (isFullScreenView ? 'overflow-y-auto' : 'overflow-y-scroll')} ${!isFullScreenView ? 'pt-28 md:pt-32' : ''}`}
                 style={{
                     height: isFullScreenView ? '100vh' : (isHomeView ? 'calc(100vh - 6rem)' : 'auto'),
                     overscrollBehavior: isHomeView ? ('none' as any) : undefined,
@@ -1628,7 +1657,6 @@ const App: React.FC = () => {
                 />
             )}
 
-            <LevelRewardsModal isOpen={activeModal === 'levelRewards'} onClose={() => setActiveModal(null)} userLevel={userData.level} claimedLevelRewards={userData.claimedLevelRewards} onClaimReward={handleClaimLevelReward} />
             <AchievementUnlockedModal isOpen={!!leveledUpItemsToShow} onClose={handleLeveledUpItemsModalClose} achievements={leveledUpItemsToShow || []} />
             {lastQuizResult ? (
                 <QuizSummaryScreen 

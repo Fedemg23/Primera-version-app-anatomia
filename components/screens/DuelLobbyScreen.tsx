@@ -14,7 +14,7 @@ const OpponentCard: React.FC<{
         <button
             onClick={onSelect}
             disabled={isLocked}
-            className="relative w-full bg-slate-800/60 backdrop-blur-md rounded-2xl p-5 text-center border-2 border-slate-700/50 shadow-lg transition-all duration-300 transform-gpu hover:-translate-y-1 hover:shadow-2xl hover:shadow-blue-500/20 active:scale-95 disabled:transform-none disabled:opacity-60 disabled:cursor-not-allowed touch-manipulation"
+            className="relative w-full bg-slate-800/60 backdrop-blur-md rounded-2xl p-5 text-center border-2 border-slate-700/50 shadow-lg transition-all duration-300 transform-gpu hover:-translate-y-0.5 hover:shadow-2xl hover:shadow-blue-500/20 active:scale-95 disabled:transform-none disabled:opacity-60 disabled:cursor-not-allowed touch-manipulation"
         >
             {isLocked && (
                 <div className="absolute inset-0 bg-black/50 rounded-[14px] z-10 flex flex-col items-center justify-center">
@@ -85,7 +85,7 @@ const DuelLobbyScreen: React.FC<DuelLobbyScreenProps> = ({ userData, onSelectOpp
                 </div>
                 <p className="text-slate-400 mt-1">Cada victoria forjará un nuevo apunte para tu colección.</p>
             </div>
-            <div className="max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-6 px-4 pb-16">
                 {aiOpponentsData.map(opponent => (
                     <OpponentCard
                         key={opponent.id}
