@@ -101,123 +101,142 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onSelectMode, userData, onNavig
             <div className="flex flex-col justify-start w-full max-w-6xl mx-auto min-h-full">
                 {/* Top Group: Title and Mode Buttons */}
                 <div className="flex flex-col items-center gap-4 md:gap-6 w-full mt-16 md:mt-4">
-                    <div className="w-11/12 max-w-[280px] sm:max-w-[320px] md:max-w-[400px] lg:max-w-[480px] mx-auto">
-                        {/* Botón Desafíos centrado encima de la cuadrícula */}
-                        <div className="flex justify-center mb-6 md:mb-8">
+                    <div className="w-11/12 max-w-[320px] sm:max-w-[480px] md:max-w-[720px] lg:max-w-[800px] mx-auto">
+                        <div className="grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-6 lg:gap-8">
                             <button
                                 onClick={() => handleNavigation('challenges')}
                                 disabled={!isReadyForInput}
-                                className={`${modeButtonClasses(!isReadyForInput)} group w-1/2 relative`}
+                                className={`${modeButtonClasses(!isReadyForInput)} aspect-[4/5] group relative`}
                             >
-                                <div className="rounded-2xl bg-black w-full h-8 md:h-10 flex items-center justify-center text-center ring-4 ring-white/60 transition-[box-shadow,transform,ring] duration-200 group-hover:ring-white group-hover:shadow-[0_0_28px_rgba(255,255,255,0.5)] group-active:scale-95 group-active:-translate-y-0.5 group-active:shadow-[0_0_18px_rgba(255,255,255,0.4)]">
-                                    <span className="text-sm md:text-base font-extrabold text-slate-100">Desafíos</span>
+                                <div className="rounded-2xl bg-black w-full h-full flex flex-col items-center justify-center text-center ring-4 ring-white/60 transition-[box-shadow,transform,ring] duration-200 group-hover:ring-white group-hover:shadow-[0_0_28px_rgba(255,255,255,0.5)] group-active:scale-95 group-active:-translate-y-0.5 group-active:shadow-[0_0_18px_rgba(255,255,255,0.4)]">
+                                    <div className="mb-1 md:mb-2">
+                                        <img 
+                                            src="/images/Png Emoji tiro al arco.png" 
+                                            alt="Desafíos" 
+                                            className="w-16 h-16 md:w-20 md:h-20 object-contain"
+                                        />
+                                    </div>
+                                    <div className="h-10 flex flex-col justify-center">
+                                        <span className="text-sm md:text-base font-extrabold text-slate-100">Desafíos</span>
+                                    </div>
                                 </div>
                                 {notifications.challenges && (
                                     <span className="absolute -top-1 -right-1 block h-4 w-4 rounded-full bg-red-500 ring-2 ring-slate-900 animate-notification-pulse"></span>
                                 )}
                             </button>
-                        </div>
-
-                        <div className="grid grid-cols-2 gap-3 md:gap-6 lg:gap-8">
+                            <button
+                                data-tour="home-study-btn"
+                                onClick={() => handleModeSelection('study')}
+                                disabled={!isReadyForInput}
+                                className={`${modeButtonClasses(!isReadyForInput)} aspect-[4/5] group relative`}
+                            >
+                                <div className="rounded-2xl bg-black w-full h-full flex flex-col items-center justify-center text-center ring-4 ring-white/60 transition-[box-shadow,transform,ring] duration-200 group-hover:ring-white group-hover:shadow-[0_0_28px_rgba(255,255,255,0.5)] group-active:scale-95 group-active:-translate-y-0.5 group-active:shadow-[0_0_18px_rgba(255,255,255,0.4)]">
+                                    <div className="mb-1 md:mb-2">
+                                        <img 
+                                            src="/images/Modo estudio.png" 
+                                            alt="Modo Estudio" 
+                                            className="w-16 h-16 md:w-20 md:h-20 object-contain"
+                                        />
+                                    </div>
+                                    <div className="h-10 flex flex-col justify-center">
+                                        <span className="text-sm md:text-base font-extrabold text-slate-100 leading-tight">
+                                            <span className="block">Modo</span>
+                                            <span className="block">Estudio</span>
+                                        </span>
+                                    </div>
+                                </div>
+                                {notifications.study && (
+                                    <span className="absolute -top-1 -right-1 block h-4 w-4 rounded-full bg-red-500 ring-2 ring-slate-900 animate-notification-pulse"></span>
+                                )}
+                            </button>
+                            <button
+                                onClick={() => handleModeSelection('exam')}
+                                disabled={!isReadyForInput}
+                                className={`${modeButtonClasses(!isReadyForInput)} aspect-[4/5] group relative`}
+                            >
+                                <div className="rounded-2xl bg-black w-full h-full flex flex-col items-center justify-center text-center ring-4 ring-white/60 transition-[box-shadow,transform,ring] duration-200 group-hover:ring-white group-hover:shadow-[0_0_28px_rgba(255,255,255,0.5)] group-active:scale-95 group-active:-translate-y-0.5 group-active:shadow-[0_0_18px_rgba(255,255,255,0.4)]">
+                                    <div className="mb-1 md:mb-2">
+                                        <img 
+                                            src="/images/Modo examen.png" 
+                                            alt="Modo Examen" 
+                                            className="w-16 h-16 md:w-20 md:h-20 object-contain"
+                                        />
+                                    </div>
+                                    <div className="h-10 flex flex-col justify-center">
+                                        <span className="text-sm md:text-base font-extrabold text-slate-100 leading-tight">
+                                            <span className="block">Modo</span>
+                                            <span className="block">Examen</span>
+                                        </span>
+                                    </div>
+                                </div>
+                                {notifications.levelRewards && (
+                                    <span className="absolute -top-1 -right-1 block h-4 w-4 rounded-full bg-red-500 ring-2 ring-slate-900 animate-notification-pulse"></span>
+                                )}
+                            </button>
+                            <button
+                                onClick={() => handleNavigation('shop')}
+                                disabled={!isReadyForInput}
+                                className={`${modeButtonClasses(!isReadyForInput)} aspect-[4/5] group relative`}
+                            >
+                                <div className="rounded-2xl bg-black w-full h-full flex flex-col items-center justify-center text-center ring-4 ring-white/60 transition-[box-shadow,transform,ring] duration-200 group-hover:ring-white group-hover:shadow-[0_0_28px_rgba(255,255,255,0.5)] group-active:scale-95 group-active:-translate-y-0.5 group-active:shadow-[0_0_18px_rgba(255,255,255,0.4)]">
+                                    <div className="mb-1 md:mb-2">
+                                        <img 
+                                            src="/images/Tienda.png" 
+                                            alt="Tienda" 
+                                            className="w-16 h-16 md:w-20 md:h-20 object-contain"
+                                        />
+                                    </div>
+                                    <div className="h-10 flex flex-col justify-center">
+                                        <span className="text-sm md:text-base font-extrabold text-slate-100">Tienda</span>
+                                    </div>
+                                </div>
+                                {notifications.shop && (
+                                    <span className="absolute -top-1 -right-1 block h-4 w-4 rounded-full bg-red-500 ring-2 ring-slate-900 animate-notification-pulse"></span>
+                                )}
+                            </button>
+                            <button
+                                onClick={() => handleNavigation('achievements')}
+                                disabled={!isReadyForInput}
+                                className={`${modeButtonClasses(!isReadyForInput)} aspect-[4/5] group relative`}
+                            >
+                                <div className="rounded-2xl bg-black w-full h-full flex flex-col items-center justify-center text-center ring-4 ring-white/60 transition-[box-shadow,transform,ring] duration-200 group-hover:ring-white group-hover:shadow-[0_0_28px_rgba(255,255,255,0.5)] group-active:scale-95 group-active:-translate-y-0.5 group-active:shadow-[0_0_18px_rgba(255,255,255,0.4)]">
+                                    <div className="mb-1 md:mb-2">
+                                        <img 
+                                            src="/images/Logros.png" 
+                                            alt="Logros" 
+                                            className="w-16 h-16 md:w-20 md:h-20 object-contain"
+                                        />
+                                    </div>
+                                    <div className="h-10 flex flex-col justify-center">
+                                        <span className="text-sm md:text-base font-extrabold text-slate-100">Logros</span>
+                                    </div>
+                                </div>
+                                {notifications.achievements && (
+                                    <span className="absolute -top-1 -right-1 block h-4 w-4 rounded-full bg-red-500 ring-2 ring-slate-900 animate-notification-pulse"></span>
+                                )}
+                            </button>
                         <button
-                            data-tour="home-study-btn"
-                            onClick={() => handleModeSelection('study')}
+                            onClick={() => handleNavigation('profile')}
                             disabled={!isReadyForInput}
                             className={`${modeButtonClasses(!isReadyForInput)} aspect-[4/5] group relative`}
                         >
                             <div className="rounded-2xl bg-black w-full h-full flex flex-col items-center justify-center text-center ring-4 ring-white/60 transition-[box-shadow,transform,ring] duration-200 group-hover:ring-white group-hover:shadow-[0_0_28px_rgba(255,255,255,0.5)] group-active:scale-95 group-active:-translate-y-0.5 group-active:shadow-[0_0_18px_rgba(255,255,255,0.4)]">
                                 <div className="mb-1 md:mb-2">
-                                    <img 
-                                        src="/images/Modo estudio.png" 
-                                        alt="Modo Estudio" 
-                                        className="w-16 h-16 md:w-20 md:h-20 object-contain"
-                                    />
+                                    {typeof userData.avatar === 'string' && /(png|webp|jpg|jpeg|svg)$/i.test(userData.avatar) ? (
+                                        <img src={userData.avatar} alt="Perfil" className="w-16 h-16 md:w-20 md:h-20 object-contain" />
+                                    ) : (
+                                        <span className="text-4xl sm:text-5xl md:text-6xl">{userData.avatar}</span>
+                                    )}
                                 </div>
                                 <div className="h-10 flex flex-col justify-center">
-                                    <span className="text-sm md:text-base font-extrabold text-slate-100 leading-tight">
-                                        <span className="block">Modo</span>
-                                        <span className="block">Estudio</span>
-                                    </span>
+                                    <span className="text-sm md:text-base font-extrabold text-slate-100">Perfil</span>
                                 </div>
                             </div>
-                            {notifications.study && (
-                                <span className="absolute -top-1 -right-1 block h-4 w-4 rounded-full bg-red-500 ring-2 ring-slate-900 animate-notification-pulse"></span>
-                            )}
-                        </button>
-                        <button
-                            onClick={() => handleModeSelection('exam')}
-                            disabled={!isReadyForInput}
-                            className={`${modeButtonClasses(!isReadyForInput)} aspect-[4/5] group relative`}
-                        >
-                            <div className="rounded-2xl bg-black w-full h-full flex flex-col items-center justify-center text-center ring-4 ring-white/60 transition-[box-shadow,transform,ring] duration-200 group-hover:ring-white group-hover:shadow-[0_0_28px_rgba(255,255,255,0.5)] group-active:scale-95 group-active:-translate-y-0.5 group-active:shadow-[0_0_18px_rgba(255,255,255,0.4)]">
-                                <div className="mb-1 md:mb-2">
-                                    <img 
-                                        src="/images/Modo examen.png" 
-                                        alt="Modo Examen" 
-                                        className="w-16 h-16 md:w-20 md:h-20 object-contain"
-                                    />
-                                </div>
-                                <div className="h-10 flex flex-col justify-center">
-                                    <span className="text-sm md:text-base font-extrabold text-slate-100 leading-tight">
-                                        <span className="block">Modo</span>
-                                        <span className="block">Examen</span>
-                                    </span>
-                                </div>
-                            </div>
-                            {notifications.levelRewards && (
-                                <span className="absolute -top-1 -right-1 block h-4 w-4 rounded-full bg-red-500 ring-2 ring-slate-900 animate-notification-pulse"></span>
-                            )}
-                        </button>
-                        <button
-                            onClick={() => handleNavigation('shop')}
-                            disabled={!isReadyForInput}
-                            className={`${modeButtonClasses(!isReadyForInput)} aspect-[4/5] group relative`}
-                        >
-                            <div className="rounded-2xl bg-black w-full h-full flex flex-col items-center justify-center text-center ring-4 ring-white/60 transition-[box-shadow,transform,ring] duration-200 group-hover:ring-white group-hover:shadow-[0_0_28px_rgba(255,255,255,0.5)] group-active:scale-95 group-active:-translate-y-0.5 group-active:shadow-[0_0_18px_rgba(255,255,255,0.4)]">
-                                <div className="mb-1 md:mb-2">
-                                    <img 
-                                        src="/images/Tienda.png" 
-                                        alt="Tienda" 
-                                        className="w-16 h-16 md:w-20 md:h-20 object-contain"
-                                    />
-                                </div>
-                                <div className="h-10 flex flex-col justify-center">
-                                    <span className="text-sm md:text-base font-extrabold text-slate-100">Tienda</span>
-                                </div>
-                            </div>
-                            {notifications.shop && (
-                                <span className="absolute -top-1 -right-1 block h-4 w-4 rounded-full bg-red-500 ring-2 ring-slate-900 animate-notification-pulse"></span>
-                            )}
-                        </button>
-                        <button
-                            onClick={() => handleNavigation('achievements')}
-                            disabled={!isReadyForInput}
-                            className={`${modeButtonClasses(!isReadyForInput)} aspect-[4/5] group relative`}
-                        >
-                            <div className="rounded-2xl bg-black w-full h-full flex flex-col items-center justify-center text-center ring-4 ring-white/60 transition-[box-shadow,transform,ring] duration-200 group-hover:ring-white group-hover:shadow-[0_0_28px_rgba(255,255,255,0.5)] group-active:scale-95 group-active:-translate-y-0.5 group-active:shadow-[0_0_18px_rgba(255,255,255,0.4)]">
-                                <div className="mb-1 md:mb-2">
-                                    <img 
-                                        src="/images/Logros.png" 
-                                        alt="Logros" 
-                                        className="w-16 h-16 md:w-20 md:h-20 object-contain"
-                                    />
-                                </div>
-                                <div className="h-10 flex flex-col justify-center">
-                                    <span className="text-sm md:text-base font-extrabold text-slate-100">Logros</span>
-                                </div>
-                            </div>
-                            {notifications.achievements && (
-                                <span className="absolute -top-1 -right-1 block h-4 w-4 rounded-full bg-red-500 ring-2 ring-slate-900 animate-notification-pulse"></span>
-                            )}
                         </button>
                         </div>
                     </div>
-                    
                 </div>
             </div>
-
-            
-
             {isInfoModalVisible && <InfoModal onClose={() => setIsInfoModalVisible(false)} />}
         </div>
     );
