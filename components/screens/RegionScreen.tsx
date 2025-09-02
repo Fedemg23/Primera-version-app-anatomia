@@ -214,7 +214,7 @@ const RegionScreen: React.FC<RegionScreenProps> = ({
     }
     
     return (
-        <div className="bg-black h-screen overflow-hidden flex flex-col px-4 py-6 sm:px-6 sm:py-8">
+        <div className="bg-black h-screen overflow-hidden flex flex-col px-4 py-6 sm:px-6 md:px-8 sm:py-8">
             <div className="flex-1 overflow-y-auto">
                 {renderContent()}
             </div>

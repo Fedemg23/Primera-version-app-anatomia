@@ -1629,7 +1629,7 @@ const App: React.FC = () => {
 
             <main 
                 ref={mainRef}
-                className={`flex-grow overflow-x-hidden ${isHomeView ? 'overflow-y-hidden' : (isFullScreenView ? 'overflow-y-auto' : 'overflow-y-scroll')} ${!isFullScreenView ? 'pt-28 md:pt-32' : ''}`}
+                className={`flex-grow overflow-x-hidden ${isHomeView ? 'overflow-y-auto' : (isFullScreenView ? 'overflow-y-auto' : 'overflow-y-scroll')} ${!isFullScreenView ? 'pt-28 md:pt-32' : ''}`}
                 style={{
                     height: isFullScreenView ? '100vh' : (isHomeView ? 'calc(100vh - 6rem)' : 'auto'),
                     overscrollBehavior: isHomeView ? ('none' as any) : undefined,
