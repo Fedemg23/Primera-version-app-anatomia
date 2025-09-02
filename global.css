@@ -24,6 +24,7 @@ html {
   scrollbar-gutter: stable both-edges;
   width: 100%;
   max-width: 100%;
+  height: 100%; /* Asegurar que el html ocupe toda la altura */
 }
 
 body {
@@ -43,12 +44,15 @@ body {
   width: 100%;
   max-width: 100%;
   touch-action: pan-y;
+  height: 100%; /* Asegurar que el body ocupe toda la altura */
+  overscroll-behavior-y: contain; /* Evitar el scroll "chicle" en iOS */
 }
 
 #root {
   width: 100%;
   max-width: 100%;
   overflow-x: hidden;
+  height: 100%; /* Asegurar que el root de React ocupe toda la altura */
 }
 
 /* Evitar que medios provoquen overflow horizontal */

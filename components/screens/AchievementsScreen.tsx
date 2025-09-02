@@ -267,7 +267,7 @@ const AchievementCard: React.FC<{ achievement: Achievement; userData: UserData; 
 const AchievementsScreen: React.FC<AchievementsScreenProps> = ({ userData, onClaimReward, onAction, animatingAchievementId }) => {
   const [showHelp, setShowHelp] = useState(false);
     return (
-    <div className="p-4 md:p-6 min-h-screen pb-40">
+    <div className="h-full overflow-y-auto p-4 md:p-6 pb-24">
       <div className="flex items-start md:items-center gap-3 md:gap-4 mb-16 md:mb-28">
         <h2 className="font-graffiti font-black text-3xl sm:text-4xl md:text-5xl tracking-wide -rotate-1 title-white-clean block text-center transform scale-105 md:scale-110 flex-1 mx-auto">
           Logros
