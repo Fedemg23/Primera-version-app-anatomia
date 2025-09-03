@@ -1,10 +1,14 @@
 import { MysteryReward } from '../types';
 import { imageAvatars } from '../avatarLoader';
+import { AVATAR_DATA } from '../../constants';
 
 export type Rarity = 'common' | 'uncommon' | 'rare' | 'epic';
 
-export const epicRewards: MysteryReward[] = imageAvatars.map(avatar => ({
-    type: 'avatar' as const, name: avatar.name, icon: avatar.url, avatarId: avatar.id
+// Solo los avatares de la caja misteriosa son épicos
+const mysteryBoxAvatars = AVATAR_DATA.filter(a => a.unlockCondition.type === 'achievement' && a.unlockCondition.value === 'mystery_box');
+
+export const epicRewards: MysteryReward[] = mysteryBoxAvatars.map(avatar => ({
+    type: 'avatar' as const, name: avatar.name, icon: avatar.emoji, avatarId: avatar.id
 }));
 
 export const rareRewards: MysteryReward[] = [

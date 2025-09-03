@@ -560,7 +560,7 @@ export const achievementsData: Achievement[] = [
             { level: 9, description: 'Completa 1000 cuestionarios.', target: 1000, reward: { bones: 5000, xp: 10000 } },
             { level: 10, description: 'Completa 2000 cuestionarios.', target: 2000, reward: { bones: 10000, xp: 20000 } },
         ],
-        progress: (user) => user.totalQuizzesCompleted,
+        progress: (user: UserData) => user.totalQuizzesCompleted || 0,
     },
     {
         id: 'perfectionist',
