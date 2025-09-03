@@ -1,6 +1,6 @@
 
 
-import React, { useState, useEffect, useRef, memo } from 'react';
+import React, { useState, useEffect, useRef, memo, useCallback } from 'react';
 import { QuizScreenProps, QuestionData, LifelineData } from '../../types';
 import { useAudio } from '../../src/contexts/AudioProvider';
 import { CheckCircle, XCircle, iconMap } from '../icons';
@@ -145,10 +145,10 @@ const QuizScreen: React.FC<QuizScreenProps> = ({ quizQuestions, onQuizComplete, 
         return answer === question.indiceRespuestaCorrecta;
     };
     
-    const handleTimeUp = () => {
+    const handleTimeUp = useCallback(() => {
       const remainingAnswers = Array(quizQuestions.length - userAnswers.length).fill('timeout');
       onQuizComplete([...userAnswers, ...remainingAnswers]);
-    };
+    }, [quizQuestions, userAnswers, onQuizComplete]);
 
     const handleAnswerSubmit = (answer: number | string) => {
         if (isAnswered) return;

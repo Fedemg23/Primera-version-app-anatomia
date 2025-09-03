@@ -1198,7 +1198,10 @@ const App: React.FC = () => {
                 newUserData.unlockedAvatars.push(avatarRewardId);
                 const avatar = AVATAR_DATA.find(a => a.id === avatarRewardId);
                 if (avatar) {
-                   showToast(`Avatar desbloqueado: ${avatar.name}`, 'success', <span>{avatar.emoji}</span>);
+                   const icon = avatar.emoji.includes('/') 
+                        ? <img src={avatar.emoji} alt={avatar.name} className="w-8 h-8 rounded-full" />
+                        : <span>{avatar.emoji}</span>;
+                   showToast(`Avatar desbloqueado: ${avatar.name}`, 'success', icon);
                 }
             }
     
@@ -1393,7 +1396,10 @@ const App: React.FC = () => {
                 newUserData.unlockedAvatars.push(reward.avatarId);
                 const avatar = AVATAR_DATA.find(a => a.id === reward.avatarId);
                 if (avatar) {
-                   showToast(`Avatar desbloqueado: ${avatar.name}`, 'success', <span>{avatar.emoji}</span>);
+                   const icon = avatar.emoji.includes('/') 
+                        ? <img src={avatar.emoji} alt={avatar.name} className="w-8 h-8 rounded-full" />
+                        : <span>{avatar.emoji}</span>;
+                   showToast(`Avatar desbloqueado: ${avatar.name}`, 'success', icon);
                 }
             }
             if (reward.lifelines) {
