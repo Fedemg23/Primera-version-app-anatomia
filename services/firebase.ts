@@ -16,7 +16,7 @@ import {
     sendPasswordResetEmail
 } from 'firebase/auth';
 import type { Firestore } from 'firebase/firestore';
-import { initializeFirestore, getFirestore } from 'firebase/firestore';
+import { initializeFirestore, getFirestore, doc as fbDoc, getDoc as fbGetDoc, setDoc as fbSetDoc, onSnapshot as fbOnSnapshot } from 'firebase/firestore';
 
 interface MockAuth {
     currentUser: AuthUser | null;
@@ -192,6 +192,19 @@ export const mockFirebase: MockFirebase = {
     },
     db: {
         getDoc: async (userId: string) => {
+            try {
+                const db = getDb();
+                if (db) {
+                    const ref = fbDoc(db, 'userData', userId);
+                    const snap = await fbGetDoc(ref);
+                    return {
+                        exists: () => snap.exists(),
+                        data: () => (snap.exists() ? (snap.data() as UserData) : null),
+                    };
+                }
+            } catch {
+                // fallback abajo
+            }
             const data = localStorage.getItem(`userData_${userId}`);
             return {
                 exists: () => data !== null,
@@ -199,7 +212,46 @@ export const mockFirebase: MockFirebase = {
             };
         },
         setDoc: async (userId: string, data: UserData) => {
+            try {
+                const db = getDb();
+                if (db) {
+                    await fbSetDoc(fbDoc(db, 'userData', userId), data, { merge: true });
+                    return;
+                }
+            } catch {
+                // fallback abajo
+            }
             localStorage.setItem(`userData_${userId}`, JSON.stringify(data));
         }
     }
+};
+
+export const subscribeUserData = (userId: string, cb: (data: UserData | null) => void): (() => void) => {
+    try {
+        const db = getDb();
+        if (db) {
+            const ref = fbDoc(db, 'userData', userId);
+            const unsub = fbOnSnapshot(ref, (snap) => {
+                if (snap.exists()) cb(snap.data() as UserData);
+                else cb(null);
+            }, () => {});
+            return unsub;
+        }
+    } catch {
+        // fallback abajo
+    }
+    // Fallback: escuchar cambios de localStorage entre pestañas/ventanas
+    const key = `userData_${userId}`;
+    const handler = (e: StorageEvent) => {
+        if (e.key === key) {
+            try { cb(e.newValue ? JSON.parse(e.newValue) : null); } catch { cb(null); }
+        }
+    };
+    try { window.addEventListener('storage', handler); } catch {}
+    // Emitir valor inicial del fallback
+    try {
+        const raw = localStorage.getItem(key);
+        cb(raw ? JSON.parse(raw) : null);
+    } catch { cb(null); }
+    return () => { try { window.removeEventListener('storage', handler); } catch {} };
 };

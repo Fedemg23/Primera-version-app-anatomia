@@ -7,7 +7,7 @@ import {
 import { 
     LEVEL_REWARDS, MAX_LEVEL, achievementsData, shopItems, questionBank, PASS_THRESHOLD, AVATAR_DATA, dailyChallengesData, navigationData, HEART_REGEN_TIME, aiOpponentsData
 } from './constants';
-import { mockFirebase, subscribeAuth } from './services/firebase';
+import { mockFirebase, subscribeAuth, subscribeUserData } from './services/firebase';
 import { ChevronsUp, Award, Shield, Zap, Heart, Store, XCircle, HeartCrack, CheckCircle, Split, Lightbulb, Undo2, LogOut, Swords, BookOpen, Gift } from './components/icons';
 import { useAnimation } from './components/AnimationProvider';
 import { iconMap } from './components/icons';
@@ -156,6 +156,7 @@ const App: React.FC = () => {
     
     // Refs
     const hasInitialDataLoaded = useRef(false);
+    const applyingRemoteRef = useRef(false);
     const dailyBonusRewardRef = useRef<HTMLDivElement>(null);
     const mainRef = useRef<HTMLElement>(null);
     const [view, setView] = useState<View>('home');
@@ -205,7 +206,7 @@ const App: React.FC = () => {
     }, [auth]);
 
     useEffect(() => {
-        if (hasInitialDataLoaded.current && userData) {
+        if (hasInitialDataLoaded.current && userData && !applyingRemoteRef.current) {
             saveData(userData);
         }
     }, [userData, saveData]);
@@ -382,6 +383,23 @@ const App: React.FC = () => {
 
         loadAppData();
     }, [auth, showToast]);
+
+    // Suscripción en tiempo real a los datos del usuario
+    useEffect(() => {
+        if (!auth?.uid) return;
+        const unsubscribe = subscribeUserData(auth.uid, (remote) => {
+            if (!remote) return;
+            let loadedData: UserData = { ...defaultUserData, ...remote };
+            loadedData.lifelineData = { ...defaultUserData.lifelineData, ...(remote as any).lifelineData };
+            if (!loadedData.unlockedAchievements || Array.isArray(loadedData.unlockedAchievements)) {
+                loadedData.unlockedAchievements = defaultUserData.unlockedAchievements;
+            }
+            applyingRemoteRef.current = true;
+            setUserData(loadedData);
+            setTimeout(() => { applyingRemoteRef.current = false; }, 0);
+        });
+        return unsubscribe;
+    }, [auth?.uid]);
 
     // Cargar conteo de solicitudes de amistad periódicamente
     useEffect(() => {
