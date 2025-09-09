@@ -146,7 +146,7 @@ const TourGuide: React.FC<TourGuideProps> = ({ isOpen, onClose }) => {
 
   return (
     <div className="fixed inset-0 z-50" role="dialog" aria-modal="true">
-      <div className="absolute inset-0 bg-black/60" onClick={onClose} />
+      <div className="absolute inset-0 bg-[#1B263B]/60" onClick={onClose} />
 
       {/* Tooltip */}
       <div style={tooltipStyle} className="max-w-sm">

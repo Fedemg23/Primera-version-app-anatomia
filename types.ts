@@ -122,6 +122,8 @@ export interface UserData {
   masterNotes: MasterNote[];
   userNotes: UserNote[];
   perfectStreak?: number;
+  age?: number;
+  occupation?: string;
 }
 
 // TIPOS GENÉRICOS Y DE LA APP
@@ -160,10 +162,11 @@ export interface AchievementTier {
   reward?: {
       bones?: number;
       xp?: number;
+      avatarId?: string;
   };
 }
 
-export type View = 'home' | 'play' | 'shop' | 'achievements' | 'level_rewards' | 'profile' | 'challenges' | 'study' | 'exam' | 'practice' | 'quiz' | 'quiz_summary' | 'exam_results' | 'duel_lobby' | 'duel' | 'duel_summary';
+export type View = 'home' | 'play' | 'shop' | 'achievements' | 'level_rewards' | 'profile' | 'challenges' | 'study' | 'exam' | 'practice' | 'quiz' | 'quiz_summary' | 'exam_results' | 'duel_lobby' | 'duel' | 'duel_summary' | 'leaderboard';
 
 
 export interface Achievement {
@@ -288,6 +291,7 @@ export interface ExamConfigSelection {
 
 export interface AuthUser {
     uid: string;
+    email?: string;
 }
 
 export type MysteryReward = {
@@ -313,6 +317,7 @@ export interface StatusBarProps {
     onNavigateToProfile: () => void;
     showBackButton: boolean;
     onNavigate: (view: View) => void;
+    friendRequestsCount?: number;
 }
 
 export interface SettingsPopoverProps {

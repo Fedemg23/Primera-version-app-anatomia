@@ -2,12 +2,30 @@
 import { AuthUser, UserData } from '../types';
 import type { FirebaseApp } from 'firebase/app';
 import { initializeApp } from 'firebase/app';
-import { getAuth, GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, signOut as firebaseSignOut } from 'firebase/auth';
+import { 
+    getAuth, 
+    GoogleAuthProvider, 
+    signInWithPopup, 
+    signInWithRedirect, 
+    getRedirectResult, 
+    signOut as firebaseSignOut,
+    createUserWithEmailAndPassword,
+    signInWithEmailAndPassword,
+    onAuthStateChanged,
+    sendEmailVerification,
+    sendPasswordResetEmail
+} from 'firebase/auth';
+import type { Firestore } from 'firebase/firestore';
+import { initializeFirestore, getFirestore } from 'firebase/firestore';
 
 interface MockAuth {
     currentUser: AuthUser | null;
     signIn: () => Promise<{ user: AuthUser }>;
     signOut: () => Promise<void>;
+    signUpWithEmail: (email: string, pass: string) => Promise<{ user: AuthUser }>;
+    signInWithEmail: (email: string, pass: string) => Promise<{ user: AuthUser }>;
+    resendVerification: (email: string, pass: string) => Promise<void>;
+    resetPassword: (email: string) => Promise<void>;
 }
 
 interface MockDb {
@@ -35,30 +53,65 @@ const readFirebaseEnv = () => {
     return { hasAll, config: cfg };
 };
 
+// Fallback directo con tus claves (se usa si no hay variables Vite)
+const FALLBACK_FIREBASE_CONFIG = {
+    apiKey: 'AIzaSyBhYx0uzbqxgQeEaKCuCGmR-cqZOwFXnno',
+    authDomain: 'anatomygo-beta-1.firebaseapp.com',
+    projectId: 'anatomygo-beta-1',
+    appId: '1:310809460030:web:5965bd0e08fd3faf2e806f',
+};
+
 let firebaseApp: FirebaseApp | null = null;
 let provider: GoogleAuthProvider | null = null;
+let dbInstance: Firestore | null = null;
 
 const { hasAll: hasFirebaseConfig, config: firebaseConfig } = readFirebaseEnv();
-if (hasFirebaseConfig) {
+
+try {
+    const cfgToUse = hasFirebaseConfig ? (firebaseConfig as any) : (FALLBACK_FIREBASE_CONFIG as any);
+    firebaseApp = initializeApp(cfgToUse);
+    // Inicializar Firestore con long-polling para evitar problemas de canal Web (400)
     try {
-        firebaseApp = initializeApp(firebaseConfig as any);
-        provider = new GoogleAuthProvider();
-        provider.setCustomParameters({ prompt: 'select_account' });
+        dbInstance = initializeFirestore(firebaseApp, {
+            experimentalForceLongPolling: true,
+            experimentalAutoDetectLongPolling: true,
+        });
     } catch {
-        firebaseApp = null;
-        provider = null;
+        // Si ya está inicializado, obtener la instancia por defecto
+        dbInstance = getFirestore(firebaseApp);
     }
+    provider = new GoogleAuthProvider();
+    provider.setCustomParameters({ prompt: 'select_account' });
+} catch {
+    firebaseApp = null;
+    provider = null;
 }
+
+export const getDb = (): Firestore | null => dbInstance;
+
+export const subscribeAuth = (cb: (user: AuthUser | null) => void) => {
+    if (!firebaseApp) return () => {};
+    const auth = getAuth(firebaseApp);
+    const unsub = onAuthStateChanged(auth, (user) => {
+        if (user?.uid) {
+            const u = { uid: user.uid, email: user.email || undefined } as AuthUser;
+            mockFirebase.auth.currentUser = u;
+            cb(u);
+        } else {
+            mockFirebase.auth.currentUser = null;
+            cb(null);
+        }
+    });
+    return unsub;
+};
 
 export const mockFirebase: MockFirebase = {
     auth: {
         currentUser: null,
         signIn: async () => {
-            // Si hay config de Firebase, usamos Google Sign-In real
             if (firebaseApp && provider) {
                 const auth = getAuth(firebaseApp);
                 try {
-                    // Intentar completar un redirect previo si lo hubo
                     const redirectResult = await getRedirectResult(auth).catch(() => null);
                     if (redirectResult?.user) {
                         const uid = redirectResult.user.uid;
@@ -66,35 +119,28 @@ export const mockFirebase: MockFirebase = {
                         return { user: { uid } };
                     }
 
-                    // Intentar popup
-                    const result = await signInWithPopup(auth, provider);
-                    const uid = result.user.uid;
-                    mockFirebase.auth.currentUser = { uid };
-                    return { user: { uid } };
-                } catch (err: any) {
-                    // Fallback a redirect si popup está bloqueado
                     try {
-                        await signInWithRedirect(auth, provider);
-                        // La promesa no resuelve con el usuario aquí; se completará tras redirect
-                        // Devolvemos un usuario temporal para no romper el flujo; App volverá a cargar
-                        const uid = auth.currentUser?.uid || 'redirecting';
-                        if (uid !== 'redirecting') {
-                            mockFirebase.auth.currentUser = { uid };
-                        }
-                        return { user: { uid: uid as string } } as { user: AuthUser };
-                    } catch {
-                        // Como último recurso: modo simulado
-                        const uid = 'testUser123';
+                        const result = await signInWithPopup(auth, provider);
+                        const uid = result.user.uid;
                         mockFirebase.auth.currentUser = { uid };
                         return { user: { uid } };
+                    } catch (popupErr: any) {
+                        if (popupErr?.code === 'auth/popup-blocked' || popupErr?.message?.includes('popup')) {
+                            await signInWithRedirect(auth, provider);
+                            const uid = auth.currentUser?.uid || 'redirecting';
+                            if (uid !== 'redirecting') {
+                                mockFirebase.auth.currentUser = { uid };
+                            }
+                            return { user: { uid: uid as string } } as { user: AuthUser };
+                        }
+                        throw popupErr;
                     }
+                } catch {
+                    throw new Error('Login cancelado o fallido');
                 }
             }
 
-            // Sin config de Firebase: modo simulado
-            const uid = 'testUser123';
-            mockFirebase.auth.currentUser = { uid };
-            return { user: { uid } };
+            throw new Error('Auth no disponible');
         },
         signOut: async () => {
             if (firebaseApp) {
@@ -104,10 +150,47 @@ export const mockFirebase: MockFirebase = {
                 } catch {}
             }
             mockFirebase.auth.currentUser = null;
+        },
+        signUpWithEmail: async (email, password) => {
+            if (firebaseApp) {
+                const auth = getAuth(firebaseApp);
+                const result = await createUserWithEmailAndPassword(auth, email, password);
+                try { await sendEmailVerification(result.user); } catch {}
+                try { await firebaseSignOut(auth); } catch {}
+                throw { code: 'auth/email-verification-sent' } as any;
+            }
+            throw new Error('Auth no disponible');
+        },
+        signInWithEmail: async (email, password) => {
+            if (firebaseApp) {
+                const auth = getAuth(firebaseApp);
+                const result = await signInWithEmailAndPassword(auth, email, password);
+                if (!result.user.emailVerified) {
+                    try { await sendEmailVerification(result.user); } catch {}
+                    try { await firebaseSignOut(auth); } catch {}
+                    throw { code: 'auth/email-not-verified' } as any;
+                }
+                const uid = result.user.uid;
+                mockFirebase.auth.currentUser = { uid, email: result.user.email || undefined };
+                return { user: { uid } };
+            }
+            throw new Error('Auth no disponible');
+        },
+        resendVerification: async (email, password) => {
+            if (!firebaseApp) return;
+            const auth = getAuth(firebaseApp);
+            const result = await signInWithEmailAndPassword(auth, email, password);
+            try { await sendEmailVerification(result.user); } finally {
+                try { await firebaseSignOut(auth); } catch {}
+            }
+        },
+        resetPassword: async (email) => {
+            if (!firebaseApp) return;
+            const auth = getAuth(firebaseApp);
+            await sendPasswordResetEmail(auth, email);
         }
     },
     db: {
-        // Mantenemos localStorage para persistencia simple en este proyecto
         getDoc: async (userId: string) => {
             const data = localStorage.getItem(`userData_${userId}`);
             return {

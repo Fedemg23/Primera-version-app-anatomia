@@ -38,8 +38,12 @@ body {
   -webkit-font-feature-settings: "kern" 1;
   font-feature-settings: "kern" 1;
   font-kerning: normal;
-  background-color: #000; /* Fondo negro mate para toda la app */
-  color: #e5e7eb; /* Texto base slate-200 para buen contraste */
+  /* Fondo base: Gris grafito (#121212) con capa profunda azulada (#1B263B) sutil */
+  background-color: #121212;
+  background-image: radial-gradient(1200px 600px at 50% -10%, rgba(27, 38, 59, 0.35), transparent 60%),
+                    radial-gradient(1000px 500px at 120% 20%, rgba(0, 191, 255, 0.08), transparent 60%),
+                    radial-gradient(900px 450px at -20% 80%, rgba(255, 0, 255, 0.06), transparent 60%);
+  color: #EAEAEA; /* Texto principal gris muy claro */
   overflow-x: hidden;
   width: 100%;
   max-width: 100%;

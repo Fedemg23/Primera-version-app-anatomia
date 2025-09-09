@@ -24,7 +24,7 @@ const HelpIcon: React.FC<HelpIconProps> = ({ modalTitle, ariaLabel = 'Ayuda', cl
 
       {open && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 animate-fade-in" onClick={() => setOpen(false)}>
-          <div className="absolute inset-0 bg-black/70" />
+          <div className="absolute inset-0 bg-[#1B263B]/70" />
           <div
             className="relative w-full max-w-md bg-slate-900/95 border border-slate-700 rounded-2xl shadow-2xl p-5 text-slate-200 animate-scale-in"
             onClick={(e) => e.stopPropagation()}

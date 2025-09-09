@@ -28,7 +28,7 @@ const NavButton = memo(({
 }) => (
     <button
         onClick={onClick}
-        className={`flex-1 flex flex-col items-center justify-center py-2 px-1 rounded-lg relative group transition-colors duration-200 z-10 touch-manipulation bg-black border ${
+        className={`flex-1 flex flex-col items-center justify-center py-2 px-1 rounded-lg relative group transition-colors duration-200 z-10 touch-manipulation bg-[#121212] border ${
             isActive 
                 ? 'text-slate-100 border-white ring-2 ring-amber-400/50' 
                 : 'text-slate-400 hover:text-slate-200 border-white/40 ring-2 ring-amber-400/30'
@@ -54,7 +54,7 @@ const BottomNav: React.FC<BottomNavProps> = ({ activeTab, onTabChange, pendingCl
     ];
 
     return (
-        <nav className="fixed bottom-0 left-0 right-0 z-30 border-t border-slate-800 bg-black">
+        <nav className="fixed bottom-0 left-0 right-0 z-30 border-t border-slate-800 bg-[#121212]">
             <div className="max-w-4xl mx-auto flex items-stretch justify-around gap-1 p-1" style={{ paddingBottom: 'calc(0.25rem + env(safe-area-inset-bottom))' }}>
                 {tabsConfig.map((tab) => (
                      <NavButton

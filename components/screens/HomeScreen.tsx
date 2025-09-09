@@ -7,7 +7,7 @@ import { HomeScreenProps, View } from '../../types';
 
 interface InfoModalProps {onClose: () => void}
 const InfoModal: React.FC<InfoModalProps> = memo(({ onClose }) => (
-    <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 animate-fade-in p-4" onClick={onClose}>
+    <div className="fixed inset-0 bg-[#1B263B] bg-opacity-70 flex items-center justify-center z-50 animate-fade-in p-4" onClick={onClose}>
         <div className="bg-slate-800/80 backdrop-blur-xl border border-slate-700 p-8 rounded-2xl shadow-2xl max-w-md mx-auto transform animate-scale-in w-full" onClick={(e) => e.stopPropagation()}>
             <h2 className="text-2xl font-black tracking-tighter text-gray-100 mb-4">Descripción de los Modos</h2>
             <div className="space-y-4 text-left text-gray-300">
@@ -45,7 +45,7 @@ const NavItem: React.FC<{
         <div className="
             relative w-24 h-24 md:w-28 md:h-28 rounded-full
             flex items-center justify-center
-            bg-black ring-4 ring-white/60
+            bg-[#121212] ring-4 ring-white/60
             transition-[box-shadow,transform,ring] duration-200
             group-hover:ring-white group-hover:shadow-[0_0_28px_rgba(255,255,255,0.5)]
             group-active:scale-95 group-active:shadow-[0_0_18px_rgba(255,255,255,0.4)]
@@ -108,7 +108,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onSelectMode, userData, onNavig
                                 disabled={!isReadyForInput}
                                 className={`${modeButtonClasses(!isReadyForInput)} aspect-square group relative`}
                             >
-                                <div className="rounded-2xl bg-black w-full h-full flex flex-col items-center justify-center text-center ring-4 ring-white/60 transition-[box-shadow,transform,ring] duration-200 group-hover:ring-white group-hover:shadow-[0_0_28px_rgba(255,255,255,0.5)] group-active:scale-95 group-active:-translate-y-0.5 group-active:shadow-[0_0_18px_rgba(255,255,255,0.4)]">
+                                <div className="rounded-2xl bg-[#121212] w-full h-full flex flex-col items-center justify-center text-center ring-4 ring-white/60 transition-[box-shadow,transform,ring] duration-200 group-hover:ring-white group-hover:shadow-[0_0_28px_rgba(255,255,255,0.5)] group-active:scale-95 group-active:-translate-y-0.5 group-active:shadow-[0_0_18px_rgba(255,255,255,0.4)]">
                                     <div className="mb-1 md:mb-2">
                                         <img 
                                             src="/images/Png Emoji tiro al arco.png" 
@@ -130,7 +130,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onSelectMode, userData, onNavig
                                 disabled={!isReadyForInput}
                                 className={`${modeButtonClasses(!isReadyForInput)} aspect-square group relative`}
                             >
-                                <div className="rounded-2xl bg-black w-full h-full flex flex-col items-center justify-center text-center ring-4 ring-white/60 transition-[box-shadow,transform,ring] duration-200 group-hover:ring-white group-hover:shadow-[0_0_28px_rgba(255,255,255,0.5)] group-active:scale-95 group-active:-translate-y-0.5 group-active:shadow-[0_0_18px_rgba(255,255,255,0.4)]">
+                                <div className="rounded-2xl bg-[#121212] w-full h-full flex flex-col items-center justify-center text-center ring-4 ring-white/60 transition-[box-shadow,transform,ring] duration-200 group-hover:ring-white group-hover:shadow-[0_0_28px_rgba(255,255,255,0.5)] group-active:scale-95 group-active:-translate-y-0.5 group-active:shadow-[0_0_18px_rgba(255,255,255,0.4)]">
                                     <div className="mb-1 md:mb-2">
                                         <img 
                                             src="/images/Modo estudio.png" 
@@ -154,7 +154,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onSelectMode, userData, onNavig
                                 disabled={!isReadyForInput}
                                 className={`${modeButtonClasses(!isReadyForInput)} aspect-square group relative`}
                             >
-                                <div className="rounded-2xl bg-black w-full h-full flex flex-col items-center justify-center text-center ring-4 ring-white/60 transition-[box-shadow,transform,ring] duration-200 group-hover:ring-white group-hover:shadow-[0_0_28px_rgba(255,255,255,0.5)] group-active:scale-95 group-active:-translate-y-0.5 group-active:shadow-[0_0_18px_rgba(255,255,255,0.4)]">
+                                <div className="rounded-2xl bg-[#121212] w-full h-full flex flex-col items-center justify-center text-center ring-4 ring-white/60 transition-[box-shadow,transform,ring] duration-200 group-hover:ring-white group-hover:shadow-[0_0_28px_rgba(255,255,255,0.5)] group-active:scale-95 group-active:-translate-y-0.5 group-active:shadow-[0_0_18px_rgba(255,255,255,0.4)]">
                                     <div className="mb-1 md:mb-2">
                                         <img 
                                             src="/images/Modo examen.png" 
@@ -178,7 +178,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onSelectMode, userData, onNavig
                                 disabled={!isReadyForInput}
                                 className={`${modeButtonClasses(!isReadyForInput)} aspect-square group relative`}
                             >
-                                <div className="rounded-2xl bg-black w-full h-full flex flex-col items-center justify-center text-center ring-4 ring-white/60 transition-[box-shadow,transform,ring] duration-200 group-hover:ring-white group-hover:shadow-[0_0_28px_rgba(255,255,255,0.5)] group-active:scale-95 group-active:-translate-y-0.5 group-active:shadow-[0_0_18px_rgba(255,255,255,0.4)]">
+                                <div className="rounded-2xl bg-[#121212] w-full h-full flex flex-col items-center justify-center text-center ring-4 ring-white/60 transition-[box-shadow,transform,ring] duration-200 group-hover:ring-white group-hover:shadow-[0_0_28px_rgba(255,255,255,0.5)] group-active:scale-95 group-active:-translate-y-0.5 group-active:shadow-[0_0_18px_rgba(255,255,255,0.4)]">
                                     <div className="mb-1 md:mb-2">
                                         <img 
                                             src="/images/Tienda.png" 
@@ -199,7 +199,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onSelectMode, userData, onNavig
                                 disabled={!isReadyForInput}
                                 className={`${modeButtonClasses(!isReadyForInput)} aspect-square group relative`}
                             >
-                                <div className="rounded-2xl bg-black w-full h-full flex flex-col items-center justify-center text-center ring-4 ring-white/60 transition-[box-shadow,transform,ring] duration-200 group-hover:ring-white group-hover:shadow-[0_0_28px_rgba(255,255,255,0.5)] group-active:scale-95 group-active:-translate-y-0.5 group-active:shadow-[0_0_18px_rgba(255,255,255,0.4)]">
+                                <div className="rounded-2xl bg-[#121212] w-full h-full flex flex-col items-center justify-center text-center ring-4 ring-white/60 transition-[box-shadow,transform,ring] duration-200 group-hover:ring-white group-hover:shadow-[0_0_28px_rgba(255,255,255,0.5)] group-active:scale-95 group-active:-translate-y-0.5 group-active:shadow-[0_0_18px_rgba(255,255,255,0.4)]">
                                     <div className="mb-1 md:mb-2">
                                         <img 
                                             src="/images/Logros.png" 
@@ -215,12 +215,31 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onSelectMode, userData, onNavig
                                     <span className="absolute -top-1 -right-1 block h-4 w-4 rounded-full bg-red-500 ring-2 ring-slate-900 animate-notification-pulse"></span>
                                 )}
                             </button>
+                            <button
+                                onClick={() => handleNavigation('leaderboard')}
+                                disabled={!isReadyForInput}
+                                className={`${modeButtonClasses(!isReadyForInput)} aspect-square group relative`}
+                            >
+                                <div className="rounded-2xl bg-black w-full h-full flex flex-col items-center justify-center text-center ring-4 ring-white/60 transition-[box-shadow,transform,ring] duration-200 group-hover:ring-white group-hover:shadow-[0_0_28px_rgba(255,255,255,0.5)] group-active:scale-95 group-active:-translate-y-0.5 group-active:shadow-[0_0_18px_rgba(255,255,255,0.4)]">
+                                    <div className="mb-1 md:mb-2">
+                                        <img 
+                                            src="/images/Leaderboard.png" 
+                                            alt="Ranking" 
+                                            className="w-16 h-16 md:w-20 md:h-20 object-contain"
+                                            onError={(e:any)=>{ e.currentTarget.src='/images/Logros.png'; }}
+                                        />
+                                    </div>
+                                    <div className="h-10 flex flex-col justify-center">
+                                        <span className="text-sm md:text-base font-extrabold text-slate-100">Ranking</span>
+                                    </div>
+                                </div>
+                            </button>
                         <button
                             onClick={() => handleNavigation('profile')}
                             disabled={!isReadyForInput}
                             className={`${modeButtonClasses(!isReadyForInput)} aspect-square group relative`}
                         >
-                            <div className="rounded-2xl bg-black w-full h-full flex flex-col items-center justify-center text-center ring-4 ring-white/60 transition-[box-shadow,transform,ring] duration-200 group-hover:ring-white group-hover:shadow-[0_0_28px_rgba(255,255,255,0.5)] group-active:scale-95 group-active:-translate-y-0.5 group-active:shadow-[0_0_18px_rgba(255,255,255,0.4)]">
+                            <div className="rounded-2xl bg-[#121212] w-full h-full flex flex-col items-center justify-center text-center ring-4 ring-white/60 transition-[box-shadow,transform,ring] duration-200 group-hover:ring-white group-hover:shadow-[0_0_28px_rgba(255,255,255,0.5)] group-active:scale-95 group-active:-translate-y-0.5 group-active:shadow-[0_0_18px_rgba(255,255,255,0.4)]">
                                 <div className="mb-1 md:mb-2">
                                     {typeof userData.avatar === 'string' && /(png|webp|jpg|jpeg|svg)$/i.test(userData.avatar) ? (
                                         <img src={userData.avatar} alt="Perfil" className="w-16 h-16 md:w-20 md:h-20 object-contain" />

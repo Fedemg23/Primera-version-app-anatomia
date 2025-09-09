@@ -33,7 +33,7 @@ const renderRewardIcon = (item: MysteryReward, large: boolean = false) => {
 };
 
 const RewardInfoPanel: React.FC<{onClose: () => void}> = ({ onClose }) => (
-    <div className="fixed inset-0 bg-black/90 z-50 flex justify-center items-center animate-fade-in p-4" onClick={onClose}>
+    <div className="fixed inset-0 bg-[#1B263B]/90 z-50 flex justify-center items-center animate-fade-in p-4" onClick={onClose}>
         <div className="bg-slate-800 rounded-2xl p-6 md:p-8 max-w-4xl w-full max-h-[90vh] overflow-y-auto border-2 border-slate-600" onClick={e => e.stopPropagation()}>
             <div className="flex justify-between items-center mb-6">
                 <h2 className="text-3xl md:text-4xl font-bold text-white text-center flex-grow">Probabilidades de Recompensa</h2>
@@ -117,7 +117,7 @@ const ShopItemCard: React.FC<{
 		: ' bg-gradient-to-r from-blue-500 to-sky-500 text-white hover:shadow-blue-500/20';
 
 	return (
-		<div className="group relative rounded-3xl border border-slate-700/60 overflow-hidden transition-all duration-500 bg-black hover:border-slate-400">
+		<div className="group relative rounded-3xl border border-slate-700/60 overflow-hidden transition-all duration-500 bg-[#121212] hover:bg-white hover:text-black hover:border-white">
 			{/* Badge de cantidad (si aplica) */}
 			{(() => { const count = getItemCount(item.id); return (count !== null) ? (
 				<div className="absolute top-3 left-3 z-20">
@@ -134,8 +134,8 @@ const ShopItemCard: React.FC<{
 					</div>
 				)}
 				<div className="flex-grow">
-					<h3 className="text-xl font-extrabold text-slate-100">{item.name}</h3>
-					<p className="text-sm text-slate-400 mt-1 min-h-8">{item.description}</p>
+					<h3 className="text-xl font-extrabold text-slate-100 group-hover:text-black">{item.name}</h3>
+					<p className="text-sm text-slate-400 mt-1 min-h-8 group-hover:text-slate-700">{item.description}</p>
 				</div>
 				<div className="mt-auto pt-4">
 					<button onClick={(e) => onPurchase(item.id, e.currentTarget)} disabled={finalIsDisabled} className={buttonClass}>
@@ -181,9 +181,9 @@ export default function ShopScreen({ userData, onPurchase, onClaimDailyReward }:
 	const canClaimDailyReward = today !== lastClaimDate;
 
 	return (
-		<div className="bg-black h-full overflow-y-auto overflow-x-hidden">
-			<div className="mx-auto px-4 md:px-8 lg:px-12 space-y-20 md:space-y-24 pb-24">
-				<div className="text-center mb-4 pt-8">
+		<div className="bg-[#121212] h-full overflow-y-auto overflow-x-hidden">
+			<div className="max-w-4xl mx-auto p-4 md:p-6 space-y-20 md:space-y-24 pb-24">
+				<div className="text-center mb-4">
 					<div className="inline-flex items-center gap-3">
 						<h2 className="inline-block font-graffiti font-black text-4xl md:text-5xl tracking-wide -rotate-1 title-white-clean transform scale-100 md:scale-105">
 							Tienda
@@ -207,7 +207,7 @@ export default function ShopScreen({ userData, onPurchase, onClaimDailyReward }:
 					<button
 						onClick={(e) => onClaimDailyReward(e.currentTarget)}
 						disabled={!isReadyForInput || !canClaimDailyReward}
-						className={`group relative w-full rounded-3xl border overflow-hidden transition-all duration-700 ease-out text-left hover:backdrop-blur-sm ${canClaimDailyReward ? 'bg-black border-slate-700 hover:[filter:brightness(1.2)]' : 'bg-slate-950 border-slate-800 text-slate-500 cursor-not-allowed'}`}
+						className={`group relative w-full rounded-3xl border overflow-hidden transition-all duration-700 ease-out text-left hover:backdrop-blur-sm ${canClaimDailyReward ? 'bg-[#121212] border-slate-700 hover:bg-white hover:text-black hover:border-white hover:[filter:brightness(0.98)]' : 'bg-slate-950 border-slate-800 text-slate-500 cursor-not-allowed'}`}
 					>
 						<div className="w-full h-72 md:h-96 flex items-center justify-center p-0 md:p-1 overflow-visible">
 							{(() => { const DG = iconMap['daily_gift']; return (
@@ -228,10 +228,11 @@ export default function ShopScreen({ userData, onPurchase, onClaimDailyReward }:
 				{/* Featured Item: Mystery Box */}
 				{/* Contenedor y layout parecidos al de "Regalo del Día" */}
 				<div>
-					<div className="relative mb-3 w-screen left-1/2 -ml-[50vw] h-10">
-						<div className="absolute top-1/2 -translate-y-1/2 left-0 right-0 h-2 bg-gradient-to-r from-amber-500 via-amber-300 to-amber-500 rounded-full shadow-[0_0_24px_rgba(245,158,11,0.7)]"></div>
+					<div className="relative mb-3">
+						<div className="absolute -top-2 left-0 right-0 h-1 bg-gradient-to-r from-amber-500 via-amber-300 to-amber-500 rounded-full shadow-[0_0_18px_rgba(245,158,11,0.5)]"></div>
+						<h3 className="text-3xl md:text-4xl font-black section-amber-glow amber-pulse">Caja Misteriosa</h3>
 					</div>
-					<div className={`group relative w-full rounded-3xl border overflow-hidden transition-all duration-700 ease-out text-left hover:backdrop-blur-sm bg-black border-slate-700 ring-2 ring-amber-400/50 hover:ring-4 hover:ring-amber-300/80 hover:[filter:drop-shadow(0_0_22px_rgba(245,158,11,0.5))]`}>
+					<div className={`group relative w-full rounded-3xl border overflow-hidden transition-all duration-700 ease-out text-left hover:backdrop-blur-sm bg-[#121212] border-slate-700 ring-2 ring-amber-400/50 hover:ring-4 hover:ring-amber-300/80 hover:bg-white hover:text-black hover:border-white hover:[filter:drop-shadow(0_0_22px_rgba(245,158,11,0.5))]`}>
 						<button 
                             onClick={() => setIsInfoVisible(true)}
                             className="absolute top-3 right-3 text-white text-xl font-bold bg-slate-800/80 rounded-full w-9 h-9 flex items-center justify-center border-2 border-slate-600 hover:bg-slate-700 z-20"
@@ -274,20 +275,15 @@ export default function ShopScreen({ userData, onPurchase, onClaimDailyReward }:
 
 				{/* Botiquín (antes: Comodines) */}
 				<div>
-					{/* Banner Botiquín */}
-					<div className="relative my-6 w-screen left-1/2 -ml-[50vw] py-8 bg-black/50">
-						<div className="absolute top-0 left-0 right-0 h-2 bg-gradient-to-r from-blue-600 via-sky-400 to-blue-600 shadow-[0_0_24px_rgba(59,130,246,0.7)]"></div>
-						<div className="flex items-center justify-center gap-4 px-8">
-							<img src="/images/Botiquín.png" alt="Botiquín" className="max-w-md -ml-8" />
-							<h3 className="text-6xl md:text-8xl font-black botiquin-outline-glow botiquin-pulse">
-								Botiquín
-							</h3>
-						</div>
-						<div className="absolute bottom-0 left-0 right-0 h-2 bg-gradient-to-r from-blue-600 via-sky-400 to-blue-600 shadow-[0_0_24px_rgba(59,130,246,0.7)]"></div>
+					<div className="relative mb-3">
+						<div className="absolute -top-2 left-0 right-0 h-1 bg-gradient-to-r from-blue-600 via-sky-400 to-blue-600 rounded-full shadow-[0_0_18px_rgba(59,130,246,0.5)]"></div>
+						<h3 className="text-3xl md:text-4xl font-black botiquin-outline-glow botiquin-pulse">
+							Botiquín
+						</h3>
 					</div>
 					<div className="grid grid-cols-2 md:grid-cols-3 gap-6">
 						{lifelineItems.map(item => (
-							<div key={item.id} className="group relative rounded-3xl border overflow-hidden bg-black text-slate-100 border-slate-700 transition-all duration-500 ring-2 ring-blue-500/50 hover:ring-4 hover:ring-blue-400/80 hover:[filter:drop-shadow(0_0_22px_rgba(59,130,246,0.5))]">
+							<div key={item.id} className="group relative rounded-3xl border overflow-hidden bg-[#121212] text-slate-100 border-slate-700 hover:bg-white hover:text-slate-900 hover:border-white transition-all duration-500 ring-2 ring-blue-500/50 hover:ring-4 hover:ring-blue-400/80 hover:[filter:drop-shadow(0_0_22px_rgba(59,130,246,0.5))]">
 								{/* Badge de cantidad del Botiquín */}
 								{(() => {
 									const count = (() => {
@@ -366,15 +362,9 @@ export default function ShopScreen({ userData, onPurchase, onClaimDailyReward }:
 
 				{/* General Items Section */}
 				<div>
-					{/* Banner Potenciadores y Vidas */}
-					<div className="relative my-6 w-screen left-1/2 -ml-[50vw] py-16 bg-black/50">
-						<div className="absolute top-0 left-0 right-0 h-2 bg-gradient-to-r from-emerald-500 via-emerald-300 to-emerald-500 rounded-full shadow-[0_0_24px_rgba(16,185,129,0.7)]"></div>
-						<div className="text-center">
-							<h3 className="text-6xl md:text-8xl font-black section-emerald-glow emerald-pulse">
-								Potenciadores y Vidas
-							</h3>
-						</div>
-						<div className="absolute bottom-0 left-0 right-0 h-2 bg-gradient-to-r from-emerald-500 via-emerald-300 to-emerald-500 rounded-full shadow-[0_0_24px_rgba(16,185,129,0.7)]"></div>
+					<div className="relative mb-3">
+						<div className="absolute -top-2 left-0 right-0 h-1 bg-gradient-to-r from-emerald-500 via-emerald-300 to-emerald-500 rounded-full shadow-[0_0_18px_rgba(16,185,129,0.5)]"></div>
+						<h3 className="text-3xl md:text-4xl font-black section-emerald-glow emerald-pulse">Potenciadores y Vidas</h3>
 					</div>
 					<div className="grid grid-cols-2 md:grid-cols-4 gap-5">
 						{generalItems.map(item => (

@@ -7,7 +7,7 @@ import {
 import { 
     LEVEL_REWARDS, MAX_LEVEL, achievementsData, shopItems, questionBank, PASS_THRESHOLD, AVATAR_DATA, dailyChallengesData, navigationData, HEART_REGEN_TIME, aiOpponentsData
 } from './constants';
-import { mockFirebase } from './services/firebase';
+import { mockFirebase, subscribeAuth } from './services/firebase';
 import { ChevronsUp, Award, Shield, Zap, Heart, Store, XCircle, HeartCrack, CheckCircle, Split, Lightbulb, Undo2, LogOut, Swords, BookOpen, Gift } from './components/icons';
 import { useAnimation } from './components/AnimationProvider';
 import { iconMap } from './components/icons';
@@ -42,6 +42,9 @@ import { imageAvatars } from './src/avatarLoader';
 import { getWeightedReward } from './src/features/rewards';
 import { AudioProvider, useAudio } from './src/contexts/AudioProvider';
 import { AnimationProvider } from './components/AnimationProvider';
+import { upsertUser } from './services/firestore';
+import { getIncomingFriendRequests } from './services/firestore';
+import LeaderboardScreen from './components/screens/LeaderboardScreen';
 
 
 type ModalType = 'dailyBonus' | 'mysteryBox' | 'settings' | 'noLives';
@@ -63,7 +66,7 @@ const NoLivesModal: React.FC<{
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 animate-fade-in p-4">
+        <div className="fixed inset-0 bg-[#121212] bg-opacity-80 flex items-center justify-center z-50 animate-fade-in p-4">
             <div className="bg-slate-800/80 backdrop-blur-xl border border-slate-700 p-8 rounded-2xl shadow-2xl text-center max-w-sm mx-auto transform animate-scale-in w-full">
                 {(() => { const H = iconMap['heart_img']; return <H className="w-24 h-24 mx-auto mb-4" /> })()}
                 <h2 className="text-4xl font-black tracking-tighter text-gray-100">¡Sin Vidas!</h2>
@@ -149,6 +152,7 @@ const App: React.FC = () => {
     // Animation
     const { triggerAnimation } = useAnimation();
     const [animatingAchievementId, setAnimatingAchievementId] = useState<string | null>(null);
+    const [friendRequestsCount, setFriendRequestsCount] = useState<number>(0);
     
     // Refs
     const hasInitialDataLoaded = useRef(false);
@@ -273,6 +277,12 @@ const App: React.FC = () => {
     }, []);
     
     const handleSignIn = useCallback(async () => {
+        // Si ya hay un usuario autenticado (p.ej., desde LoginScreen), no dispares otro login
+        const existing = mockFirebase.auth.currentUser;
+        if (existing) {
+            setAuth(existing);
+            return;
+        }
         const { user } = await mockFirebase.auth.signIn();
         setAuth(user);
     }, []);
@@ -372,6 +382,23 @@ const App: React.FC = () => {
 
         loadAppData();
     }, [auth, showToast]);
+
+    // Cargar conteo de solicitudes de amistad periódicamente
+    useEffect(() => {
+        let timer: any = null;
+        const load = async () => {
+            try {
+                if (!auth?.uid) { setFriendRequestsCount(0); return; }
+                const reqs = await getIncomingFriendRequests(auth.uid);
+                setFriendRequestsCount(reqs.length);
+            } catch {
+                // ignore
+            }
+        };
+        load();
+        timer = setInterval(load, 15000);
+        return () => { if (timer) clearInterval(timer); };
+    }, [auth?.uid]);
 
     useEffect(() => {
         if (!userData) return;
@@ -1188,7 +1215,7 @@ const App: React.FC = () => {
             const tier = achievement.tiers.find(t => t.level === level);
             const bonesReward = tier?.reward?.bones || 0;
             const xpReward = tier?.reward?.xp || 0;
-            const avatarRewardId = tier?.reward?.avatarId;
+            const avatarRewardId = (tier?.reward as { bones?: number; xp?: number; avatarId?: string } | undefined)?.avatarId;
     
             if (bonesReward > 0) triggerAnimation({ type: 'bone', count: Math.min(10, Math.ceil(bonesReward / 10)), startElement });
             if (xpReward > 0) triggerAnimation({ type: 'xp', count: Math.min(10, Math.ceil(xpReward / 20)), startElement });
@@ -1523,6 +1550,51 @@ const App: React.FC = () => {
             .catch(err => console.error("Error preloading images:", err));
     }, []);
 
+    useEffect(() => {
+        // Sincroniza el estado de la app con Firebase (popup o redirect)
+        const unsubscribe = subscribeAuth((user) => {
+            setAuth(user);
+        });
+        return unsubscribe;
+    }, []);
+
+    useEffect(() => {
+        if (!auth) return;
+        // Si hay datos de perfil pendientes (guardados durante registro), mézclalos una sola vez
+        try {
+            const pendingRaw = localStorage.getItem('pending_profile');
+            if (pendingRaw) {
+                const pending = JSON.parse(pendingRaw || '{}');
+                if (!pending.email || (auth as any).email === pending.email) {
+                    setUserData(prev => {
+                        if (!prev) return prev;
+                        const merged = { ...prev } as UserData;
+                        if (typeof pending.age === 'number') merged.age = pending.age;
+                        if (typeof pending.occupation === 'string') merged.occupation = pending.occupation;
+                        return merged;
+                    });
+                    localStorage.removeItem('pending_profile');
+                }
+            }
+        } catch {}
+    }, [auth]);
+
+    useEffect(() => {
+        if (!auth || !userData) return;
+        // Public ladder sync (best-effort; ignora errores)
+        upsertUser(auth.uid, {
+            id: auth.uid,
+            name: userData.name || 'AnatomyGO',
+            avatar: userData.avatar || '🦴',
+            xp: userData.xp || 0,
+            level: userData.level || 1,
+            totalQuizzesCompleted: userData.totalQuizzesCompleted || 0,
+            totalCorrectAnswers: userData.totalCorrectAnswers || 0,
+            totalQuestionsAnswered: userData.totalQuestionsAnswered || 0,
+            unlockedAchievements: userData.unlockedAchievements || {},
+        }).catch(() => {});
+    }, [auth?.uid, userData?.name, userData?.avatar, userData?.xp, userData?.level, userData?.totalQuizzesCompleted, userData?.totalCorrectAnswers, userData?.totalQuestionsAnswered, userData?.unlockedAchievements]);
+
     // --- Guards and Early returns ---
     if (!auth) {
         return <LoginScreen onSignIn={handleSignIn} />;
@@ -1534,7 +1606,7 @@ const App: React.FC = () => {
 
     if (!userData) {
         return (
-            <div className="bg-black min-h-screen w-screen flex items-center justify-center">
+            <div className="bg-[#121212] min-h-screen w-screen flex items-center justify-center">
                 <div className="text-white text-lg font-semibold">Error al cargar datos del usuario.</div>
             </div>
         );
@@ -1589,6 +1661,8 @@ const App: React.FC = () => {
                  return <DuelLobbyScreen userData={userData} onSelectOpponent={handleStartDuel} />;
             case 'duel':
                 return duelState ? <DuelScreen duelState={duelState} playerAvatar={userData.avatar} onSendMessage={handleSendDuelMessage} /> : null;
+            case 'leaderboard':
+                return <LeaderboardScreen />;
             default:
                 return <HomeScreen onSelectMode={handleSelectMode} userData={userData} onNavigate={handleNavigate} notifications={notifications}/>;
         }
@@ -1608,7 +1682,7 @@ const App: React.FC = () => {
     const isHomeView = view === 'home';
 
     return (
-        <div className="relative min-h-screen w-full overflow-x-hidden bg-black text-gray-100 flex flex-col">
+        <div className="relative min-h-screen w-full overflow-x-hidden bg-[#121212] text-[#EAEAEA] flex flex-col">
             {!isFullScreenView && (
                 <header className="fixed top-0 left-0 right-0 z-40 flex-shrink-0">
                     <StatusBar
@@ -1624,6 +1698,7 @@ const App: React.FC = () => {
                         onNavigateToProfile={() => handleNavigate('profile')}
                         showBackButton={view !== 'home'}
                         onNavigate={handleNavigate}
+                        friendRequestsCount={friendRequestsCount}
                     />
                 </header>
             )}

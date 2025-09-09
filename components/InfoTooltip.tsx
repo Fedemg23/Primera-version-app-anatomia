@@ -92,7 +92,7 @@ const InfoTooltip: React.FC<InfoTooltipProps> = ({ isOpen, onClose, type, hearts
     }
 
     return (
-        <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 animate-fade-in p-4" onClick={onClose}>
+        <div className="fixed inset-0 bg-[#1B263B] bg-opacity-70 flex items-center justify-center z-50 animate-fade-in p-4" onClick={onClose}>
             <div 
                 className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-xl border border-slate-200 dark:border-slate-700 p-8 rounded-2xl shadow-2xl text-center max-w-sm mx-auto transform animate-scale-in w-full"
                 onClick={(e) => e.stopPropagation()}

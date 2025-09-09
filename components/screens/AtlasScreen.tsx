@@ -23,7 +23,7 @@ const PreviewModal: React.FC<{ onClose: () => void }> = memo(({ onClose }) => {
         'neuroanatomia': 0,
     };
     return (
-        <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 animate-fade-in p-4" onClick={onClose}>
+        <div className="fixed inset-0 bg-[#1B263B] bg-opacity-70 flex items-center justify-center z-50 animate-fade-in p-4" onClick={onClose}>
             <div className="bg-slate-800/80 backdrop-blur-xl border border-slate-700 p-8 rounded-2xl shadow-2xl max-w-md mx-auto transform animate-scale-in w-full text-center" onClick={(e) => e.stopPropagation()}>
                 <h2 className="text-2xl font-black tracking-tighter text-gray-100 mb-2">¡Visualiza tu Dominio!</h2>
                 <p className="text-sm text-gray-300 mb-4">Así se ve tu progreso. Las regiones completadas al 100% emiten un aura de maestría.</p>

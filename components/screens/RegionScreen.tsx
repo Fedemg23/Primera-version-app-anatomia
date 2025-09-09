@@ -18,7 +18,7 @@ const SubtemaItem: React.FC<{
 }> = memo(({ subtema, isPassed, bestScore, onPlay, disabled }) => {
     if (isPassed) {
         return (
-            <div className="p-2 rounded-xl bg-black text-slate-300 flex items-center justify-between transition-[box-shadow,transform,ring] duration-200 ring-4 ring-white/60 hover:ring-white hover:shadow-[0_0_20px_rgba(255,255,255,0.35)]">
+            <div className="p-2 rounded-xl bg-[#121212] text-slate-300 flex items-center justify-between transition-[box-shadow,transform,ring] duration-200 ring-4 ring-white/60 hover:ring-white hover:shadow-[0_0_20px_rgba(255,255,255,0.35)]">
                 <div className="flex items-center gap-3 overflow-hidden">
                     <CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0" />
                     <span className="font-semibold truncate text-sm">{subtema.name}</span>
@@ -43,7 +43,7 @@ const SubtemaItem: React.FC<{
         <button
             onClick={onPlay}
             disabled={disabled}
-            className="w-full p-2 rounded-xl flex items-center justify-between text-left transition-[box-shadow,transform,ring] duration-200 ease-in-out group bg-black ring-4 ring-white/60 hover:ring-white hover:shadow-[0_0_20px_rgba(255,255,255,0.35)] shadow-md hover:-translate-y-0.5 disabled:opacity-60 disabled:cursor-wait disabled:transform-none disabled:shadow-md touch-manipulation"
+            className="w-full p-2 rounded-xl flex items-center justify-between text-left transition-[box-shadow,transform,ring] duration-200 ease-in-out group bg-[#121212] ring-4 ring-white/60 hover:ring-white hover:shadow-[0_0_20px_rgba(255,255,255,0.35)] shadow-md hover:-translate-y-0.5 disabled:opacity-60 disabled:cursor-wait disabled:transform-none disabled:shadow-md touch-manipulation"
         >
             <div className="flex items-center gap-3 overflow-hidden">
                 <PlayCircleIcon className="w-6 h-6 flex-shrink-0 text-slate-300 group-hover:text-white transition-colors duration-200" />
@@ -147,7 +147,7 @@ const RegionScreen: React.FC<RegionScreenProps> = ({
                             const totalCount = tema.subtemas.length;
                             const isCompleted = completedCount === totalCount;
                             return (
-                                <button key={tema.id} data-tour="study-tema-btn" onClick={() => handleSelectTema(tema.id)} disabled={!isReadyForInput} className="w-full bg-black p-3 rounded-xl shadow-md ring-4 ring-white/60 flex items-center justify-between text-left transition-[box-shadow,transform,ring] duration-200 ease-in-out hover:shadow-[0_0_20px_rgba(255,255,255,0.35)] hover:ring-white disabled:pointer-events-none disabled:opacity-60 disabled:transform-none touch-manipulation">
+                                <button key={tema.id} data-tour="study-tema-btn" onClick={() => handleSelectTema(tema.id)} disabled={!isReadyForInput} className="w-full bg-[#121212] p-3 rounded-xl shadow-md ring-4 ring-white/60 flex items-center justify-between text-left transition-[box-shadow,transform,ring] duration-200 ease-in-out hover:shadow-[0_0_20px_rgba(255,255,255,0.35)] hover:ring-white disabled:pointer-events-none disabled:opacity-60 disabled:transform-none touch-manipulation">
                                     <div className="flex items-center">
                                         <div>
                                             <h3 className="text-sm font-semibold text-slate-100">{tema.name}</h3>
@@ -192,7 +192,7 @@ const RegionScreen: React.FC<RegionScreenProps> = ({
                                 relative p-4 rounded-2xl overflow-hidden
                                 flex flex-col justify-center items-center text-center h-32
                                 transition-[box-shadow,transform,ring] duration-200 ease-in-out
-                                bg-black ring-4 ring-white/60 hover:ring-white
+                                bg-[#121212] ring-4 ring-white/60 hover:ring-white
                                 transform hover:-translate-y-1
                                 shadow-lg hover:shadow-[0_0_24px_rgba(255,255,255,0.35)]
                                 text-white
@@ -214,7 +214,7 @@ const RegionScreen: React.FC<RegionScreenProps> = ({
     }
     
     return (
-        <div className="bg-black h-screen overflow-hidden flex flex-col px-4 py-6 sm:px-6 md:px-8 sm:py-8">
+        <div className="bg-[#121212] h-screen overflow-hidden flex flex-col px-4 py-6 sm:px-6 md:px-8 sm:py-8">
             <div className="flex-1 overflow-y-auto">
                 {renderContent()}
             </div>

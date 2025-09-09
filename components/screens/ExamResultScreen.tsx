@@ -63,7 +63,7 @@ const ExamResultScreen: React.FC<{ result: ExamResult; onContinue: () => void }>
     const [showReview, setShowReview] = useState(false);
     
     return (
-        <div className="fixed inset-0 bg-black bg-opacity-70 z-50 animate-fade-in p-4 flex items-center justify-center" onClick={(e) => { e.stopPropagation(); }}>
+        <div className="fixed inset-0 bg-[#1B263B] bg-opacity-70 z-50 animate-fade-in p-4 flex items-center justify-center" onClick={(e) => { e.stopPropagation(); }}>
             <div 
                 className="bg-slate-900 rounded-2xl w-full max-w-2xl max-h-[90vh] flex flex-col shadow-2xl border border-slate-700 animate-scale-in"
                 onClick={(e) => e.stopPropagation()}

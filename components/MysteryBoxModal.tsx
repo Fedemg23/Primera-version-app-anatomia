@@ -88,7 +88,7 @@ const MysteryBoxModal: React.FC<MysteryBoxModalProps> = ({ isOpen, onClose, rewa
     const colors = rarityColors[rewardRarity];
 
     return (
-        <div className="fixed inset-0 bg-black/90 z-50 flex flex-col justify-center items-center transition-opacity duration-300 overflow-hidden" style={{ opacity: isOpen ? 1 : 0 }}>
+        <div className="fixed inset-0 bg-[#1B263B]/90 z-50 flex flex-col justify-center items-center transition-opacity duration-300 overflow-hidden" style={{ opacity: isOpen ? 1 : 0 }}>
             <div className="absolute top-4 right-4 flex items-center gap-4 z-30">
                 <button onClick={onClose} className="text-white text-4xl font-bold">&times;</button>
             </div>
@@ -108,7 +108,7 @@ const MysteryBoxModal: React.FC<MysteryBoxModalProps> = ({ isOpen, onClose, rewa
 
                     {/* Spinning Bar Container */}
                     <div className="relative w-full h-full overflow-hidden z-10">
-                        <div className="absolute top-1/2 left-0 w-full h-48 -translate-y-1/2 bg-black/30"></div>
+                        <div className="absolute top-1/2 left-0 w-full h-48 -translate-y-1/2 bg-[#121212]/30"></div>
                         
                         <div
                             className="flex h-full items-center"
@@ -156,7 +156,7 @@ const MysteryBoxModal: React.FC<MysteryBoxModalProps> = ({ isOpen, onClose, rewa
                 }
 
                 return (
-                    <div className="absolute inset-0 z-30 flex flex-col justify-center items-center bg-black/50 backdrop-blur-sm animate-fade-in">
+                    <div className="absolute inset-0 z-30 flex flex-col justify-center items-center bg-[#1B263B]/50 backdrop-blur-sm animate-fade-in">
                         <div className={`relative w-80 h-96 ${colors.bg} border-4 ${colors.border} rounded-2xl flex flex-col justify-between items-center p-6 shadow-2xl ${colors.shadow} animate-card-reveal`}>
                             {/* Top Section: Icon and Name */}
                             <div className="flex flex-col items-center">
@@ -172,7 +172,7 @@ const MysteryBoxModal: React.FC<MysteryBoxModalProps> = ({ isOpen, onClose, rewa
                                 <p className={`font-bold uppercase text-lg ${colors.text} mb-2`}>{rewardRarity}</p>
                                 
                                 {beforeValue !== null && afterValue !== null && (
-                                    <div className="bg-black/40 px-4 py-2 rounded-lg">
+                                    <div className="bg-[#121212]/40 px-4 py-2 rounded-lg">
                                         <p className="text-white text-2xl font-semibold tracking-wider">
                                             {beforeValue} <span className="text-amber-400 mx-2">→</span> {afterValue}
                                         </p>

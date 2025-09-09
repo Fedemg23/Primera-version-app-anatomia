@@ -17,7 +17,7 @@ const OpponentCard: React.FC<{
             className="relative w-full bg-slate-800/60 backdrop-blur-md rounded-2xl p-5 text-center border-2 border-slate-700/50 shadow-lg transition-all duration-300 transform-gpu hover:-translate-y-0.5 hover:shadow-2xl hover:shadow-blue-500/20 active:scale-95 disabled:transform-none disabled:opacity-60 disabled:cursor-not-allowed touch-manipulation"
         >
             {isLocked && (
-                <div className="absolute inset-0 bg-black/50 rounded-[14px] z-10 flex flex-col items-center justify-center">
+                <div className="absolute inset-0 bg-[#1B263B]/50 rounded-[14px] z-10 flex flex-col items-center justify-center">
                     <Lock className="w-8 h-8 text-slate-400" />
                     <p className="text-sm font-bold text-slate-300 mt-2">Nivel {opponent.unlockLevel} requerido</p>
                 </div>

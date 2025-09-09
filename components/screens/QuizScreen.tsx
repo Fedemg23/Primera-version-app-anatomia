@@ -295,7 +295,7 @@ const QuizScreen: React.FC<QuizScreenProps> = ({ quizQuestions, onQuizComplete, 
     };
 
     return (
-        <div className={`relative flex flex-col h-screen overflow-hidden bg-black transition-colors duration-500`}>
+        <div className={`relative flex flex-col h-screen overflow-hidden bg-[#121212] transition-colors duration-500`}>
             {timeLimit && <Timer timeLimit={timeLimit} onTimeUp={handleTimeUp} externalIncrement={timerIncrement} />}
             {/* Botón de cerrar eliminado para que no se pueda salir del cuestionario hasta terminar */}
             
@@ -359,7 +359,7 @@ const QuizScreen: React.FC<QuizScreenProps> = ({ quizQuestions, onQuizComplete, 
                 
                 {/* Botiquín: comodines antes de responder */}
                 {immediateFeedback && !isAnswered && (
-                  <div className="pt-2 pb-2 px-3 fixed bottom-0 left-0 right-0 z-20 bg-black/80 backdrop-blur-sm" style={{ paddingBottom: 'calc(env(safe-area-inset-bottom) + 0.75rem)' }}>
+                  <div className="pt-2 pb-2 px-3 fixed bottom-0 left-0 right-0 z-20 bg-[#121212]/80 backdrop-blur-sm" style={{ paddingBottom: 'calc(env(safe-area-inset-bottom) + 0.75rem)' }}>
                     <div className="flex justify-center items-center gap-3 md:gap-4 flex-wrap">
                       {!isFillInTheBlank && (() => { const I = iconMap['lifeline_fifty_fifty']; return <LifelineButton name="50/50" icon={<I className="w-[90%] h-[90%] md:w-[92%] md:h-[92%]" />} count={lifelines.fiftyFifty} onClick={useFiftyFifty} disabled={lifelines.fiftyFifty <= 0 || lifelinesUsedThisQuestion.fiftyFifty} /> })()}
                       {(() => { const I = iconMap['lifeline_quick_review']; return <LifelineButton name="La Pista" icon={<I className="w-[90%] h-[90%] md:w-[92%] md:h-[92%]" />} count={lifelines.quickReview} onClick={useQuickReview} disabled={lifelines.quickReview <= 0 || lifelinesUsedThisQuestion.quickReview} /> })()}
@@ -373,7 +373,7 @@ const QuizScreen: React.FC<QuizScreenProps> = ({ quizQuestions, onQuizComplete, 
             </div>
             
              {showExplanationHint && (
-                <div className="fixed inset-0 bg-black/60 z-40 flex items-center justify-center p-4" onClick={() => setShowExplanationHint(null)}>
+                <div className="fixed inset-0 bg-[#1B263B]/60 z-40 flex items-center justify-center p-4" onClick={() => setShowExplanationHint(null)}>
                     <div className="bg-slate-800 p-6 rounded-2xl shadow-xl max-w-md animate-scale-in border border-blue-400">
                         <h4 className="font-bold text-lg text-slate-100 flex items-center gap-2">{(() => { const I = iconMap['lifeline_quick_review']; return <I className="w-6 h-6" /> })()} Pista de Repaso Rápido</h4>
                         <p className="mt-2 text-slate-300">{formatExplanation(showExplanationHint)}</p>

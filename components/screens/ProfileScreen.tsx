@@ -3,6 +3,9 @@
 
 import React, { useState, useMemo, memo, useEffect } from 'react';
 import { ProfileScreenProps, Avatar } from '../../types';
+import { subscribeAuth } from '../../services/firebase';
+import { getIncomingFriendRequests, acceptFriendRequest, rejectFriendRequest, listFriendsPublic, getUserById } from '../../services/firestore';
+import type { PublicUser, FriendRequest } from '../../services/firestore';
 import { AVATAR_DATA } from '../../constants';
 import { iconMap, CheckSquare, Target, Lock, CheckCircle, Edit, XCircle, LogOut } from '../icons';
 
@@ -22,16 +25,78 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ userData, onAvatarChange,
 	const [isEditingName, setIsEditingName] = useState(false);
 	const [nameInput, setNameInput] = useState(userData.name);
 	const [isReadyForInput, setIsReadyForInput] = useState(false);
+	const [authUid, setAuthUid] = useState<string | null>(null);
+	const [friends, setFriends] = useState<PublicUser[]>([]);
+	const [friendReqs, setFriendReqs] = useState<FriendRequest[]>([]);
+	const [fromUsers, setFromUsers] = useState<{ [uid: string]: PublicUser | null }>({});
+	const [loadingFriends, setLoadingFriends] = useState(false);
+	const [loadingReqs, setLoadingReqs] = useState(false);
+	const [actionBusyId, setActionBusyId] = useState<string | null>(null);
 
 	useEffect(() => {
 		const timer = setTimeout(() => setIsReadyForInput(true), 100);
 		return () => clearTimeout(timer);
 	}, []);
 
+	useEffect(() => {
+		const unsub = subscribeAuth(u => setAuthUid(u?.uid || null));
+		return unsub;
+	}, []);
+
+	const loadFriendsAndRequests = async (uid: string) => {
+		setLoadingFriends(true);
+		setLoadingReqs(true);
+		try {
+			const [fList, reqs] = await Promise.all([
+				listFriendsPublic(uid),
+				getIncomingFriendRequests(uid)
+			]);
+			setFriends(fList);
+			setFriendReqs(reqs);
+			const uniqueFrom = Array.from(new Set(reqs.map(r => r.fromUid)));
+			const usersArr = await Promise.all(uniqueFrom.map(id => getUserById(id)));
+			const map: { [uid: string]: PublicUser | null } = {};
+			uniqueFrom.forEach((id, i) => { map[id] = usersArr[i] || null; });
+			setFromUsers(map);
+		} finally {
+			setLoadingFriends(false);
+			setLoadingReqs(false);
+		}
+	};
+
+	useEffect(() => {
+		if (!authUid) return;
+		loadFriendsAndRequests(authUid);
+		const interval = setInterval(() => loadFriendsAndRequests(authUid), 15000);
+		return () => clearInterval(interval);
+	}, [authUid]);
+
 	const handleSaveName = () => {
 		if (nameInput.trim()) {
 			onNameChange(nameInput.trim());
 			setIsEditingName(false);
+		}
+	};
+
+	const handleAccept = async (requestId: string) => {
+		if (!authUid) return;
+		setActionBusyId(requestId);
+		try {
+			await acceptFriendRequest(requestId);
+			await loadFriendsAndRequests(authUid);
+		} finally {
+			setActionBusyId(null);
+		}
+	};
+
+	const handleReject = async (requestId: string) => {
+		if (!authUid) return;
+		setActionBusyId(requestId);
+		try {
+			await rejectFriendRequest(requestId);
+			await loadFriendsAndRequests(authUid);
+		} finally {
+			setActionBusyId(null);
 		}
 	};
 
@@ -155,6 +220,77 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ userData, onAvatarChange,
 							<p className="text-slate-300">Tests Completados: <span className="font-bold text-slate-100">{userData.totalQuizzesCompleted}</span></p>
 						</div>
 					</div>
+				</div>
+
+				{/* Friend Requests */}
+				<div className="bg-slate-800/40 backdrop-blur-sm p-4 rounded-xl shadow-md border border-slate-700/50">
+					<div className="flex items-center justify-between mb-3">
+						<h3 className="text-xl font-bold text-slate-100">Solicitudes de amistad</h3>
+						{authUid && (
+							<button onClick={() => loadFriendsAndRequests(authUid)} className="px-3 py-1.5 rounded-lg bg-slate-700 text-slate-200 font-bold hover:bg-slate-600">Actualizar</button>
+						)}
+					</div>
+					{!authUid ? (
+						<p className="text-slate-400 text-sm">Inicia sesión para ver solicitudes.</p>
+					) : loadingReqs ? (
+						<p className="text-slate-400 text-sm">Cargando…</p>
+					) : friendReqs.length === 0 ? (
+						<p className="text-slate-400 text-sm">No tienes solicitudes pendientes.</p>
+					) : (
+						<div className="space-y-2">
+							{friendReqs.map(req => {
+								const u = fromUsers[req.fromUid] || null;
+								return (
+									<div key={req.id} className="flex items-center justify-between bg-slate-700/40 border border-slate-700 rounded-lg p-3">
+										<div className="flex items-center gap-3 min-w-0">
+											<div className="w-10 h-10 rounded-full bg-slate-700 flex items-center justify-center text-xl">
+												{u?.avatar?.includes('/') ? <img src={u.avatar} alt="avatar" className="w-10 h-10 rounded-full"/> : <span>{u?.avatar || '👤'}</span>}
+											</div>
+											<div className="min-w-0">
+												<div className="text-slate-100 font-bold truncate">{u?.name || req.fromUid}</div>
+												<div className="text-slate-400 text-xs">Quiere ser tu amigo</div>
+											</div>
+										</div>
+										<div className="flex gap-2">
+											<button onClick={() => handleReject(req.id)} disabled={actionBusyId === req.id} className="px-3 py-1.5 rounded-lg bg-slate-700 text-slate-200 font-bold hover:bg-slate-600 disabled:opacity-60">{actionBusyId === req.id ? '...' : 'Rechazar'}</button>
+											<button onClick={() => handleAccept(req.id)} disabled={actionBusyId === req.id} className="px-3 py-1.5 rounded-lg bg-green-600 text-white font-bold hover:bg-green-500 disabled:opacity-60">{actionBusyId === req.id ? '...' : 'Aceptar'}</button>
+										</div>
+									</div>
+								);
+							})}
+						</div>
+					)}
+				</div>
+
+				{/* Friends */}
+				<div className="bg-slate-800/40 backdrop-blur-sm p-4 rounded-xl shadow-md border border-slate-700/50">
+					<div className="flex items-center justify-between mb-3">
+						<h3 className="text-xl font-bold text-slate-100">Amigos</h3>
+						{authUid && (
+							<button onClick={() => authUid && loadFriendsAndRequests(authUid)} className="px-3 py-1.5 rounded-lg bg-slate-700 text-slate-200 font-bold hover:bg-slate-600">Actualizar</button>
+						)}
+					</div>
+					{!authUid ? (
+						<p className="text-slate-400 text-sm">Inicia sesión para ver tus amigos.</p>
+					) : loadingFriends ? (
+						<p className="text-slate-400 text-sm">Cargando…</p>
+					) : friends.length === 0 ? (
+						<p className="text-slate-400 text-sm">Aún no tienes amigos.</p>
+					) : (
+						<div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+							{friends.map(f => (
+								<div key={f.id} className="flex items-center gap-3 bg-slate-700/40 border border-slate-700 rounded-lg p-3">
+									<div className="w-10 h-10 rounded-full bg-slate-700 flex items-center justify-center text-xl">
+										{f.avatar?.includes('/') ? <img src={f.avatar} alt="avatar" className="w-10 h-10 rounded-full"/> : <span>{f.avatar || '👤'}</span>}
+									</div>
+									<div className="min-w-0">
+										<div className="text-slate-100 font-bold truncate">{f.name || 'Jugador'}</div>
+										<div className="text-slate-400 text-xs">Nivel {f.level} • {f.xp} XP</div>
+									</div>
+								</div>
+							))}
+						</div>
+					)}
 				</div>
 				
 				{/* Sign Out Button */}

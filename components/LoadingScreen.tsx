@@ -2,7 +2,7 @@ import React from 'react';
 
 const LoadingScreen: React.FC = () => {
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-80 backdrop-blur-sm flex flex-col items-center justify-center z-[10000] animate-fade-in">
+    <div className="fixed inset-0 bg-[#121212] bg-opacity-90 backdrop-blur-sm flex flex-col items-center justify-center z-[10000] animate-fade-in">
       <div className="relative w-48 h-48">
         <img 
           src="/images/Emoji hueso png.png" 
