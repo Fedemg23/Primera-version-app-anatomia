@@ -179,7 +179,14 @@ const StatusBar: React.FC<StatusBarProps> = ({
                                 style={{ 
                                     filter: 'drop-shadow(1px 1px 0px black) drop-shadow(-1px -1px 0px black) drop-shadow(1px -1px 0px black) drop-shadow(-1px 1px 0px black)'
                                 }}
-                                onError={(e:any) => { e.currentTarget.style.display = 'none'; }}
+                                onError={(e:any) => { 
+                                    console.log('Error loading logo-app.PNG, trying lowercase');
+                                    e.currentTarget.src = '/images/logo-app.png';
+                                    if (e.currentTarget.src.includes('logo-app.png')) {
+                                        console.log('Both logo files failed, hiding image');
+                                        e.currentTarget.style.display = 'none';
+                                    }
+                                }}
                             />
                         )}
                     </div>
