@@ -116,7 +116,7 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ onSignIn }) => {
                 </div>
                 <div className="flex items-center justify-center mb-0 -mt-12">
                     <img
-                        src="/images/logo-app.png"
+                        src="/images/logo-app.PNG"
                         alt="AnatomyGO"
                         className="h-40 md:h-56 object-contain"
                         style={{ 

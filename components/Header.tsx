@@ -173,7 +173,7 @@ const StatusBar: React.FC<StatusBarProps> = ({
                     <div className="text-center flex items-center justify-center z-0 pointer-events-none" style={{ marginTop: '-7.5rem' }}>
                         {!showBackButton && (
                             <img
-                                src="/images/logo-app.png"
+                                src="/images/logo-app.PNG"
                                 alt="AnatomyGO"
                                 className="h-80 md:h-96 object-contain pointer-events-none"
                                 style={{ 
