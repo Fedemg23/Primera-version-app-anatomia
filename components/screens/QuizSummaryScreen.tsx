@@ -134,8 +134,8 @@ const QuizSummaryScreen: React.FC<QuizSummaryScreenProps> = ({ earnedXp, earnedB
 	);
 
 	return (
-		<div className="fixed inset-0 z-[9999] flex items-center justify-center animate-fade-in bg-[#121212]">
-			<div className={`relative w-full h-full max-w-none p-6 md:p-10 text-center flex flex-col items-center justify-center bg-[#121212]`}>
+		<div className="fixed inset-0 z-[9999] flex items-center justify-center animate-fade-in bg-black/60">
+			<div className={`relative w-full h-full max-w-none p-6 md:p-10 text-center flex flex-col items-center justify-center bg-transparent`}>
 				{isPerfect && !wasChallenge ? (
 					<PerfectCelebration />
 				) : (

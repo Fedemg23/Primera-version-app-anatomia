@@ -99,10 +99,10 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ onSignIn }) => {
     };
 
     return (
-        <div className="bg-[#121212] min-h-screen w-screen flex items-center justify-center p-4 pb-8" style={{ paddingBottom: 'calc( env(safe-area-inset-bottom) + 2.5rem )' }}>
+        <div className="bg-transparent min-h-screen w-screen flex items-center justify-center p-4 pb-8" style={{ paddingBottom: 'calc( env(safe-area-inset-bottom) + 2.5rem )' }}>
             {/* Contenido central sin contenedor/caja */}
             <div className="text-center max-w-2xl mx-auto px-2">
-                <div className="mx-auto w-56 h-56 md:w-72 md:h-72 flex items-center justify-center mb-8 mt-6 md:mt-12">
+                <div className="mx-auto w-56 h-56 md:w-72 md:h-72 flex items-center justify-center mb-0 -mt-16 md:-mt-12">
                     {!showFallbackEmoji ? (
                         <img
                             src={candidateLogos[logoIdx]}
@@ -114,28 +114,38 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ onSignIn }) => {
                         <span className="text-9xl transform scale-[1.6] md:scale-[1.85] translate-y-8 md:translate-y-10" role="img" aria-label="AnatomyGO Logo">🦴</span>
                     )}
                 </div>
-                <h1 className="text-6xl md:text-7xl font-black title-white-clean">AnatomyGO</h1>
-                <p className="text-slate-300 mb-8 md:mb-10 text-lg">Tu aventura de anatomía te espera.</p>
+                <div className="flex items-center justify-center mb-0 -mt-12">
+                    <img
+                        src="/images/logo-app.png"
+                        alt="AnatomyGO"
+                        className="h-40 md:h-56 object-contain"
+                        style={{ 
+                            transform: 'scale(2.5)',
+                            filter: 'drop-shadow(1px 1px 0px black) drop-shadow(-1px -1px 0px black) drop-shadow(1px -1px 0px black) drop-shadow(-1px 1px 0px black)'
+                        }}
+                    />
+                </div>
+                <p className="text-slate-600 mb-2 md:mb-3 text-lg -mt-12">Tu aventura de anatomía te espera.</p>
 
                 <div className="space-y-3 max-w-sm mx-auto w-full">
                     <button
                         onClick={handleSignInReal}
                         disabled={isSigningIn}
-                        className="w-full bg-gradient-to-r from-blue-500 to-sky-500 text-white font-bold py-3 px-8 rounded-xl text-lg shadow-lg shadow-blue-500/20 hover:shadow-xl hover:shadow-blue-500/30 transition-all duration-300 transform hover:scale-105 active:scale-95 touch-manipulation disabled:opacity-60"
+                        className="w-full bg-gradient-to-r from-gray-800 to-gray-900 text-white font-bold py-3 px-8 rounded-xl text-lg shadow-lg shadow-gray-800/20 hover:shadow-xl hover:shadow-gray-800/30 transition-all duration-300 transform hover:scale-105 active:scale-95 touch-manipulation disabled:opacity-60"
                     >
                         {isSigningIn ? 'Entrando…' : 'Iniciar Sesión con Google'}
                     </button>
                     <div className="bg-slate-800/60 border border-slate-700 rounded-xl p-4 space-y-3">
                         <div className="flex items-center justify-between">
                             <h3 className="text-slate-100 font-bold">{isRegister ? 'Crear cuenta' : 'Entrar con email'}</h3>
-                            <button onClick={() => setIsRegister(v => !v)} className="text-sm text-blue-300 font-bold hover:underline">{isRegister ? 'Ya tengo cuenta' : 'Crear cuenta'}</button>
+                            <button onClick={() => setIsRegister(v => !v)} className="text-sm text-gray-300 font-bold hover:underline">{isRegister ? 'Ya tengo cuenta' : 'Crear cuenta'}</button>
                         </div>
                         <input
                             type="email"
                             value={email}
                             onChange={e => setEmail(e.target.value)}
                             placeholder="Correo electrónico"
-                            className="w-full bg-slate-700/70 border border-slate-600 rounded-lg px-3 py-2 text-white outline-none focus:ring-2 focus:ring-blue-500"
+                            className="w-full bg-slate-700/70 border border-slate-600 rounded-lg px-3 py-2 text-white outline-none focus:ring-2 focus:ring-gray-400"
                         />
                         <div className="relative">
                             <input
@@ -143,7 +153,7 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ onSignIn }) => {
                                 value={password}
                                 onChange={e => setPassword(e.target.value)}
                                 placeholder="Contraseña"
-                                className="w-full bg-slate-700/70 border border-slate-600 rounded-lg px-3 py-2 pr-10 text-white outline-none focus:ring-2 focus:ring-blue-500"
+                                className="w-full bg-slate-700/70 border border-slate-600 rounded-lg px-3 py-2 pr-10 text-white outline-none focus:ring-2 focus:ring-gray-400"
                             />
                             <button type="button" onClick={() => setShowPass(v => !v)} className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-300 hover:text-white">
                                 {showPass ? <EyeOff className="w-5 h-5"/> : <Eye className="w-5 h-5"/>}
@@ -156,7 +166,7 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ onSignIn }) => {
                                     value={password2}
                                     onChange={e => setPassword2(e.target.value)}
                                     placeholder="Repetir contraseña"
-                                    className="w-full bg-slate-700/70 border border-slate-600 rounded-lg px-3 py-2 pr-10 text-white outline-none focus:ring-2 focus:ring-blue-500"
+                                    className="w-full bg-slate-700/70 border border-slate-600 rounded-lg px-3 py-2 pr-10 text-white outline-none focus:ring-2 focus:ring-gray-400"
                                 />
                                 <button type="button" onClick={() => setShowPass2(v => !v)} className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-300 hover:text-white">
                                     {showPass2 ? <EyeOff className="w-5 h-5"/> : <Eye className="w-5 h-5"/>}
@@ -166,7 +176,7 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ onSignIn }) => {
                         {error && <div className="text-red-300 text-sm">{error}</div>}
                         {info && <div className="text-sky-300 text-sm">{info}</div>}
                         <div className="flex items-center justify-between">
-                            <button onClick={handleEmailAction} disabled={isSigningIn || !email || !password || (isRegister && (!password2 || password2 !== password))} className="px-4 py-2 rounded-lg bg-green-600 text-white font-bold hover:bg-green-500 disabled:opacity-60">{isRegister ? 'Registrarme' : 'Entrar'}</button>
+                            <button onClick={handleEmailAction} disabled={isSigningIn || !email || !password || (isRegister && (!password2 || password2 !== password))} className="px-4 py-2 rounded-lg bg-gray-600 text-white font-bold hover:bg-gray-500 disabled:opacity-60">{isRegister ? 'Registrarme' : 'Entrar'}</button>
                             <button onClick={handleResetPassword} className="text-sm text-slate-300 hover:underline">¿Olvidaste tu contraseña?</button>
                         </div>
                     </div>

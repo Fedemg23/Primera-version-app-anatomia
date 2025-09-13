@@ -235,7 +235,7 @@ const LevelRewardsScreen: React.FC<LevelRewardsScreenProps> = ({ userData, onBac
     };
 
     return (
-        <div className="min-h-screen bg-[#121212] text-white p-4">
+        <div className="min-h-screen bg-transparent text-white p-4">
             {/* Título */}
             <div className="text-center mb-4">
                 <h1 className="text-3xl font-black">Recompensas de Nivel</h1>

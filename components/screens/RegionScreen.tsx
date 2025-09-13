@@ -16,29 +16,6 @@ const SubtemaItem: React.FC<{
     onPlay: () => void;
     disabled: boolean;
 }> = memo(({ subtema, isPassed, bestScore, onPlay, disabled }) => {
-    if (isPassed) {
-        return (
-            <div className="p-2 rounded-xl bg-[#121212] text-slate-300 flex items-center justify-between transition-[box-shadow,transform,ring] duration-200 ring-4 ring-white/60 hover:ring-white hover:shadow-[0_0_20px_rgba(255,255,255,0.35)]">
-                <div className="flex items-center gap-3 overflow-hidden">
-                    <CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0" />
-                    <span className="font-semibold truncate text-sm">{subtema.name}</span>
-                </div>
-                <div className="flex items-center gap-2 flex-shrink-0">
-                    <span className="text-xs font-bold flex items-center gap-1 text-yellow-400" title={`Mejor Puntuación: ${Math.round(bestScore * 100)}%`}>
-                        <StarFilled className="w-4 h-4 text-amber-400" />
-                        {Math.round(bestScore * 100)}%
-                    </span>
-                    <button 
-                        onClick={onPlay} 
-                        disabled={disabled}
-                        className="font-semibold text-xs px-2 py-1 rounded-full text-slate-100 ring-1 ring-white/50 active:scale-95 transition-transform disabled:opacity-50 disabled:cursor-not-allowed touch-manipulation">
-                        REPETIR
-                    </button>
-                </div>
-            </div>
-        );
-    }
-
     return (
         <button
             onClick={onPlay}
@@ -46,14 +23,32 @@ const SubtemaItem: React.FC<{
             className="w-full p-2 rounded-xl flex items-center justify-between text-left transition-[box-shadow,transform,ring] duration-200 ease-in-out group bg-[#121212] ring-4 ring-white/60 hover:ring-white hover:shadow-[0_0_20px_rgba(255,255,255,0.35)] shadow-md hover:-translate-y-0.5 disabled:opacity-60 disabled:cursor-wait disabled:transform-none disabled:shadow-md touch-manipulation"
         >
             <div className="flex items-center gap-3 overflow-hidden">
-                <PlayCircleIcon className="w-6 h-6 flex-shrink-0 text-slate-300 group-hover:text-white transition-colors duration-200" />
+                {isPassed ? (
+                    <CheckCircle className="w-6 h-6 text-green-500 flex-shrink-0" />
+                ) : (
+                    <PlayCircleIcon className="w-6 h-6 flex-shrink-0 text-slate-300 group-hover:text-white transition-colors duration-200" />
+                )}
                 <span className="font-bold text-sm text-slate-100 truncate">{subtema.name}</span>
             </div>
             <div className="text-right flex-shrink-0 ml-2">
-                <span className="text-xs font-semibold text-slate-100 ring-1 ring-white/50 rounded-full px-3 py-1 transition-colors duration-200">
-                    JUGAR
-                </span>
-                <p className="text-xs text-slate-400 mt-1">{subtema.questionCount} preguntas</p>
+                {isPassed ? (
+                    <div className="flex flex-col items-end">
+                        <span className="text-xs font-bold flex items-center gap-1 text-yellow-400" title={`Mejor Puntuación: ${Math.round(bestScore * 100)}%`}>
+                            <StarFilled className="w-4 h-4 text-amber-400" />
+                            {Math.round(bestScore * 100)}%
+                        </span>
+                        <span className="text-xs font-semibold text-slate-100 ring-1 ring-white/50 rounded-full px-3 py-1 mt-1 transition-colors duration-200">
+                            REPETIR
+                        </span>
+                    </div>
+                ) : (
+                    <div className="flex flex-col items-end">
+                        <span className="text-xs font-semibold text-slate-100 ring-1 ring-white/50 rounded-full px-3 py-1 transition-colors duration-200">
+                            JUGAR
+                        </span>
+                        <p className="text-xs text-slate-400 mt-1">{subtema.questionCount} preguntas</p>
+                    </div>
+                )}
             </div>
         </button>
     );
@@ -214,7 +209,7 @@ const RegionScreen: React.FC<RegionScreenProps> = ({
     }
     
     return (
-        <div className="bg-[#121212] h-screen overflow-hidden flex flex-col px-4 py-6 sm:px-6 md:px-8 sm:py-8">
+        <div className="bg-transparent h-screen overflow-hidden flex flex-col px-4 py-6 sm:px-6 md:px-8 sm:py-8">
             <div className="flex-1 overflow-y-auto">
                 {renderContent()}
             </div>

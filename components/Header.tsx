@@ -21,7 +21,7 @@ const StatItem = memo(React.forwardRef<HTMLButtonElement, {
         <div className={`icon-container h-6 w-6 sm:h-8 sm:w-8 flex items-center justify-center ${iconContainerClass || "[filter:drop-shadow(0_0_2px_rgba(255,255,255,0.7))]"}`}>
             {icon}
         </div>
-        <span className={`font-black text-slate-100 ml-1 sm:ml-1.5 tabular-nums min-w-[2ch] text-center ${textClass || 'text-base sm:text-lg'}`}>{value}</span>
+        <span className={`font-black text-[#3A3A3A] ml-1 sm:ml-1.5 tabular-nums min-w-[2ch] text-center ${textClass || 'text-base sm:text-lg'}`}>{value}</span>
     </button>
 )));
 
@@ -76,9 +76,9 @@ const StatusBar: React.FC<StatusBarProps> = ({
     const neededXp = xpForNextLevel > 0 ? Math.max(0, Math.ceil(xpForNextLevel - Math.max(0, xpInCurrentLevel))) : 0;
 
     return (
-        <div className="w-full px-1 sm:px-3 z-20">
-            <div className="w-full h-16 md:h-20 bg-[#121212] rounded-b-2xl">
-                <div className="max-w-7xl mx-auto h-full grid grid-cols-3 items-center gap-1 sm:gap-4 md:gap-8 pt-2">
+        <div className="w-full z-10">
+            <div className="w-full h-24 md:h-28 bg-transparent">
+                <div className="max-w-7xl mx-auto h-full grid grid-cols-3 items-start gap-1 sm:gap-4 md:gap-8 py-2 px-3">
                     {/* Left Side: Back Button or Profile */}
                     <div className="flex-shrink-0 flex justify-start items-center gap-1 sm:gap-2 md:gap-4 ml-4">
                         {showBackButton ? (
@@ -87,7 +87,7 @@ const StatusBar: React.FC<StatusBarProps> = ({
                             </button>
                         ) : (
                             <div className="flex items-center gap-2 sm:gap-3 md:gap-5">
-                                <div className="flex flex-col items-center mt-4">
+                                <div className="flex flex-col items-center mt-1">
                                     <button 
                                         onClick={onNavigateToProfile}
                                         title="Ir al Perfil"
@@ -170,16 +170,22 @@ const StatusBar: React.FC<StatusBarProps> = ({
                     </div>
 
                     {/* Center Title */}
-                    <div className="text-center">
+                    <div className="text-center flex items-center justify-center z-0 pointer-events-none" style={{ marginTop: '-7.5rem' }}>
                         {!showBackButton && (
-                            <h1 className="font-graffiti text-2xl md:text-3xl font-black text-white title-white-clean -rotate-1">
-                                AnatomyGO
-                            </h1>
+                            <img
+                                src="/images/logo-app.png"
+                                alt="AnatomyGO"
+                                className="h-80 md:h-96 object-contain pointer-events-none"
+                                style={{ 
+                                    filter: 'drop-shadow(1px 1px 0px black) drop-shadow(-1px -1px 0px black) drop-shadow(1px -1px 0px black) drop-shadow(-1px 1px 0px black)'
+                                }}
+                                onError={(e:any) => { e.currentTarget.style.display = 'none'; }}
+                            />
                         )}
                     </div>
 
                     {/* Right Side: Stats */}
-                    <div className="flex justify-end items-center flex-wrap md:flex-nowrap gap-x-0 sm:gap-x-1 md:gap-x-3">
+                    <div className="flex justify-end items-center flex-wrap md:flex-nowrap gap-x-0 sm:gap-x-1 md:gap-x-3 mt-8">
                         <StatItem 
                             icon={(() => { const S = Star; return <S className="w-full h-full text-white" /> })()} 
                             value={perfectStreak} 

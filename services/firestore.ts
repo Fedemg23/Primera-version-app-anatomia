@@ -9,6 +9,8 @@ export type PublicUser = {
   xp: number;
   level: number;
   updatedAt?: any;
+  active?: boolean;
+  lastSeenAt?: any;
   // Extras para perfil público
   totalQuizzesCompleted?: number;
   totalCorrectAnswers?: number;
@@ -38,14 +40,29 @@ const resolveDb = (): Firestore => {
 export const upsertUser = async (uid: string, data: PublicUser & { id?: string }) => {
   const { id, ...rest } = data;
   const db = resolveDb();
-  await setDoc(doc(db, 'users', uid), { ...rest, updatedAt: serverTimestamp() }, { merge: true });
+  await setDoc(doc(db, 'users', uid), { ...rest, active: true, lastSeenAt: serverTimestamp(), updatedAt: serverTimestamp() }, { merge: true });
+};
+
+export const setUserActive = async (uid: string, active: boolean) => {
+  const db = resolveDb();
+  await setDoc(doc(db, 'users', uid), { active, lastSeenAt: serverTimestamp() }, { merge: true });
 };
 
 export const getTopUsers = async (max = 50): Promise<PublicUser[]> => {
   const db = resolveDb();
-  const q = query(collection(db, 'users'), orderBy('xp', 'desc'), limit(max));
+  // Trae un lote amplio y filtra por activos para evitar índices compuestos
+  const q = query(collection(db, 'users'), orderBy('xp', 'desc'), limit(Math.max(max, 200)));
   const snap = await getDocs(q);
-  return snap.docs.map(d => ({ id: d.id, ...(d.data() as Omit<PublicUser, 'id'>) }));
+  const all = snap.docs.map(d => ({ id: d.id, ...(d.data() as Omit<PublicUser, 'id'>) }));
+  const cutoff = Date.now() - 2 * 60 * 1000; // 2 minutos
+  const activeOnly = all.filter(u => {
+    const anyU = u as any;
+    const isActive = anyU.active === true;
+    const ts = anyU.lastSeenAt;
+    const ms = ts?.toMillis?.() ? ts.toMillis() : (typeof ts?.seconds === 'number' ? ts.seconds * 1000 : 0);
+    return isActive && ms >= cutoff;
+  });
+  return activeOnly.slice(0, max);
 };
 
 export const getUserById = async (uid: string): Promise<PublicUser | null> => {

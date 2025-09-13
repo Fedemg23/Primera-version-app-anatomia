@@ -38,12 +38,9 @@ body {
   -webkit-font-feature-settings: "kern" 1;
   font-feature-settings: "kern" 1;
   font-kerning: normal;
-  /* Fondo base: Gris grafito (#121212) con capa profunda azulada (#1B263B) sutil */
+  /* El fondo global ahora lo provee el componente Background */
   background-color: #121212;
-  background-image: radial-gradient(1200px 600px at 50% -10%, rgba(27, 38, 59, 0.35), transparent 60%),
-                    radial-gradient(1000px 500px at 120% 20%, rgba(0, 191, 255, 0.08), transparent 60%),
-                    radial-gradient(900px 450px at -20% 80%, rgba(255, 0, 255, 0.06), transparent 60%);
-  color: #EAEAEA; /* Texto principal gris muy claro */
+  color: #3A3A3A; /* Texto principal gris oscuro para fondo claro */
   overflow-x: hidden;
   width: 100%;
   max-width: 100%;
@@ -228,3 +225,22 @@ p, span, button, input, select, textarea, label {
         transform: translateY(-15px) rotate(2deg);
     }
 } 
+
+/* Animaciones de aurora para el fondo */
+@keyframes auroraFloat {
+  0% { transform: translate3d(0, 0, 0) scale(1); }
+  50% { transform: translate3d(2%, -3%, 0) scale(1.05); }
+  100% { transform: translate3d(0, 0, 0) scale(1); }
+}
+
+.animate-aurora {
+  animation: auroraFloat 18s ease-in-out infinite;
+}
+
+.animate-aurora-slow {
+  animation: auroraFloat 28s ease-in-out infinite;
+}
+
+.animate-aurora-slower {
+  animation: auroraFloat 36s ease-in-out infinite;
+}

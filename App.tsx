@@ -13,6 +13,7 @@ import { useAnimation } from './components/AnimationProvider';
 import { iconMap } from './components/icons';
 
 import StatusBar from './components/Header';
+import Background from './components/Background';
 import Toast from './components/Toast';
 import DailyBonusModal from './components/DailyBonusModal';
 import MysteryBoxModal from './components/MysteryBoxModal';
@@ -42,7 +43,7 @@ import { imageAvatars } from './src/avatarLoader';
 import { getWeightedReward } from './src/features/rewards';
 import { AudioProvider, useAudio } from './src/contexts/AudioProvider';
 import { AnimationProvider } from './components/AnimationProvider';
-import { upsertUser } from './services/firestore';
+import { upsertUser, setUserActive } from './services/firestore';
 import { getIncomingFriendRequests } from './services/firestore';
 import LeaderboardScreen from './components/screens/LeaderboardScreen';
 
@@ -290,6 +291,7 @@ const App: React.FC = () => {
 
     const handleSignOut = useCallback(async () => {
         if (userData) await saveData(userData);
+        try { if (auth?.uid) await setUserActive(auth.uid, false); } catch {}
         await mockFirebase.auth.signOut();
         setAuth(null);
         stopMusic();
@@ -1613,13 +1615,44 @@ const App: React.FC = () => {
         }).catch(() => {});
     }, [auth?.uid, userData?.name, userData?.avatar, userData?.xp, userData?.level, userData?.totalQuizzesCompleted, userData?.totalCorrectAnswers, userData?.totalQuestionsAnswered, userData?.unlockedAchievements]);
 
+    // Presencia activa para ranking: heartbeat periódico y limpieza al salir
+    useEffect(() => {
+        if (!auth?.uid) return;
+        let timer: any = null;
+        const beat = async () => {
+            try { await setUserActive(auth.uid!, true); } catch {}
+        };
+        beat();
+        timer = setInterval(beat, 60 * 1000);
+        const handleBeforeUnload = () => {
+            try { navigator.sendBeacon?.('/noop'); } catch {}
+            setUserActive(auth.uid!, false).catch(() => {});
+        };
+        window.addEventListener('beforeunload', handleBeforeUnload);
+        return () => {
+            if (timer) clearInterval(timer);
+            window.removeEventListener('beforeunload', handleBeforeUnload);
+            setUserActive(auth.uid!, false).catch(() => {});
+        };
+    }, [auth?.uid]);
+
     // --- Guards and Early returns ---
     if (!auth) {
-        return <LoginScreen onSignIn={handleSignIn} />;
+        return (
+            <>
+                <Background />
+                <LoginScreen onSignIn={handleSignIn} />
+            </>
+        );
     }
 
     if (isLoading) {
-        return <LoadingScreen />;
+        return (
+            <>
+                <Background />
+                <LoadingScreen />
+            </>
+        );
     }
 
     if (!userData) {
@@ -1700,9 +1733,10 @@ const App: React.FC = () => {
     const isHomeView = view === 'home';
 
     return (
-        <div className="relative min-h-screen w-full overflow-x-hidden bg-[#121212] text-[#EAEAEA] flex flex-col">
+        <div className="relative min-h-screen w-full overflow-x-hidden text-[#3A3A3A] flex flex-col">
+            <Background />
             {!isFullScreenView && (
-                <header className="fixed top-0 left-0 right-0 z-40 flex-shrink-0">
+                <header className="sticky top-0 left-0 right-0 z-40 flex-shrink-0">
                     <StatusBar
                         userData={userData}
                         xpInCurrentLevel={xpInCurrentLevel}
@@ -1723,10 +1757,9 @@ const App: React.FC = () => {
 
             <main 
                 ref={mainRef}
-                className={`flex-grow overflow-x-hidden ${isHomeView ? 'overflow-y-auto' : (isFullScreenView ? 'overflow-y-auto' : 'overflow-y-scroll')} ${!isFullScreenView ? 'pt-24 md:pt-28' : ''}`}
+                className={`flex-grow overflow-x-hidden overflow-y-auto`}
                 style={{
-                    height: isFullScreenView ? '100vh' : (isHomeView ? 'calc(100vh - 6rem)' : 'auto'),
-                    overscrollBehavior: isHomeView ? ('none' as any) : undefined,
+                    minHeight: '100vh',
                     scrollbarGutter: 'stable both-edges'
                 }}
             >

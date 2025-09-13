@@ -61,7 +61,7 @@ const NavItem: React.FC<{
            )}
         </div>
         <span className="
-            font-extrabold text-xs md:text-sm uppercase tracking-wider text-slate-200
+            font-extrabold text-xs md:text-sm uppercase tracking-wider text-[#3A3A3A]
             transition-colors duration-300
         ">
             {label}
@@ -96,11 +96,11 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onSelectMode, userData, onNavig
     };
 
     return (
-        <div className="relative flex flex-col min-h-screen items-center p-4 pb-24 md:pb-28 overflow-y-scroll" style={{ paddingBottom: 'calc(6rem + env(safe-area-inset-bottom))' }}>
+        <div className="relative flex flex-col min-h-[100vh] items-center p-4 pb-24 md:pb-28" style={{ paddingTop: '2rem', paddingBottom: 'calc(6rem + env(safe-area-inset-bottom))' }}>
             
             <div className="flex flex-col justify-start w-full max-w-6xl mx-auto min-h-full">
                 {/* Top Group: Title and Mode Buttons */}
-                <div className="flex flex-col items-center gap-4 md:gap-6 w-full mt-16 md:mt-4">
+                <div className="flex flex-col items-center gap-4 md:gap-6 w-full mt-0 md:mt-0">
                     <div className="w-11/12 max-w-[300px] sm:max-w-[440px] md:max-w-[680px] lg:max-w-[760px] mx-auto">
                         <div className="grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-6 lg:gap-8">
                             <button
