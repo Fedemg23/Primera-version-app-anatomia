@@ -243,7 +243,7 @@ const App: React.FC = () => {
         viewHistory.current.push(newView);
         setView(newView);
         // Scroll to top cuando se cambia de página
-        window.scrollTo({ top: 0, behavior: 'smooth' });
+        window.scrollTo({ top: 0, behavior: 'instant' });
     }, []);
 
     const handleBack = useCallback(() => {
@@ -263,6 +263,8 @@ const App: React.FC = () => {
         if (currentView === 'achievements') {
             viewHistory.current = ['home'];
             setView('home');
+            // Scroll to top cuando se cambia de página
+            window.scrollTo({ top: 0, behavior: 'instant' });
             return;
         }
         setView(newView);
@@ -568,7 +570,11 @@ const App: React.FC = () => {
     // Exponer apertura de tour para el botón en Ajustes
     useEffect(() => {
         (window as any).__OPEN_TOUR__ = () => setIsTourOpen(true);
-        (window as any).__NAVIGATE__ = (v: View) => setView(v);
+        (window as any).__NAVIGATE__ = (v: View) => {
+            setView(v);
+            // Scroll to top cuando se cambia de página desde el tour
+            window.scrollTo({ top: 0, behavior: 'instant' });
+        };
         (window as any).__SCROLL_TO__ = (selector: string) => {
             try {
                 const el = document.querySelector(selector) as HTMLElement | null;
@@ -1522,12 +1528,16 @@ const App: React.FC = () => {
         setLastQuizResult(null);
         setView('home');
         viewHistory.current = ['home'];
+        // Scroll to top cuando se cambia de página
+        window.scrollTo({ top: 0, behavior: 'instant' });
     }, [lastQuizResult, triggerAnimation]);
 
     const handleExamResultContinue = useCallback(() => {
         setExamResult(null);
         setView('home');
         viewHistory.current = ['home'];
+        // Scroll to top cuando se cambia de página
+        window.scrollTo({ top: 0, behavior: 'instant' });
     }, []);
 
     const handleSaveUserNote = useCallback((note: Omit<UserNote, 'id' | 'timestamp'>) => {
