@@ -1,6 +1,7 @@
 import React, { useEffect, memo, useState } from 'react';
 import { mockFirebase } from '../../services/firebase';
 import { Eye, EyeOff } from '../icons';
+import { OptimizedLogo } from '../../src/utils/optimizedIcons';
 
 interface LoginScreenProps {
     onSignIn: () => void;
@@ -115,13 +116,10 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ onSignIn }) => {
                     )}
                 </div>
                 <div className="flex items-center justify-center mb-0 -mt-12">
-                    <img
-                        src="/images/logo-app.PNG"
-                        alt="AnatomyGO"
+                    <OptimizedLogo 
                         className="h-40 md:h-56 object-contain"
                         style={{ 
-                            transform: 'scale(2.5)',
-                            filter: 'drop-shadow(1px 1px 0px black) drop-shadow(-1px -1px 0px black) drop-shadow(1px -1px 0px black) drop-shadow(-1px 1px 0px black)'
+                            transform: 'scale(2.5)'
                         }}
                     />
                 </div>

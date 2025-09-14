@@ -89,13 +89,21 @@ export function useImagePreloader() {
 }
 
 // Componente optimizado para mostrar el logo principal
-export const OptimizedLogo: React.FC<{ className?: string }> = ({ className }) => {
+export const OptimizedLogo: React.FC<{ className?: string; style?: React.CSSProperties }> = ({ className, style }) => {
   const LogoComponent = OptimizedIcons.logoApp;
-  return <LogoComponent className={className} />;
+  return (
+    <div className={className} style={style}>
+      <LogoComponent className="w-full h-full" />
+    </div>
+  );
 };
 
 // Componente optimizado para mostrar huesitos (moneda)
-export const OptimizedBones: React.FC<{ className?: string }> = ({ className }) => {
+export const OptimizedBones: React.FC<{ className?: string; style?: React.CSSProperties }> = ({ className, style }) => {
   const BonesComponent = OptimizedIcons.emojiHueso;
-  return <BonesComponent className={className} />;
+  return (
+    <div className={className} style={style}>
+      <BonesComponent className="w-full h-full" />
+    </div>
+  );
 };

@@ -432,7 +432,7 @@ export const iconMap: Record<string, any> = {
     // Regalo del Día (archivo: "Png regalo del día.*" con tilde)
     'daily_gift': OptimizedIcons.daily_gift,
     // Shop (mejorados)
-    'buy_one_heart': HeartFillPlus,
+    'buy_one_heart_icon': HeartFillPlus,
     'streak_freeze': ShieldSnow,
     'xp_boost': BoltUp,
     'double_or_nothing': DoubleOrNothingBold,

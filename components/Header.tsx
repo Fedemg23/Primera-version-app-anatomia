@@ -2,6 +2,7 @@ import React, { memo, useRef, useEffect } from 'react';
 import { Heart, Shield, Settings, Gift, ArrowLeft, iconMap, Star } from './icons';
 import { useAnimation } from './AnimationProvider';
 import { StatusBarProps } from '../types';
+import { OptimizedLogo } from '../src/utils/optimizedIcons';
 
 const StatItem = memo(React.forwardRef<HTMLButtonElement, { 
     icon: React.ReactNode; 
@@ -172,14 +173,8 @@ const StatusBar: React.FC<StatusBarProps> = ({
                     {/* Center Title */}
                     <div className="text-center flex items-center justify-center z-0 pointer-events-none" style={{ marginTop: '-7.5rem' }}>
                         {!showBackButton && (
-                            <img
-                                src="/images/logo-app.PNG"
-                                alt="AnatomyGO"
+                            <OptimizedLogo 
                                 className="h-80 md:h-96 object-contain pointer-events-none"
-                                style={{ 
-                                    filter: 'drop-shadow(1px 1px 0px black) drop-shadow(-1px -1px 0px black) drop-shadow(1px -1px 0px black) drop-shadow(-1px 1px 0px black)'
-                                }}
-                                onError={(e:any) => { e.currentTarget.style.display = 'none'; }}
                             />
                         )}
                     </div>
