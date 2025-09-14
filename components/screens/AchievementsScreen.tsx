@@ -267,8 +267,8 @@ const AchievementCard: React.FC<{ achievement: Achievement; userData: UserData; 
 const AchievementsScreen: React.FC<AchievementsScreenProps> = ({ userData, onClaimReward, onAction, animatingAchievementId }) => {
   const [showHelp, setShowHelp] = useState(false);
     return (
-    <div className="h-full overflow-y-auto p-4 md:p-6 pb-24">
-      <div className="fixed top-12 left-0 right-0 z-10 text-center">
+    <div className="h-full overflow-y-auto p-4 md:p-6 pb-24 pt-1 md:pt-2">
+      <div className="text-center mb-6">
         <div className="flex items-center justify-center gap-3">
           <h2 className="font-graffiti text-4xl md:text-5xl tracking-wide -rotate-1 title-white-clean inline-block transform scale-105">
             Logros
@@ -283,7 +283,6 @@ const AchievementsScreen: React.FC<AchievementsScreenProps> = ({ userData, onCla
           </HelpIcon>
         </div>
       </div>
-      <div className="pt-8"></div>
       {showHelp && (
         <div id="achievements-help" className="mb-6 md:mb-8 p-3 sm:p-4 bg-slate-800/50 border border-slate-700/60 rounded-lg text-slate-300 text-xs sm:text-sm leading-relaxed">
           Gana niveles de logro completando objetivos. Cada logro tiene 10 niveles (Madera → Diamante). Las animaciones y el halo reflejan el material y el tipo de logro. La barra indica tu progreso hacia el siguiente nivel.

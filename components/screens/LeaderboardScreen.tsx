@@ -147,13 +147,12 @@ const LeaderboardScreen: React.FC = () => {
     };
 
     return (
-        <div className="p-4 md:p-6">
-            <div className="fixed top-12 left-0 right-0 z-10 text-center">
+        <div className="p-4 md:p-6 pt-1 md:pt-2">
+            <div className="text-center mb-6">
                 <h2 className="font-graffiti text-4xl md:text-5xl tracking-wide -rotate-1 title-white-clean inline-block transform scale-105">
                     Ranking
                 </h2>
             </div>
-            <div className="pt-8"></div>
             {loading ? (
                 <div className="text-center text-slate-400">Cargando…</div>
             ) : (

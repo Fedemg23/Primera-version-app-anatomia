@@ -101,8 +101,8 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onSelectMode, userData, onNavig
             <div className="flex flex-col justify-start w-full max-w-6xl mx-auto min-h-full">
                 {/* Top Group: Title and Mode Buttons */}
                 <div className="flex flex-col items-center gap-4 md:gap-6 w-full mt-0 md:mt-0">
-                    <div className="w-11/12 max-w-[300px] sm:max-w-[440px] md:max-w-[680px] lg:max-w-[760px] mx-auto">
-                        <div className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-5 lg:gap-7">
+                    <div className="w-11/12 max-w-[300px] sm:max-w-[440px] md:max-w-[680px] lg:max-w-[760px] ml-auto mr-4 md:mx-auto">
+                        <div className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-5 lg:gap-7 justify-items-end md:justify-items-center">
                             <button
                                 onClick={() => handleNavigation('challenges')}
                                 disabled={!isReadyForInput}

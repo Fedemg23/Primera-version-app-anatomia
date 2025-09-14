@@ -163,13 +163,12 @@ const RegionScreen: React.FC<RegionScreenProps> = ({
     
         // Nivel 1: Vista de Regiones
         return (
-            <div className="h-full flex flex-col">
-                <div className="fixed top-12 left-0 right-0 z-10 text-center">
+            <div className="h-full flex flex-col pt-1 md:pt-2">
+                <div className="text-center mb-6">
                     <h2 className="font-graffiti text-4xl md:text-5xl tracking-wide -rotate-1 title-white-clean inline-block transform scale-105">
                         Elige una Región
                     </h2>
                 </div>
-                <div className="pt-8"></div>
                 <div className="text-center mb-3">
                     <div className="mt-1">
                         <HelpIcon modalTitle="Cómo estudiar por regiones">

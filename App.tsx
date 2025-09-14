@@ -242,6 +242,8 @@ const App: React.FC = () => {
     const handleNavigate = useCallback((newView: View) => {
         viewHistory.current.push(newView);
         setView(newView);
+        // Scroll to top cuando se cambia de página
+        window.scrollTo({ top: 0, behavior: 'smooth' });
     }, []);
 
     const handleBack = useCallback(() => {
