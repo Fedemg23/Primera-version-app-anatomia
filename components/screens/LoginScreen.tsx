@@ -123,10 +123,6 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ onSignIn }) => {
                             transform: 'scale(2.5)',
                             filter: 'drop-shadow(1px 1px 0px black) drop-shadow(-1px -1px 0px black) drop-shadow(1px -1px 0px black) drop-shadow(-1px 1px 0px black)'
                         }}
-                        onError={(e:any) => { 
-                            console.log('Error loading logo-app.PNG, trying lowercase');
-                            e.currentTarget.src = '/images/logo-app.png';
-                        }}
                     />
                 </div>
                 <p className="text-slate-600 mb-2 md:mb-3 text-lg -mt-12">Tu aventura de anatomía te espera.</p>

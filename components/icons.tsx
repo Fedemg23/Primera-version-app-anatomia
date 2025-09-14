@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { IconComponent } from '../types';
+import { OptimizedIcons } from '../src/utils/optimizedIcons';
 
 // Utilidad para crear iconos basados en imágenes del directorio public/images
 const makeImgIcon = (src: string, alt: string): React.FC<{ className?: string }> =>
@@ -401,7 +402,7 @@ export const UndoBold: IconComponent = (props) => (
   </svg>
 );
 
-// iconMap
+// iconMap con iconos optimizados
 export const iconMap: Record<string, any> = {
     // General
     'IconBones': IconBones,
@@ -415,18 +416,21 @@ export const iconMap: Record<string, any> = {
     'Body': Body,
     'IconIntestine': IconIntestine,
     'IconTopographic': IconTopographic,
+    // ICONOS OPTIMIZADOS CON BASE64 (carga más rápida)
+    'logo_app': OptimizedIcons.logoApp,
+    'emoji_hueso': OptimizedIcons.emojiHueso,
     // Imagen de llama para racha/logro (usa el archivo "emoji llama.*" en public/images)
-    'llama': makeImgIconFallback('/images/emoji llama', 'Llama'),
+    'llama': OptimizedIcons.llama,
     // Sombrero de graduación para logros/avatares (archivo: "png emoji sombrero de graduacion.*")
-    'graduation_hat': makeImgIconFallback('/images/png emoji sombrero de graduacion', 'Sombrero de graduación'),
+    'graduation_hat': OptimizedIcons.graduation_hat,
     // Tiro al arco (archivo: "Png Emoji tiro al arco.*")
-    'archery': makeImgIconFallback('/images/Png Emoji tiro al arco', 'Tiro al arco'),
+    'archery': OptimizedIcons.archery,
     // Tienda (archivo: "Png Emoji tienda.*")
-    'store_img': makeImgIconFallback('/images/Png Emoji tienda', 'Tienda'),
+    'store_img': OptimizedIcons.store_img,
     // Bolsa de dinero para logro "Comprador Compulsivo" (archivo: "Png bolsa dinero.*")
-    'money_bag': makeImgIconFallback('/images/Png bolsa dinero', 'Bolsa de dinero'),
+    'money_bag': OptimizedIcons.money_bag,
     // Regalo del Día (archivo: "Png regalo del día.*" con tilde)
-    'daily_gift': makeImgIconFallback('/images/Png regalo del día', 'Regalo del día'),
+    'daily_gift': OptimizedIcons.daily_gift,
     // Shop (mejorados)
     'buy_one_heart': HeartFillPlus,
     'streak_freeze': ShieldSnow,
@@ -436,22 +440,22 @@ export const iconMap: Record<string, any> = {
     'mystery_box': GiftBold,
     'neural_eraser': EraserBold,
     // Override visual para compra de vidas en la Tienda con imagen Heart
-    'buy_one_heart': makeImgIconFallback('/images/Heart', 'Vida'),
-    // Comodines reemplazados por imágenes (Botiquín)
-    'lifeline_fifty_fifty': makeImgIconFallback('/images/Descarte', '50/50'),
-    'lifeline_quick_review': makeImgIconFallback('/images/Pista', 'Pista'),
-    'lifeline_second_chance': makeImgIconFallback('/images/Revivir', 'Revivir'),
-    'lifeline_adrenaline': makeImgIconFallback('/images/Adrenalina', 'Adrenalina'),
-    'lifeline_skip': makeImgIconFallback('/images/Saltar', 'Saltar'),
-    'lifeline_double': makeImgIconFallback('/images/Duplicar', 'Duplica'),
-    'lifeline_immunity': makeImgIconFallback('/images/Inmunidad', 'Inmunidad'),
-    // Huesitos (moneda): usar imagen pública '/images/huesitos.*'
-    'bones': makeImgIconFallback('/images/huesitos', 'Huesitos'),
+    'buy_one_heart': OptimizedIcons.heart_img,
+    // COMODINES OPTIMIZADOS (Botiquín) - preloaded para mejor rendimiento
+    'lifeline_fifty_fifty': OptimizedIcons.lifeline_fifty_fifty,
+    'lifeline_quick_review': OptimizedIcons.lifeline_quick_review,
+    'lifeline_second_chance': OptimizedIcons.lifeline_second_chance,
+    'lifeline_adrenaline': OptimizedIcons.lifeline_adrenaline,
+    'lifeline_skip': OptimizedIcons.lifeline_skip,
+    'lifeline_double': OptimizedIcons.lifeline_double,
+    'lifeline_immunity': OptimizedIcons.lifeline_immunity,
+    // Huesitos (moneda): usar versión optimizada con base64
+    'bones': OptimizedIcons.emojiHueso,
     '🦴': () => <span>🦴</span>,
     'Swords': Swords,
     'ListCheck': ListCheck,
-    // Nuevo logo de vidas unificado: coloca tu imagen en public/images como "Heart.(png|webp|jpg|jpeg|svg|gif|avif)"
-    'heart_img': makeImgIconFallback('/images/Heart', 'Vidas'),
+    // Nuevo logo de vidas unificado: optimizado con preload
+    'heart_img': OptimizedIcons.heart_img,
 };
 
 // Iconos mejorados para Home

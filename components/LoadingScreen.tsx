@@ -1,12 +1,11 @@
 import React from 'react';
+import { OptimizedBones } from '../src/utils/optimizedIcons';
 
 const LoadingScreen: React.FC = () => {
   return (
     <div className="fixed inset-0 bg-transparent backdrop-blur-sm flex flex-col items-center justify-center z-[10000] animate-fade-in">
       <div className="relative w-48 h-48">
-        <img 
-          src="/images/Emoji hueso png.png" 
-          alt="Cargando..." 
+        <OptimizedBones 
           className="w-full h-full object-contain"
           style={{
             animation: 'wobble-and-float 3s ease-in-out infinite',
