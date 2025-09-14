@@ -102,22 +102,23 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onSelectMode, userData, onNavig
                 {/* Top Group: Title and Mode Buttons */}
                 <div className="flex flex-col items-center gap-4 md:gap-6 w-full mt-0 md:mt-0">
                     <div className="w-11/12 max-w-[300px] sm:max-w-[440px] md:max-w-[680px] lg:max-w-[760px] mx-auto">
-                        <div className="grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-6 lg:gap-8">
+                        <div className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-5 lg:gap-7">
                             <button
                                 onClick={() => handleNavigation('challenges')}
                                 disabled={!isReadyForInput}
-                                className={`${modeButtonClasses(!isReadyForInput)} aspect-square group relative`}
+                                className={`${modeButtonClasses(!isReadyForInput)} aspect-[4/5] group relative overflow-hidden`}
                             >
-                                <div className="rounded-2xl bg-[#121212] w-full h-full flex flex-col items-center justify-center text-center ring-4 ring-white/60 transition-[box-shadow,transform,ring] duration-200 group-hover:ring-white group-hover:shadow-[0_0_28px_rgba(255,255,255,0.5)] group-active:scale-95 group-active:-translate-y-0.5 group-active:shadow-[0_0_18px_rgba(255,255,255,0.4)]">
-                                    <div className="mb-1 md:mb-2">
+                                <div className="rounded-2xl bg-gradient-to-br from-slate-800 via-slate-700 to-slate-600 w-full h-full flex flex-col items-center justify-center text-center shadow-2xl shadow-slate-900/50 transition-all duration-300 group-hover:shadow-[0_0_35px_rgba(251,146,60,0.3)] group-hover:scale-105 group-hover:-translate-y-1 group-active:scale-98 group-active:translate-y-0 border border-orange-400/20 group-hover:border-orange-400/40">
+                                    <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                                    <div className="mb-2 md:mb-3 transform transition-transform duration-300 group-hover:scale-110 group-hover:rotate-3 relative z-10">
                                         <img 
                                             src="/images/Png Emoji tiro al arco.png" 
                                             alt="Desafíos" 
-                                            className="w-16 h-16 md:w-20 md:h-20 object-contain"
+                                            className="w-18 h-18 md:w-24 md:h-24 object-contain drop-shadow-lg"
                                         />
                                     </div>
-                                    <div className="h-10 flex flex-col justify-center">
-                                        <span className="text-sm md:text-base font-extrabold text-slate-100">Desafíos</span>
+                                    <div className="h-10 flex flex-col justify-center relative z-10">
+                                        <span className="text-sm md:text-base font-extrabold text-white drop-shadow-md">Desafíos</span>
                                     </div>
                                 </div>
                                 {notifications.challenges && (
@@ -128,66 +129,63 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onSelectMode, userData, onNavig
                                 data-tour="home-study-btn"
                                 onClick={() => handleModeSelection('study')}
                                 disabled={!isReadyForInput}
-                                className={`${modeButtonClasses(!isReadyForInput)} aspect-square group relative`}
+                                className={`${modeButtonClasses(!isReadyForInput)} aspect-[4/5] group relative overflow-hidden`}
                             >
-                                <div className="rounded-2xl bg-[#121212] w-full h-full flex flex-col items-center justify-center text-center ring-4 ring-white/60 transition-[box-shadow,transform,ring] duration-200 group-hover:ring-white group-hover:shadow-[0_0_28px_rgba(255,255,255,0.5)] group-active:scale-95 group-active:-translate-y-0.5 group-active:shadow-[0_0_18px_rgba(255,255,255,0.4)]">
-                                    <div className="mb-1 md:mb-2">
+                                <div className="rounded-2xl bg-gradient-to-br from-slate-800 via-slate-700 to-slate-600 w-full h-full flex flex-col items-center justify-center text-center shadow-2xl shadow-slate-900/50 transition-all duration-300 group-hover:shadow-[0_0_35px_rgba(59,130,246,0.3)] group-hover:scale-105 group-hover:-translate-y-1 group-active:scale-98 group-active:translate-y-0 border border-blue-400/20 group-hover:border-blue-400/40">
+                                    <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                                    <div className="mb-2 md:mb-3 transform transition-transform duration-300 group-hover:scale-110 group-hover:-rotate-2 relative z-10">
                                         <img 
                                             src="/images/Modo estudio.png" 
                                             alt="Modo Estudio" 
-                                            className="w-16 h-16 md:w-20 md:h-20 object-contain"
+                                            className="w-18 h-18 md:w-24 md:h-24 object-contain drop-shadow-lg"
                                         />
                                     </div>
-                                    <div className="h-10 flex flex-col justify-center">
-                                        <span className="text-sm md:text-base font-extrabold text-slate-100 leading-tight">
+                                    <div className="h-10 flex flex-col justify-center relative z-10">
+                                        <span className="text-sm md:text-base font-extrabold text-white drop-shadow-md leading-tight">
                                             <span className="block">Modo</span>
                                             <span className="block">Estudio</span>
                                         </span>
                                     </div>
                                 </div>
-                                {notifications.study && (
-                                    <span className="absolute -top-1 -right-1 block h-4 w-4 rounded-full bg-red-500 ring-2 ring-slate-900 animate-notification-pulse"></span>
-                                )}
                             </button>
                             <button
                                 onClick={() => handleModeSelection('exam')}
                                 disabled={!isReadyForInput}
-                                className={`${modeButtonClasses(!isReadyForInput)} aspect-square group relative`}
+                                className={`${modeButtonClasses(!isReadyForInput)} aspect-[4/5] group relative overflow-hidden`}
                             >
-                                <div className="rounded-2xl bg-[#121212] w-full h-full flex flex-col items-center justify-center text-center ring-4 ring-white/60 transition-[box-shadow,transform,ring] duration-200 group-hover:ring-white group-hover:shadow-[0_0_28px_rgba(255,255,255,0.5)] group-active:scale-95 group-active:-translate-y-0.5 group-active:shadow-[0_0_18px_rgba(255,255,255,0.4)]">
-                                    <div className="mb-1 md:mb-2">
+                                <div className="rounded-2xl bg-gradient-to-br from-slate-800 via-slate-700 to-slate-600 w-full h-full flex flex-col items-center justify-center text-center shadow-2xl shadow-slate-900/50 transition-all duration-300 group-hover:shadow-[0_0_35px_rgba(147,51,234,0.3)] group-hover:scale-105 group-hover:-translate-y-1 group-active:scale-98 group-active:translate-y-0 border border-purple-400/20 group-hover:border-purple-400/40">
+                                    <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                                    <div className="mb-2 md:mb-3 transform transition-transform duration-300 group-hover:scale-110 group-hover:rotate-1 relative z-10">
                                         <img 
                                             src="/images/Modo examen.png" 
                                             alt="Modo Examen" 
-                                            className="w-16 h-16 md:w-20 md:h-20 object-contain"
+                                            className="w-18 h-18 md:w-24 md:h-24 object-contain drop-shadow-lg"
                                         />
                                     </div>
-                                    <div className="h-10 flex flex-col justify-center">
-                                        <span className="text-sm md:text-base font-extrabold text-slate-100 leading-tight">
+                                    <div className="h-10 flex flex-col justify-center relative z-10">
+                                        <span className="text-sm md:text-base font-extrabold text-white drop-shadow-md leading-tight">
                                             <span className="block">Modo</span>
                                             <span className="block">Examen</span>
                                         </span>
                                     </div>
                                 </div>
-                                {notifications.levelRewards && (
-                                    <span className="absolute -top-1 -right-1 block h-4 w-4 rounded-full bg-red-500 ring-2 ring-slate-900 animate-notification-pulse"></span>
-                                )}
                             </button>
                             <button
                                 onClick={() => handleNavigation('shop')}
                                 disabled={!isReadyForInput}
-                                className={`${modeButtonClasses(!isReadyForInput)} aspect-square group relative`}
+                                className={`${modeButtonClasses(!isReadyForInput)} aspect-[4/5] group relative overflow-hidden`}
                             >
-                                <div className="rounded-2xl bg-[#121212] w-full h-full flex flex-col items-center justify-center text-center ring-4 ring-white/60 transition-[box-shadow,transform,ring] duration-200 group-hover:ring-white group-hover:shadow-[0_0_28px_rgba(255,255,255,0.5)] group-active:scale-95 group-active:-translate-y-0.5 group-active:shadow-[0_0_18px_rgba(255,255,255,0.4)]">
-                                    <div className="mb-1 md:mb-2">
+                                <div className="rounded-2xl bg-gradient-to-br from-slate-800 via-slate-700 to-slate-600 w-full h-full flex flex-col items-center justify-center text-center shadow-2xl shadow-slate-900/50 transition-all duration-300 group-hover:shadow-[0_0_35px_rgba(16,185,129,0.3)] group-hover:scale-105 group-hover:-translate-y-1 group-active:scale-98 group-active:translate-y-0 border border-emerald-400/20 group-hover:border-emerald-400/40">
+                                    <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                                    <div className="mb-2 md:mb-3 transform transition-transform duration-300 group-hover:scale-110 group-hover:-rotate-3 relative z-10">
                                         <img 
                                             src="/images/Tienda.png" 
                                             alt="Tienda" 
-                                            className="w-16 h-16 md:w-20 md:h-20 object-contain"
+                                            className="w-18 h-18 md:w-24 md:h-24 object-contain drop-shadow-lg"
                                         />
                                     </div>
-                                    <div className="h-10 flex flex-col justify-center">
-                                        <span className="text-sm md:text-base font-extrabold text-slate-100">Tienda</span>
+                                    <div className="h-10 flex flex-col justify-center relative z-10">
+                                        <span className="text-sm md:text-base font-extrabold text-white drop-shadow-md">Tienda</span>
                                     </div>
                                 </div>
                                 {notifications.shop && (
@@ -197,18 +195,19 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onSelectMode, userData, onNavig
                             <button
                                 onClick={() => handleNavigation('achievements')}
                                 disabled={!isReadyForInput}
-                                className={`${modeButtonClasses(!isReadyForInput)} aspect-square group relative`}
+                                className={`${modeButtonClasses(!isReadyForInput)} aspect-[4/5] group relative overflow-hidden`}
                             >
-                                <div className="rounded-2xl bg-[#121212] w-full h-full flex flex-col items-center justify-center text-center ring-4 ring-white/60 transition-[box-shadow,transform,ring] duration-200 group-hover:ring-white group-hover:shadow-[0_0_28px_rgba(255,255,255,0.5)] group-active:scale-95 group-active:-translate-y-0.5 group-active:shadow-[0_0_18px_rgba(255,255,255,0.4)]">
-                                    <div className="mb-1 md:mb-2">
+                                <div className="rounded-2xl bg-gradient-to-br from-slate-800 via-slate-700 to-slate-600 w-full h-full flex flex-col items-center justify-center text-center shadow-2xl shadow-slate-900/50 transition-all duration-300 group-hover:shadow-[0_0_35px_rgba(234,179,8,0.3)] group-hover:scale-105 group-hover:-translate-y-1 group-active:scale-98 group-active:translate-y-0 border border-yellow-400/20 group-hover:border-yellow-400/40">
+                                    <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                                    <div className="mb-2 md:mb-3 transform transition-transform duration-300 group-hover:scale-110 group-hover:rotate-2 relative z-10">
                                         <img 
                                             src="/images/Logros.png" 
                                             alt="Logros" 
-                                            className="w-16 h-16 md:w-20 md:h-20 object-contain"
+                                            className="w-18 h-18 md:w-24 md:h-24 object-contain drop-shadow-lg"
                                         />
                                     </div>
-                                    <div className="h-10 flex flex-col justify-center">
-                                        <span className="text-sm md:text-base font-extrabold text-slate-100">Logros</span>
+                                    <div className="h-10 flex flex-col justify-center relative z-10">
+                                        <span className="text-sm md:text-base font-extrabold text-white drop-shadow-md">Logros</span>
                                     </div>
                                 </div>
                                 {notifications.achievements && (
@@ -218,40 +217,23 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onSelectMode, userData, onNavig
                             <button
                                 onClick={() => handleNavigation('leaderboard')}
                                 disabled={!isReadyForInput}
-                                className={`${modeButtonClasses(!isReadyForInput)} aspect-square group relative`}
+                                className={`${modeButtonClasses(!isReadyForInput)} aspect-[4/5] group relative overflow-hidden`}
                             >
-                                <div className="rounded-2xl bg-black w-full h-full flex flex-col items-center justify-center text-center ring-4 ring-white/60 transition-[box-shadow,transform,ring] duration-200 group-hover:ring-white group-hover:shadow-[0_0_28px_rgba(255,255,255,0.5)] group-active:scale-95 group-active:-translate-y-0.5 group-active:shadow-[0_0_18px_rgba(255,255,255,0.4)]">
-                                    <div className="mb-1 md:mb-2">
+                                <div className="rounded-2xl bg-gradient-to-br from-slate-800 via-slate-700 to-slate-600 w-full h-full flex flex-col items-center justify-center text-center shadow-2xl shadow-slate-900/50 transition-all duration-300 group-hover:shadow-[0_0_35px_rgba(100,116,139,0.3)] group-hover:scale-105 group-hover:-translate-y-1 group-active:scale-98 group-active:translate-y-0 border border-slate-400/20 group-hover:border-slate-400/40">
+                                    <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                                    <div className="mb-2 md:mb-3 transform transition-transform duration-300 group-hover:scale-110 group-hover:-rotate-1 relative z-10">
                                         <img 
                                             src="/images/Leaderboard.png" 
                                             alt="Ranking" 
-                                            className="w-16 h-16 md:w-20 md:h-20 object-contain"
+                                            className="w-18 h-18 md:w-24 md:h-24 object-contain drop-shadow-lg"
                                             onError={(e:any)=>{ e.currentTarget.src='/images/Logros.png'; }}
                                         />
                                     </div>
-                                    <div className="h-10 flex flex-col justify-center">
-                                        <span className="text-sm md:text-base font-extrabold text-slate-100">Ranking</span>
+                                    <div className="h-10 flex flex-col justify-center relative z-10">
+                                        <span className="text-sm md:text-base font-extrabold text-white drop-shadow-md">Ranking</span>
                                     </div>
                                 </div>
                             </button>
-                        <button
-                            onClick={() => handleNavigation('profile')}
-                            disabled={!isReadyForInput}
-                            className={`${modeButtonClasses(!isReadyForInput)} aspect-square group relative`}
-                        >
-                            <div className="rounded-2xl bg-[#121212] w-full h-full flex flex-col items-center justify-center text-center ring-4 ring-white/60 transition-[box-shadow,transform,ring] duration-200 group-hover:ring-white group-hover:shadow-[0_0_28px_rgba(255,255,255,0.5)] group-active:scale-95 group-active:-translate-y-0.5 group-active:shadow-[0_0_18px_rgba(255,255,255,0.4)]">
-                                <div className="mb-1 md:mb-2">
-                                    {typeof userData.avatar === 'string' && /(png|webp|jpg|jpeg|svg)$/i.test(userData.avatar) ? (
-                                        <img src={userData.avatar} alt="Perfil" className="w-16 h-16 md:w-20 md:h-20 object-contain" />
-                                    ) : (
-                                        <span className="text-4xl sm:text-5xl md:text-6xl">{userData.avatar}</span>
-                                    )}
-                                </div>
-                                <div className="h-10 flex flex-col justify-center">
-                                    <span className="text-sm md:text-base font-extrabold text-slate-100">Perfil</span>
-                                </div>
-                            </div>
-                        </button>
                         </div>
                     </div>
                 </div>

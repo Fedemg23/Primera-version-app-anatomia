@@ -79,10 +79,9 @@ const ExamConfigScreen: React.FC<ExamConfigScreenProps> = ({
 
     return (
         <div className="bg-transparent h-full overflow-y-auto p-4 md:p-6 pb-24">
-            <div className="text-center mb-8">
-                <Target className="w-24 h-24 mx-auto text-blue-500" />
+            <div className="fixed top-12 left-0 right-0 z-10 text-center">
                 <div className="flex items-center justify-center gap-2">
-                    <h2 className="text-4xl font-black text-white mt-4">Configurar Examen</h2>
+                    <h2 className="font-graffiti text-4xl md:text-5xl tracking-wide -rotate-1 title-white-clean inline-block transform scale-105">Configurar Examen</h2>
                     <HelpIcon modalTitle="Cómo configurar el examen" ariaLabel="Cómo configurar el examen">
                         <ul>
                             <li>Selecciona <strong>regiones y temas</strong> que quieras incluir.</li>
@@ -92,7 +91,11 @@ const ExamConfigScreen: React.FC<ExamConfigScreenProps> = ({
                         </ul>
                     </HelpIcon>
                 </div>
-                <p className="text-slate-400 mt-1">Elige los temas y el número de preguntas.</p>
+            </div>
+            <div className="pt-8"></div>
+            <div className="text-center mb-2">
+                <Target className="w-24 h-24 mx-auto text-blue-500" />
+                <p className="text-slate-400 mt-4">Elige los temas y el número de preguntas.</p>
             </div>
 
             <div className="bg-slate-800/40 backdrop-blur-sm p-6 rounded-2xl shadow-lg border border-slate-700/50 space-y-6">

@@ -49,7 +49,7 @@ const makeImgIconFallback = (basename: string, alt: string): React.FC<{ classNam
 // Iconos optimizados con base64 cuando es posible
 export const OptimizedIcons = {
   // Iconos principales optimizados
-  logoApp: makeOptimizedImgIcon('logoApp', '/images/logo-app.PNG', 'Logo de la aplicación'),
+  logoApp: makeOptimizedImgIcon('logoApp', '/images/logo-app.png', 'Logo de la aplicación'),
   emojiHueso: makeOptimizedImgIcon('emojiHueso', '/images/Emoji hueso png.png', 'Huesitos'),
   
   // Iconos de comodines (algunos usan base64 si son pequeños, otros usan preload)
@@ -90,10 +90,13 @@ export function useImagePreloader() {
 
 // Componente optimizado para mostrar el logo principal
 export const OptimizedLogo: React.FC<{ className?: string; style?: React.CSSProperties }> = ({ className, style }) => {
-  const LogoComponent = OptimizedIcons.logoApp;
   return (
     <div className={className} style={style}>
-      <LogoComponent className="w-full h-full" />
+      <img 
+        src={base64Images.logoApp} 
+        alt="Logo de la aplicación"
+        className="w-full h-full object-contain"
+      />
     </div>
   );
 };

@@ -7,7 +7,7 @@ import { subscribeAuth } from '../../services/firebase';
 import { getIncomingFriendRequests, acceptFriendRequest, rejectFriendRequest, listFriendsPublic, getUserById } from '../../services/firestore';
 import type { PublicUser, FriendRequest } from '../../services/firestore';
 import { AVATAR_DATA } from '../../constants';
-import { iconMap, CheckSquare, Target, Lock, CheckCircle, Edit, XCircle, LogOut } from '../icons';
+import { iconMap, CheckSquare, Target, Lock, CheckCircle, Edit, XCircle, LogOut, Star } from '../icons';
 
 const StatCard: React.FC<{ icon: React.ReactNode; label: string; value: string | number; colorClass: string; }> = memo(({ icon, label, value, colorClass }) => (
 	<div className="bg-slate-800/40 backdrop-blur-sm p-4 rounded-xl flex items-center space-x-4 border border-slate-700/50">
@@ -167,6 +167,11 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ userData, onAvatarChange,
 				<div className="grid grid-cols-2 gap-4">
 					<StatCard icon={(() => { const L = iconMap['llama']; return <L className="w-8 h-8" /> })()} label="Racha" value={userData.streak} colorClass="bg-orange-500" />
 					<StatCard icon={(() => { const B = iconMap['bones']; return <B className="w-8 h-8" /> })()} label="Huesitos" value={userData.bones.toLocaleString()} colorClass="bg-amber-500" />
+				</div>
+				
+				{/* Perfect Streak Stat */}
+				<div className="grid grid-cols-1 gap-4">
+					<StatCard icon={<Star className="w-8 h-8 text-white" />} label="Racha Perfecta" value={userData.perfectStreak || 0} colorClass="bg-yellow-500" />
 				</div>
 				
 				{/* Avatar Selection */}

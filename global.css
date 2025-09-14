@@ -244,3 +244,33 @@ p, span, button, input, select, textarea, label {
 .animate-aurora-slower {
   animation: auroraFloat 36s ease-in-out infinite;
 }
+
+/* Animación shimmer para el XP */
+@keyframes shimmer {
+  0% { transform: translateX(-100%) skewX(-12deg); }
+  100% { transform: translateX(200%) skewX(-12deg); }
+}
+
+.animate-shimmer {
+  animation: shimmer 2s ease-in-out infinite;
+}
+
+/* Animación para el level up */
+@keyframes level-up-pop {
+  0% { 
+    opacity: 0; 
+    transform: scale(0.8); 
+  }
+  50% { 
+    opacity: 1; 
+    transform: scale(1.1); 
+  }
+  100% { 
+    opacity: 1; 
+    transform: scale(1); 
+  }
+}
+
+.animate-level-up-pop {
+  animation: level-up-pop 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards;
+}

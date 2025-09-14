@@ -101,7 +101,7 @@ const RegionScreen: React.FC<RegionScreenProps> = ({
             return (
                  <div className="h-full flex flex-col">
                     <div className="text-center mb-2">
-                        <h2 className="font-graffiti text-3xl md:text-4xl tracking-wide -rotate-1 title-white-clean inline-block transform scale-105">
+                        <h2 className="font-graffiti text-4xl md:text-5xl tracking-wide -rotate-1 title-white-clean inline-block transform scale-105">
                             {selectedTema.name}
                         </h2>
                     </div>
@@ -131,7 +131,7 @@ const RegionScreen: React.FC<RegionScreenProps> = ({
             return (
                 <div className="h-full flex flex-col">
                     <div className="text-center mb-2">
-                        <h2 className="font-graffiti text-3xl md:text-4xl tracking-wide -rotate-1 title-white-clean inline-block transform scale-105">
+                        <h2 className="font-graffiti text-4xl md:text-5xl tracking-wide -rotate-1 title-white-clean inline-block transform scale-105">
                             {selectedRegion.name}
                         </h2>
                     </div>
@@ -164,10 +164,13 @@ const RegionScreen: React.FC<RegionScreenProps> = ({
         // Nivel 1: Vista de Regiones
         return (
             <div className="h-full flex flex-col">
-                <div className="text-center mb-3">
+                <div className="fixed top-12 left-0 right-0 z-10 text-center">
                     <h2 className="font-graffiti text-4xl md:text-5xl tracking-wide -rotate-1 title-white-clean inline-block transform scale-105">
                         Elige una Región
                     </h2>
+                </div>
+                <div className="pt-8"></div>
+                <div className="text-center mb-3">
                     <div className="mt-1">
                         <HelpIcon modalTitle="Cómo estudiar por regiones">
                             <ul>

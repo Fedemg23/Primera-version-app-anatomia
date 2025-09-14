@@ -268,21 +268,24 @@ const AchievementsScreen: React.FC<AchievementsScreenProps> = ({ userData, onCla
   const [showHelp, setShowHelp] = useState(false);
     return (
     <div className="h-full overflow-y-auto p-4 md:p-6 pb-24">
-      <div className="flex items-start md:items-center gap-3 md:gap-4 mb-16 md:mb-28">
-        <h2 className="font-graffiti font-black text-3xl sm:text-4xl md:text-5xl tracking-wide -rotate-1 title-white-clean block text-center transform scale-105 md:scale-110 flex-1 mx-auto">
-          Logros
-        </h2>
-        <HelpIcon modalTitle="Cómo funcionan los Logros" ariaLabel="Cómo funcionan los Logros">
-          <ul>
-            <li>Cada logro tiene <strong>10 niveles</strong> desde Madera → Diamante.</li>
-            <li>Al subir de nivel, aparecen <strong>recompensas pendientes</strong> para reclamar.</li>
-            <li>El halo y el anillo reflejan el <strong>material</strong> de tu nivel actual.</li>
-            <li>Apunta a un <strong>nivel diamante</strong> como objetivo máximo <StarFilled className="inline w-4 h-4"/>.</li>
-          </ul>
-        </HelpIcon>
+      <div className="fixed top-12 left-0 right-0 z-10 text-center">
+        <div className="flex items-center justify-center gap-3">
+          <h2 className="font-graffiti text-4xl md:text-5xl tracking-wide -rotate-1 title-white-clean inline-block transform scale-105">
+            Logros
+          </h2>
+          <HelpIcon modalTitle="Cómo funcionan los Logros" ariaLabel="Cómo funcionan los Logros">
+            <ul>
+              <li>Cada logro tiene <strong>10 niveles</strong> desde Madera → Diamante.</li>
+              <li>Al subir de nivel, aparecen <strong>recompensas pendientes</strong> para reclamar.</li>
+              <li>El halo y el anillo reflejan el <strong>material</strong> de tu nivel actual.</li>
+              <li>Apunta a un <strong>nivel diamante</strong> como objetivo máximo <StarFilled className="inline w-4 h-4"/>.</li>
+            </ul>
+          </HelpIcon>
+        </div>
       </div>
+      <div className="pt-8"></div>
       {showHelp && (
-        <div id="achievements-help" className="mb-12 md:mb-16 p-3 sm:p-4 bg-slate-800/50 border border-slate-700/60 rounded-lg text-slate-300 text-xs sm:text-sm leading-relaxed">
+        <div id="achievements-help" className="mb-6 md:mb-8 p-3 sm:p-4 bg-slate-800/50 border border-slate-700/60 rounded-lg text-slate-300 text-xs sm:text-sm leading-relaxed">
           Gana niveles de logro completando objetivos. Cada logro tiene 10 niveles (Madera → Diamante). Las animaciones y el halo reflejan el material y el tipo de logro. La barra indica tu progreso hacia el siguiente nivel.
             </div>
       )}

@@ -15,6 +15,7 @@ import { iconMap } from './components/icons';
 import StatusBar from './components/Header';
 import Background from './components/Background';
 import Toast from './components/Toast';
+import FloatingSettingsButton from './components/FloatingSettingsButton';
 import DailyBonusModal from './components/DailyBonusModal';
 import MysteryBoxModal from './components/MysteryBoxModal';
 import LoginScreen from './components/screens/LoginScreen';
@@ -1802,6 +1803,13 @@ const App: React.FC = () => {
                     {...duelSummary}
                     onPlayAgain={() => { setDuelSummary(null); handleNavigate('duel_lobby'); }}
                     onContinue={() => { setDuelSummary(null); handleBack(); }}
+                />
+            )}
+            
+            {/* Floating Settings Button */}
+            {!isFullScreenView && (
+                <FloatingSettingsButton 
+                    onOpenSettings={() => setActiveModal(prev => prev === 'settings' ? null : 'settings')}
                 />
             )}
         </div>

@@ -182,10 +182,10 @@ export default function ShopScreen({ userData, onPurchase, onClaimDailyReward }:
 
 	return (
 		<div className="bg-transparent h-full overflow-y-auto overflow-x-hidden">
-			<div className="max-w-4xl mx-auto p-4 md:p-6 space-y-20 md:space-y-24 pb-24">
-				<div className="text-center mb-4">
+			<div className="max-w-4xl mx-auto p-4 md:p-6 space-y-2 md:space-y-4 pb-24">
+				<div className="fixed top-12 left-0 right-0 z-10 text-center">
 					<div className="inline-flex items-center gap-3">
-						<h2 className="inline-block font-graffiti font-black text-4xl md:text-5xl tracking-wide -rotate-1 title-white-clean transform scale-100 md:scale-105">
+						<h2 className="inline-block font-graffiti text-4xl md:text-5xl tracking-wide -rotate-1 title-white-clean transform scale-105">
 							Tienda
 						</h2>
 						<HelpIcon modalTitle="Cómo funciona la Tienda" ariaLabel="Cómo funciona la Tienda" className="ml-1">
@@ -200,6 +200,7 @@ export default function ShopScreen({ userData, onPurchase, onClaimDailyReward }:
 						</HelpIcon>
 					</div>
 				</div>
+				<div className="pt-8"></div>
 
 				{/* Daily Reward Section (hero image as primary button) */}
 				<div>

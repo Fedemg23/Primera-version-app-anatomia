@@ -237,12 +237,13 @@ const LevelRewardsScreen: React.FC<LevelRewardsScreenProps> = ({ userData, onBac
     return (
         <div className="min-h-screen bg-transparent text-white p-4">
             {/* Título */}
-            <div className="text-center mb-4">
-                <h1 className="text-3xl font-black">Recompensas de Nivel</h1>
+            <div className="fixed top-12 left-0 right-0 z-10 text-center">
+                <h1 className="font-graffiti text-4xl md:text-5xl tracking-wide -rotate-1 title-white-clean inline-block transform scale-105">Recompensas de Nivel</h1>
             </div>
+            <div className="pt-8"></div>
 
             {/* Nivel actual del usuario */}
-            <div className="text-center mb-8">
+            <div className="text-center mb-2">
                 <div className="inline-block bg-gradient-to-r from-blue-600 to-purple-600 px-6 py-3 rounded-full">
                     <span className="text-white font-bold text-lg">
                         Nivel Actual: {userData.level}

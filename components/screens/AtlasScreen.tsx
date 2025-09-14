@@ -95,14 +95,17 @@ const AtlasScreen: React.FC<AtlasScreenProps> = ({ userData, onStartQuiz, onNavi
 
     return (
         <div className="p-4 md:p-6">
-            <div className="flex justify-center items-center gap-4 mb-8 text-center">
-                 <h2 className="font-graffiti text-4xl md:text-5xl tracking-wide -rotate-1 title-white-clean inline-block transform scale-105">
-                    Mapa de Progreso
-                </h2>
-                 <button onClick={() => isReadyForInput && setIsPreviewModalOpen(true)} disabled={!isReadyForInput} className="text-slate-400 hover:text-slate-200 transition-colors disabled:cursor-wait -rotate-2 touch-manipulation">
-                    <QuestionMarkCircle className="w-9 h-9"/>
-                </button>
+            <div className="fixed top-12 left-0 right-0 z-10 text-center">
+                <div className="flex justify-center items-center gap-4">
+                    <h2 className="font-graffiti text-4xl md:text-5xl tracking-wide -rotate-1 title-white-clean inline-block transform scale-105">
+                        Mapa de Progreso
+                    </h2>
+                    <button onClick={() => isReadyForInput && setIsPreviewModalOpen(true)} disabled={!isReadyForInput} className="text-slate-400 hover:text-slate-200 transition-colors disabled:cursor-wait -rotate-2 touch-manipulation">
+                        <QuestionMarkCircle className="w-9 h-9"/>
+                    </button>
+                </div>
             </div>
+            <div className="pt-8"></div>
             <p className="text-slate-400 mb-6 text-center max-w-xl mx-auto">Selecciona una región en el modelo para explorarla, ver tu progreso y empezar un quiz.</p>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-start">

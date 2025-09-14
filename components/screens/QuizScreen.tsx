@@ -300,7 +300,6 @@ const QuizScreen: React.FC<QuizScreenProps> = ({ quizQuestions, onQuizComplete, 
             {/* Botón de cerrar eliminado para que no se pueda salir del cuestionario hasta terminar */}
             
             <div className="flex-1 min-h-0 p-3 flex flex-col pt-14 sm:pt-4">
-                {title && <h2 className="text-center font-graffiti text-2xl text-slate-300 mb-2 tracking-wide -rotate-1">{title}</h2>}
                 
                 <div className="w-full bg-slate-700 rounded-full h-3 mb-4 flex-shrink-0">
                     <div className="bg-gradient-to-r from-blue-500 to-sky-400 h-3 rounded-full transition-all duration-300" style={{width: `${((currentQuestionIndex + 1) / quizQuestions.length) * 100}%`}}></div>
