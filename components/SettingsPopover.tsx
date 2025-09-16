@@ -10,7 +10,8 @@ const SettingsPopover: React.FC<SettingsPopoverProps> = ({
     onUnlockAll, 
     onSignOut,
     onToggleDevMode, 
-    onResetData 
+    onResetData,
+    userData 
 }) => {
     const { 
         isMusicPlaying, 
@@ -144,6 +145,16 @@ const SettingsPopover: React.FC<SettingsPopoverProps> = ({
                     )}
                     
                     <div className="!mt-2 border-t border-gray-700"></div>
+
+                    {/* Información de la cuenta */}
+                    {userData?.accountEmail && (
+                        <div className="px-3 py-2 bg-slate-700/30 rounded-md mx-1 mb-2">
+                            <p className="text-xs text-slate-400 mb-1">Cuenta conectada:</p>
+                            <p className="text-sm text-slate-200 font-medium truncate" title={userData.accountEmail}>
+                                {userData.accountEmail}
+                            </p>
+                        </div>
+                    )}
 
                     <button
                         onClick={() => { (window as any).__OPEN_TOUR__?.(); onClose(); }}

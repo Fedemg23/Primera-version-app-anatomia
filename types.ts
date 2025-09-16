@@ -127,6 +127,9 @@ export interface UserData {
   lastUpdated?: string;
   syncedFromDevice?: boolean;
   migratedFromLocal?: boolean;
+  isNewUser?: boolean;
+  hasCompletedWelcome?: boolean;
+  accountEmail?: string;
 }
 
 // TIPOS GENÉRICOS Y DE LA APP
@@ -331,6 +334,7 @@ export interface SettingsPopoverProps {
     onSignOut: () => void;
     onToggleDevMode: () => void;
     onResetData?: () => void;
+    userData?: UserData;
 }
 
 export interface HomeScreenProps {

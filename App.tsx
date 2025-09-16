@@ -49,6 +49,7 @@ import { upsertUser, setUserActive } from './services/firestore';
 import { getIncomingFriendRequests } from './services/firestore';
 import LeaderboardScreen from './components/screens/LeaderboardScreen';
 import ErrorBoundary from './components/ErrorBoundary';
+import WelcomeModal from './components/WelcomeModal';
 
 
 type ModalType = 'dailyBonus' | 'mysteryBox' | 'settings' | 'noLives';
@@ -157,6 +158,7 @@ const App: React.FC = () => {
     const { triggerAnimation } = useAnimation();
     const [animatingAchievementId, setAnimatingAchievementId] = useState<string | null>(null);
     const [friendRequestsCount, setFriendRequestsCount] = useState<number>(0);
+    const [showWelcomeModal, setShowWelcomeModal] = useState(false);
     
     // Refs
     const hasInitialDataLoaded = useRef(false);
@@ -202,6 +204,9 @@ const App: React.FC = () => {
         lastUpdated: new Date().toISOString(),
         syncedFromDevice: false,
         migratedFromLocal: false,
+        isNewUser: true,
+        hasCompletedWelcome: false,
+        accountEmail: undefined,
     };
     
     // --- Data Persistence & Initial Load ---
@@ -335,6 +340,23 @@ const App: React.FC = () => {
         stopMusic();
     }, [userData, saveData, stopMusic]);
 
+    const handleCompleteWelcome = useCallback((name: string) => {
+        if (!userData) return;
+        
+        const updatedData = {
+            ...userData,
+            name: name,
+            hasCompletedWelcome: true,
+            isNewUser: false
+        };
+        
+        setUserData(updatedData);
+        setShowWelcomeModal(false);
+        
+        // Mostrar mensaje de bienvenida personalizado
+        showToast(`¡Bienvenido, ${name}! Tu aventura comienza ahora`, 'success', <Award className="w-5 h-5 text-white" />);
+    }, [userData, showToast]);
+
     useEffect(() => {
         if (!auth) {
             setIsLoading(true);
@@ -380,12 +402,28 @@ const App: React.FC = () => {
                 clearTimeout(loadingTimeout);
 
                 const doc = docResult as { exists: () => boolean; data: () => UserData | null };
-                let loadedData: UserData = doc.exists() && doc.data() ? doc.data()! : defaultUserData;
+                const isExistingUser = doc.exists() && doc.data();
+                let loadedData: UserData = isExistingUser ? doc.data()! : defaultUserData;
+                
+                // Detectar si es un usuario nuevo
+                const isNewUser = !isExistingUser;
                 
                 loadedData = { ...defaultUserData, ...loadedData };
                 loadedData.lifelineData = { ...defaultUserData.lifelineData, ...(loadedData as any).lifelineData };
                 if (!loadedData.unlockedAchievements || Array.isArray(loadedData.unlockedAchievements)) {
                     loadedData.unlockedAchievements = defaultUserData.unlockedAchievements;
+                }
+                
+                // Configurar datos para usuarios nuevos
+                if (isNewUser) {
+                    loadedData.isNewUser = true;
+                    loadedData.hasCompletedWelcome = false;
+                    loadedData.accountEmail = auth.email || undefined;
+                } else {
+                    // Para usuarios existentes, asegurar que tengan el email actualizado
+                    if (!loadedData.accountEmail && auth.email) {
+                        loadedData.accountEmail = auth.email;
+                    }
                 }
         
                 const today = toLocalDateString(new Date());
@@ -421,6 +459,11 @@ const App: React.FC = () => {
                 }
 
                 setUserData(loadedData);
+                
+                // Mostrar modal de bienvenida para usuarios nuevos
+                if (isNewUser && !loadedData.hasCompletedWelcome) {
+                    setShowWelcomeModal(true);
+                }
                 
                 // Sincronizar perfil público del usuario en Firestore
                 try {
@@ -1899,7 +1942,7 @@ const App: React.FC = () => {
             <Toast message={toast.message} type={toast.type} icon={toast.icon}/>
 
             {/* Global Modals & Overlays */}
-            <SettingsPopover isOpen={activeModal === 'settings'} onClose={() => setActiveModal(null)} onSignOut={handleSignOut} isDevMode={isDevMode} onUnlockAll={handleUnlockAll} onToggleDevMode={toggleDevMode} onResetData={handleResetToBaseline}/>
+            <SettingsPopover isOpen={activeModal === 'settings'} onClose={() => setActiveModal(null)} onSignOut={handleSignOut} isDevMode={isDevMode} onUnlockAll={handleUnlockAll} onToggleDevMode={toggleDevMode} onResetData={handleResetToBaseline} userData={userData}/>
             <TourGuide isOpen={isTourOpen} onClose={() => setIsTourOpen(false)} />
             <InfoTooltip isOpen={!!infoTooltipType} onClose={() => setInfoTooltipType(null)} type={infoTooltipType} hearts={userData.hearts} nextHeartAt={userData.nextHeartAt} />
             <NoLivesModal isOpen={activeModal === 'noLives'} onClose={() => setActiveModal(null)} onGoToShop={() => { setActiveModal(null); handleNavigate('shop'); }} />
@@ -1941,6 +1984,13 @@ const App: React.FC = () => {
                     onOpenSettings={() => setActiveModal(prev => prev === 'settings' ? null : 'settings')}
                 />
             )}
+            
+            {/* Modal de bienvenida para nuevos usuarios */}
+            <WelcomeModal 
+                isOpen={showWelcomeModal}
+                onComplete={handleCompleteWelcome}
+                userEmail={auth?.email}
+            />
             
         </div>
             </OrientationLock>
