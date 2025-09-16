@@ -18,6 +18,7 @@ import Toast from './components/Toast';
 import FloatingSettingsButton from './components/FloatingSettingsButton';
 import DailyBonusModal from './components/DailyBonusModal';
 import MysteryBoxModal from './components/MysteryBoxModal';
+import OrientationLock from './components/OrientationLock';
 import LoginScreen from './components/screens/LoginScreen';
 import HomeScreen from './components/screens/HomeScreen';
 import RegionScreen from './components/screens/RegionScreen';
@@ -1652,27 +1653,29 @@ const App: React.FC = () => {
     // --- Guards and Early returns ---
     if (!auth) {
         return (
-            <>
+            <OrientationLock>
                 <Background />
                 <LoginScreen onSignIn={handleSignIn} />
-            </>
+            </OrientationLock>
         );
     }
 
     if (isLoading) {
         return (
-            <>
+            <OrientationLock>
                 <Background />
                 <LoadingScreen />
-            </>
+            </OrientationLock>
         );
     }
 
     if (!userData) {
         return (
-            <div className="bg-[#121212] min-h-screen w-screen flex items-center justify-center">
-                <div className="text-white text-lg font-semibold">Error al cargar datos del usuario.</div>
-            </div>
+            <OrientationLock>
+                <div className="bg-[#121212] min-h-screen w-screen flex items-center justify-center">
+                    <div className="text-white text-lg font-semibold">Error al cargar datos del usuario.</div>
+                </div>
+            </OrientationLock>
         );
     }
     
@@ -1746,7 +1749,8 @@ const App: React.FC = () => {
     const isHomeView = view === 'home';
 
     return (
-        <div className="relative min-h-screen w-full overflow-x-hidden text-[#3A3A3A] flex flex-col">
+        <OrientationLock>
+            <div className="relative min-h-screen w-full overflow-x-hidden text-[#3A3A3A] flex flex-col">
             <Background />
             {!isFullScreenView && (
                 <header className="sticky top-0 left-0 right-0 z-40 flex-shrink-0">
@@ -1825,6 +1829,7 @@ const App: React.FC = () => {
                 />
             )}
         </div>
+        </OrientationLock>
     );
 }
 
