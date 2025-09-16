@@ -48,11 +48,15 @@ import { AnimationProvider } from './components/AnimationProvider';
 import { upsertUser, setUserActive } from './services/firestore';
 import { getIncomingFriendRequests } from './services/firestore';
 import LeaderboardScreen from './components/screens/LeaderboardScreen';
+import FriendsScreen from './components/screens/FriendsScreen';
 import ErrorBoundary from './components/ErrorBoundary';
 import WelcomeModal from './components/WelcomeModal';
+import FriendGiftsModal from './components/FriendGiftsModal';
+import FloatingFriendGiftsButton from './components/FloatingFriendGiftsButton';
+import FriendRequestNotification from './components/FriendRequestNotification';
 
 
-type ModalType = 'dailyBonus' | 'mysteryBox' | 'settings' | 'noLives';
+type ModalType = 'dailyBonus' | 'mysteryBox' | 'settings' | 'noLives' | 'friendGifts';
 
 
 const toLocalDateString = (date: Date) => {
@@ -554,7 +558,6 @@ const App: React.FC = () => {
                     return;
                 }
                 
-                showToast('Progreso sincronizado desde otro dispositivo', 'success');
             }
             
             applyingRemoteRef.current = true;
@@ -1958,6 +1961,45 @@ const App: React.FC = () => {
             )}
 
             <AchievementUnlockedModal isOpen={!!leveledUpItemsToShow} onClose={handleLeveledUpItemsModalClose} achievements={leveledUpItemsToShow || []} />
+            
+            <FriendGiftsModal 
+                isOpen={activeModal === 'friendGifts'}
+                onClose={() => setActiveModal(null)}
+                userData={userData}
+                auth={auth}
+                onGiftClaimed={(type, amount) => {
+                    // Handle gift claiming
+                    setUserData(prev => {
+                        const newUserData = { ...prev };
+                        switch (type) {
+                            case 'heart':
+                                newUserData.hearts = Math.min(newUserData.hearts + amount, 5);
+                                break;
+                            case 'xp_boost':
+                                newUserData.xpBoostUntil = Date.now() + 15 * 60 * 1000;
+                                break;
+                            case 'hint':
+                                // Add hints to lifeline data
+                                newUserData.lifelineData.quickReview = newUserData.lifelineData.quickReview + amount;
+                                break;
+                        }
+                        return newUserData;
+                    });
+                    
+                    // Show toast based on gift type
+                    switch (type) {
+                        case 'heart':
+                            setToast({ message: `¡Recibiste ${amount} corazón${amount > 1 ? 'es' : ''}! ❤️`, type: 'success', icon: <Heart className="w-5 h-5 text-red-400" /> });
+                            break;
+                        case 'xp_boost':
+                            setToast({ message: '¡Boost de XP activado! ⚡', type: 'success', icon: <Zap className="w-5 h-5 text-yellow-400" /> });
+                            break;
+                        case 'hint':
+                            setToast({ message: `¡Recibiste ${amount} pista${amount > 1 ? 's' : ''}! 💡`, type: 'success', icon: <Lightbulb className="w-5 h-5 text-blue-400" /> });
+                            break;
+                    }
+                }}
+            />
             {lastQuizResult ? (
                 <QuizSummaryScreen 
                     {...lastQuizResult} 
@@ -1982,6 +2024,24 @@ const App: React.FC = () => {
             {!isFullScreenView && (
                 <FloatingSettingsButton 
                     onOpenSettings={() => setActiveModal(prev => prev === 'settings' ? null : 'settings')}
+                />
+            )}
+            
+            {/* Floating Friend Gifts Button */}
+            {!isFullScreenView && auth && (
+                <FloatingFriendGiftsButton 
+                    userData={userData}
+                    auth={auth}
+                    onClick={() => setActiveModal('friendGifts')}
+                />
+            )}
+            
+            {/* Friend Request Notification */}
+            {!isFullScreenView && auth && (
+                <FriendRequestNotification 
+                    userData={userData}
+                    auth={auth}
+                    onClick={() => handleNavigate('profile')}
                 />
             )}
             

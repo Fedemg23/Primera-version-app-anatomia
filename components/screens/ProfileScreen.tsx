@@ -2,12 +2,13 @@
 
 
 import React, { useState, useMemo, memo, useEffect } from 'react';
-import { ProfileScreenProps, Avatar } from '../../types';
+import { ProfileScreenProps, Avatar, UserData, AuthUser } from '../../types';
 import { subscribeAuth } from '../../services/firebase';
 import { getIncomingFriendRequests, acceptFriendRequest, rejectFriendRequest, listFriendsPublic, getUserById } from '../../services/firestore';
 import type { PublicUser, FriendRequest } from '../../services/firestore';
 import { AVATAR_DATA } from '../../constants';
-import { iconMap, CheckSquare, Target, Lock, CheckCircle, Edit, XCircle, LogOut, Star } from '../icons';
+import { iconMap, CheckSquare, Target, Lock, CheckCircle, Edit, XCircle, LogOut, Star, Users, UserPlus } from '../icons';
+import FriendsScreen from './FriendsScreen';
 
 const StatCard: React.FC<{ icon: React.ReactNode; label: string; value: string | number; colorClass: string; }> = memo(({ icon, label, value, colorClass }) => (
 	<div className="bg-slate-800/40 backdrop-blur-sm p-4 rounded-xl flex items-center space-x-4 border border-slate-700/50">
@@ -32,6 +33,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ userData, onAvatarChange,
 	const [loadingFriends, setLoadingFriends] = useState(false);
 	const [loadingReqs, setLoadingReqs] = useState(false);
 	const [actionBusyId, setActionBusyId] = useState<string | null>(null);
+	const [showFriendsView, setShowFriendsView] = useState(false);
 
 	useEffect(() => {
 		const timer = setTimeout(() => setIsReadyForInput(true), 100);
@@ -108,6 +110,20 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ userData, onAvatarChange,
 	
 	const isAvatarUnlocked = (avatar: Avatar): boolean => {
 		return userData.unlockedAvatars.includes(avatar.id);
+	}
+
+	// Crear un objeto auth temporal para FriendsScreen
+	const authForFriends: AuthUser | null = authUid ? { uid: authUid } as AuthUser : null;
+
+	// Si está en la vista de amigos, mostrar FriendsScreen
+	if (showFriendsView && authForFriends) {
+		return (
+			<FriendsScreen 
+				userData={userData}
+				auth={authForFriends}
+				onBack={() => setShowFriendsView(false)}
+			/>
+		);
 	}
 
 	return (
@@ -227,73 +243,75 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ userData, onAvatarChange,
 					</div>
 				</div>
 
-				{/* Friend Requests */}
-				<div className="bg-slate-800/40 backdrop-blur-sm p-4 rounded-xl shadow-md border border-slate-700/50">
-					<div className="flex items-center justify-between mb-3">
-						<h3 className="text-xl font-bold text-slate-100">Solicitudes de amistad</h3>
-						{authUid && (
-							<button onClick={() => loadFriendsAndRequests(authUid)} className="px-3 py-1.5 rounded-lg bg-slate-700 text-slate-200 font-bold hover:bg-slate-600">Actualizar</button>
-						)}
-					</div>
-					{!authUid ? (
-						<p className="text-slate-400 text-sm">Inicia sesión para ver solicitudes.</p>
-					) : loadingReqs ? (
-						<p className="text-slate-400 text-sm">Cargando…</p>
-					) : friendReqs.length === 0 ? (
-						<p className="text-slate-400 text-sm">No tienes solicitudes pendientes.</p>
-					) : (
-						<div className="space-y-2">
-							{friendReqs.map(req => {
-								const u = fromUsers[req.fromUid] || null;
-								return (
-									<div key={req.id} className="flex items-center justify-between bg-slate-700/40 border border-slate-700 rounded-lg p-3">
-										<div className="flex items-center gap-3 min-w-0">
-											<div className="w-10 h-10 rounded-full bg-slate-700 flex items-center justify-center text-xl">
-												{u?.avatar?.includes('/') ? <img src={u.avatar} alt="avatar" className="w-10 h-10 rounded-full"/> : <span>{u?.avatar || '👤'}</span>}
-											</div>
-											<div className="min-w-0">
-												<div className="text-slate-100 font-bold truncate">{u?.name || req.fromUid}</div>
-												<div className="text-slate-400 text-xs">Quiere ser tu amigo</div>
-											</div>
-										</div>
-										<div className="flex gap-2">
-											<button onClick={() => handleReject(req.id)} disabled={actionBusyId === req.id} className="px-3 py-1.5 rounded-lg bg-slate-700 text-slate-200 font-bold hover:bg-slate-600 disabled:opacity-60">{actionBusyId === req.id ? '...' : 'Rechazar'}</button>
-											<button onClick={() => handleAccept(req.id)} disabled={actionBusyId === req.id} className="px-3 py-1.5 rounded-lg bg-green-600 text-white font-bold hover:bg-green-500 disabled:opacity-60">{actionBusyId === req.id ? '...' : 'Aceptar'}</button>
-										</div>
-									</div>
-								);
-							})}
+				{/* Friends Section - Enhanced */}
+				<div className="bg-slate-800/40 backdrop-blur-sm p-6 rounded-xl shadow-md border border-slate-700/50">
+					<div className="flex items-center justify-between mb-4">
+						<div className="flex items-center gap-3">
+							<Users className="w-6 h-6 text-blue-400" />
+							<h3 className="text-xl font-bold text-slate-100">Amigos</h3>
 						</div>
-					)}
-				</div>
-
-				{/* Friends */}
-				<div className="bg-slate-800/40 backdrop-blur-sm p-4 rounded-xl shadow-md border border-slate-700/50">
-					<div className="flex items-center justify-between mb-3">
-						<h3 className="text-xl font-bold text-slate-100">Amigos</h3>
 						{authUid && (
-							<button onClick={() => authUid && loadFriendsAndRequests(authUid)} className="px-3 py-1.5 rounded-lg bg-slate-700 text-slate-200 font-bold hover:bg-slate-600">Actualizar</button>
+							<button 
+								onClick={() => setShowFriendsView(true)}
+								className="flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 text-white font-bold transition-colors"
+							>
+								<UserPlus className="w-4 h-4" />
+								Gestionar
+							</button>
 						)}
 					</div>
+					
 					{!authUid ? (
-						<p className="text-slate-400 text-sm">Inicia sesión para ver tus amigos.</p>
-					) : loadingFriends ? (
-						<p className="text-slate-400 text-sm">Cargando…</p>
-					) : friends.length === 0 ? (
-						<p className="text-slate-400 text-sm">Aún no tienes amigos.</p>
+						<div className="text-center py-8">
+							<Users className="w-16 h-16 mx-auto text-slate-500 mb-4" />
+							<p className="text-slate-400">Inicia sesión para gestionar tus amigos</p>
+						</div>
 					) : (
-						<div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-							{friends.map(f => (
-								<div key={f.id} className="flex items-center gap-3 bg-slate-700/40 border border-slate-700 rounded-lg p-3">
-									<div className="w-10 h-10 rounded-full bg-slate-700 flex items-center justify-center text-xl">
-										{f.avatar?.includes('/') ? <img src={f.avatar} alt="avatar" className="w-10 h-10 rounded-full"/> : <span>{f.avatar || '👤'}</span>}
-									</div>
-									<div className="min-w-0">
-										<div className="text-slate-100 font-bold truncate">{f.name || 'Jugador'}</div>
-										<div className="text-slate-400 text-xs">Nivel {f.level} • {f.xp} XP</div>
+						<div className="space-y-4">
+							{/* Quick Stats */}
+							<div className="grid grid-cols-2 gap-4">
+								<div className="text-center p-3 bg-slate-700/40 rounded-lg">
+									<p className="text-2xl font-bold text-blue-400">{friends.length}</p>
+									<p className="text-sm text-slate-400">Amigos</p>
+								</div>
+								<div className="text-center p-3 bg-slate-700/40 rounded-lg">
+									<p className="text-2xl font-bold text-orange-400">{friendReqs.length}</p>
+									<p className="text-sm text-slate-400">Solicitudes</p>
+								</div>
+							</div>
+							
+							{/* Recent Friends Preview */}
+							{friends.length > 0 && (
+								<div>
+									<p className="text-sm font-bold text-slate-300 mb-2">Amigos recientes:</p>
+									<div className="flex gap-2 flex-wrap">
+										{friends.slice(0, 6).map(f => (
+											<div key={f.id} className="flex items-center gap-2 bg-slate-700/40 rounded-lg p-2 text-sm">
+												<div className="w-8 h-8 rounded-full bg-slate-700 flex items-center justify-center text-lg">
+													{f.avatar?.includes('/') ? 
+														<img src={f.avatar} alt="avatar" className="w-8 h-8 rounded-full"/> : 
+														<span>{f.avatar || '👤'}</span>
+													}
+												</div>
+												<span className="text-slate-200 font-bold">{f.name}</span>
+											</div>
+										))}
+										{friends.length > 6 && (
+											<div className="flex items-center justify-center w-8 h-8 rounded-full bg-slate-600 text-slate-300 text-sm font-bold">
+												+{friends.length - 6}
+											</div>
+										)}
 									</div>
 								</div>
-							))}
+							)}
+							
+							{/* Action Button */}
+							<button 
+								onClick={() => setShowFriendsView(true)}
+								className="w-full py-3 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white font-bold rounded-lg transition-all duration-300 transform hover:scale-105"
+							>
+								Abrir Centro de Amigos
+							</button>
 						</div>
 					)}
 				</div>
