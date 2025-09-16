@@ -13,7 +13,8 @@ import {
     signInWithEmailAndPassword,
     onAuthStateChanged,
     sendEmailVerification,
-    sendPasswordResetEmail
+    sendPasswordResetEmail,
+    fetchSignInMethodsForEmail
 } from 'firebase/auth';
 import type { Firestore } from 'firebase/firestore';
 import { initializeFirestore, getFirestore, doc as fbDoc, getDoc as fbGetDoc, setDoc as fbSetDoc, onSnapshot as fbOnSnapshot } from 'firebase/firestore';
@@ -70,24 +71,44 @@ const { hasAll: hasFirebaseConfig, config: firebaseConfig } = readFirebaseEnv();
 try {
     const cfgToUse = hasFirebaseConfig ? (firebaseConfig as any) : (FALLBACK_FIREBASE_CONFIG as any);
     firebaseApp = initializeApp(cfgToUse);
-    // Inicializar Firestore con long-polling para evitar problemas de canal Web (400)
+    
+    // Inicializar Firestore con configuración optimizada
     try {
-        dbInstance = initializeFirestore(firebaseApp, {
-            experimentalForceLongPolling: true,
-            experimentalAutoDetectLongPolling: true,
-        });
-    } catch {
-        // Si ya está inicializado, obtener la instancia por defecto
         dbInstance = getFirestore(firebaseApp);
+        console.log('🔥 Firebase y Firestore inicializados correctamente');
+    } catch (error) {
+        console.warn('Error inicializando Firestore:', error);
+        // Intentar con initializeFirestore si getFirestore falla
+        try {
+            dbInstance = initializeFirestore(firebaseApp, {
+                experimentalForceLongPolling: false,
+            });
+            console.log('🔥 Firestore inicializado con configuración personalizada');
+        } catch (fallbackError) {
+            console.error('Error con configuración personalizada de Firestore:', fallbackError);
+            dbInstance = null;
+        }
     }
+    
     provider = new GoogleAuthProvider();
-    provider.setCustomParameters({ prompt: 'select_account' });
-} catch {
+    provider.setCustomParameters({ 
+        prompt: 'select_account'
+    });
+    
+} catch (initError) {
+    console.error('Error inicializando Firebase:', initError);
     firebaseApp = null;
     provider = null;
+    dbInstance = null;
 }
 
 export const getDb = (): Firestore | null => dbInstance;
+
+// Función para limpiar datos de error (para debugging)
+export const clearErrorState = () => {
+    localStorage.removeItem('firestoreErrorCount');
+    console.log('✅ Estado de errores limpiado');
+};
 
 export const subscribeAuth = (cb: (user: AuthUser | null) => void) => {
     if (!firebaseApp) return () => {};
@@ -154,6 +175,20 @@ export const mockFirebase: MockFirebase = {
         signUpWithEmail: async (email, password) => {
             if (firebaseApp) {
                 const auth = getAuth(firebaseApp);
+                
+                // Verificar si ya existe una cuenta con este email
+                try {
+                    const signInMethods = await fetchSignInMethodsForEmail(auth, email);
+                    if (signInMethods && signInMethods.length > 0) {
+                        throw { code: 'auth/email-already-in-use' } as any;
+                    }
+                } catch (error: any) {
+                    if (error.code === 'auth/email-already-in-use') {
+                        throw error;
+                    }
+                    // Si hay otro error en la verificación, continuar con el proceso normal
+                }
+                
                 const result = await createUserWithEmailAndPassword(auth, email, password);
                 try { await sendEmailVerification(result.user); } catch {}
                 try { await firebaseSignOut(auth); } catch {}
@@ -192,66 +227,124 @@ export const mockFirebase: MockFirebase = {
     },
     db: {
         getDoc: async (userId: string) => {
+            const localKey = `userData_${userId}`;
+            
+            // Siempre usar datos locales como base
+            let localData: UserData | null = null;
+            try {
+                const localDataStr = localStorage.getItem(localKey);
+                if (localDataStr) {
+                    localData = JSON.parse(localDataStr);
+                }
+            } catch (e) {
+                console.warn('Error obteniendo datos locales:', e);
+            }
+            
+            // Intentar obtener de Firestore solo si no hay datos locales o para sincronización
+            let cloudData: UserData | null = null;
             try {
                 const db = getDb();
                 if (db) {
+                    // Usar getDoc simple sin listeners para evitar errores de estado
                     const ref = fbDoc(db, 'userData', userId);
                     const snap = await fbGetDoc(ref);
-                    return {
-                        exists: () => snap.exists(),
-                        data: () => (snap.exists() ? (snap.data() as UserData) : null),
-                    };
+                    if (snap.exists()) {
+                        cloudData = snap.data() as UserData;
+                        
+                        // Guardar datos de la nube en local automáticamente
+                        try {
+                            localStorage.setItem(localKey, JSON.stringify(cloudData));
+                        } catch {}
+                    }
                 }
-            } catch {
-                // fallback abajo
+            } catch (e) {
+                console.warn('No se pudieron obtener datos de Firestore:', e);
+                // Continuar con datos locales
             }
-            const data = localStorage.getItem(`userData_${userId}`);
+            
+            // Priorizar datos con más progreso
+            let finalData: UserData | null = null;
+            if (cloudData && localData) {
+                const cloudXP = cloudData.xp || 0;
+                const localXP = localData.xp || 0;
+                finalData = cloudXP >= localXP ? cloudData : localData;
+            } else {
+                finalData = cloudData || localData;
+            }
+            
             return {
-                exists: () => data !== null,
-                data: () => (data ? JSON.parse(data) : null),
+                exists: () => finalData !== null,
+                data: () => finalData,
             };
         },
         setDoc: async (userId: string, data: UserData) => {
+            // Siempre guardar en localStorage como respaldo
+            const localKey = `userData_${userId}`;
+            try {
+                localStorage.setItem(localKey, JSON.stringify(data));
+            } catch (e) {
+                console.warn('No se pudo guardar en localStorage:', e);
+            }
+
+            // Intentar guardar en Firestore
             try {
                 const db = getDb();
                 if (db) {
+                    // Usar merge: true para no sobrescribir completamente, solo actualizar campos
                     await fbSetDoc(fbDoc(db, 'userData', userId), data, { merge: true });
+                    
+                    // Marcar timestamp de última actualización
+                    await fbSetDoc(fbDoc(db, 'userData', userId), { 
+                        lastUpdated: new Date().toISOString(),
+                        syncedFromDevice: true 
+                    }, { merge: true });
                     return;
                 }
-            } catch {
-                // fallback abajo
+            } catch (e) {
+                console.warn('No se pudo guardar en Firestore:', e);
+                // El localStorage ya tiene los datos como respaldo
             }
-            localStorage.setItem(`userData_${userId}`, JSON.stringify(data));
         }
     }
 };
 
 export const subscribeUserData = (userId: string, cb: (data: UserData | null) => void): (() => void) => {
-    try {
-        const db = getDb();
-        if (db) {
-            const ref = fbDoc(db, 'userData', userId);
-            const unsub = fbOnSnapshot(ref, (snap) => {
-                if (snap.exists()) cb(snap.data() as UserData);
-                else cb(null);
-            }, () => {});
-            return unsub;
-        }
-    } catch {
-        // fallback abajo
-    }
-    // Fallback: escuchar cambios de localStorage entre pestañas/ventanas
     const key = `userData_${userId}`;
+    
+    // Usar solo localStorage para evitar errores de listeners de Firestore
+    // La sincronización con Firestore se hace en getDoc y setDoc
+    
     const handler = (e: StorageEvent) => {
         if (e.key === key) {
-            try { cb(e.newValue ? JSON.parse(e.newValue) : null); } catch { cb(null); }
+            try { 
+                cb(e.newValue ? JSON.parse(e.newValue) : null); 
+            } catch (parseError) { 
+                console.warn('Error parseando datos de localStorage:', parseError);
+                cb(null); 
+            }
         }
     };
-    try { window.addEventListener('storage', handler); } catch {}
-    // Emitir valor inicial del fallback
+    
+    try { 
+        window.addEventListener('storage', handler); 
+    } catch (storageError) {
+        console.warn('Error configurando listener de storage:', storageError);
+    }
+    
+    // Emitir valor inicial
     try {
         const raw = localStorage.getItem(key);
         cb(raw ? JSON.parse(raw) : null);
-    } catch { cb(null); }
-    return () => { try { window.removeEventListener('storage', handler); } catch {} };
+    } catch (initialError) { 
+        console.warn('Error obteniendo valor inicial de localStorage:', initialError);
+        cb(null); 
+    }
+    
+    return () => { 
+        try { 
+            window.removeEventListener('storage', handler); 
+        } catch (cleanupError) {
+            console.warn('Error limpiando listener de storage:', cleanupError);
+        }
+    };
 };

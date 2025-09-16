@@ -48,6 +48,7 @@ import { AnimationProvider } from './components/AnimationProvider';
 import { upsertUser, setUserActive } from './services/firestore';
 import { getIncomingFriendRequests } from './services/firestore';
 import LeaderboardScreen from './components/screens/LeaderboardScreen';
+import ErrorBoundary from './components/ErrorBoundary';
 
 
 type ModalType = 'dailyBonus' | 'mysteryBox' | 'settings' | 'noLives';
@@ -198,27 +199,20 @@ const App: React.FC = () => {
         masterNotes: [],
         userNotes: [],
         perfectStreak: 0,
+        lastUpdated: new Date().toISOString(),
+        syncedFromDevice: false,
+        migratedFromLocal: false,
     };
     
     // --- Data Persistence & Initial Load ---
-    const saveData = useCallback(async (dataToSave: UserData) => {
-        if (!auth) return;
-        setIsSaving(true);
-        await mockFirebase.db.setDoc(auth.uid, dataToSave);
-        setTimeout(() => setIsSaving(false), 500);
-    }, [auth]);
 
-    useEffect(() => {
-        if (hasInitialDataLoaded.current && userData && !applyingRemoteRef.current) {
-            saveData(userData);
-        }
-    }, [userData, saveData]);
 
     useEffect(() => {
         if (userData && !hasInitialDataLoaded.current) {
             hasInitialDataLoaded.current = true;
         }
     }, [userData]);
+    
     
     const handleCloseBonusModal = useCallback(() => {
         setActiveModal(null);
@@ -239,6 +233,44 @@ const App: React.FC = () => {
             setIsUiLocked(false);
         }, 3000);
     }, []);
+    
+    const saveData = useCallback(async (dataToSave: UserData) => {
+        if (!auth) return;
+        setIsSaving(true);
+        try {
+            // Agregar timestamp de actualización
+            const dataWithTimestamp = {
+                ...dataToSave,
+                lastUpdated: new Date().toISOString(),
+                syncedFromDevice: true
+            };
+            await mockFirebase.db.setDoc(auth.uid, dataWithTimestamp);
+        } catch (error) {
+            console.error('Error al guardar datos:', error);
+            showToast('Error al guardar progreso. Reintentando...', 'error');
+        } finally {
+            setTimeout(() => setIsSaving(false), 500);
+        }
+    }, [auth, showToast]);
+    
+    useEffect(() => {
+        if (hasInitialDataLoaded.current && userData && !applyingRemoteRef.current) {
+            saveData(userData);
+        }
+    }, [userData, saveData]);
+    
+    // Guardado automático periódico como respaldo adicional
+    useEffect(() => {
+        if (!userData || !auth) return;
+        
+        const autoSaveInterval = setInterval(() => {
+            if (userData && !applyingRemoteRef.current) {
+                saveData(userData);
+            }
+        }, 60000); // Guardar cada minuto
+        
+        return () => clearInterval(autoSaveInterval);
+    }, [userData, auth, saveData]);
     
     const handleNavigate = useCallback((newView: View) => {
         viewHistory.current.push(newView);
@@ -312,6 +344,15 @@ const App: React.FC = () => {
 
         const loadAppData = async () => {
             const startTime = Date.now();
+            
+            // Timeout para evitar que se quede atascado en la carga
+            const loadingTimeout = setTimeout(() => {
+                console.warn('⏰ Timeout de carga alcanzado - usando datos por defecto');
+                setUserData(defaultUserData);
+                setIsLoading(false);
+                showToast('Cargando en modo offline', 'success');
+            }, 10000); // 10 segundos de timeout
+            
             try {
                 const criticalImages = [
                     '/images/Emoji hueso png.png',
@@ -323,11 +364,22 @@ const App: React.FC = () => {
                     '/images/huesitos.png'
                 ];
                 
-                const docPromise = mockFirebase.db.getDoc(auth.uid);
+                // Agregar timeout a la promesa de datos
+                const docPromise = Promise.race([
+                    mockFirebase.db.getDoc(auth.uid),
+                    new Promise((_, reject) => 
+                        setTimeout(() => reject(new Error('Timeout obteniendo datos de usuario')), 8000)
+                    )
+                ]);
+                
                 const preloadPromise = preloadImages(criticalImages);
 
-                const [doc] = await Promise.all([docPromise, preloadPromise]);
+                const [docResult] = await Promise.all([docPromise, preloadPromise]);
+                
+                // Limpiar timeout si llegamos hasta aquí
+                clearTimeout(loadingTimeout);
 
+                const doc = docResult as { exists: () => boolean; data: () => UserData | null };
                 let loadedData: UserData = doc.exists() && doc.data() ? doc.data()! : defaultUserData;
                 
                 loadedData = { ...defaultUserData, ...loadedData };
@@ -369,9 +421,44 @@ const App: React.FC = () => {
                 }
 
                 setUserData(loadedData);
-            } catch (error) {
+                
+                // Sincronizar perfil público del usuario en Firestore
+                try {
+                    await upsertUser(auth.uid, {
+                        id: auth.uid,
+                        name: loadedData.name,
+                        avatar: loadedData.avatar,
+                        xp: loadedData.xp,
+                        level: loadedData.level,
+                        totalQuizzesCompleted: loadedData.totalQuizzesCompleted,
+                        totalCorrectAnswers: loadedData.totalCorrectAnswers,
+                        totalQuestionsAnswered: loadedData.totalQuestionsAnswered,
+                        unlockedAchievements: loadedData.unlockedAchievements
+                    });
+                } catch (error) {
+                    console.warn('No se pudo sincronizar perfil público:', error);
+                }
+            } catch (error: any) {
+                clearTimeout(loadingTimeout);
                 console.error("Failed to load app data:", error);
-                showToast("No se pudieron cargar los datos del usuario.", "error");
+                
+                // Detectar errores críticos de Firestore
+                const errorMessage = error?.message || error?.toString() || '';
+                const isCriticalFirestoreError = [
+                    'FIRESTORE (12.2.0) INTERNAL ASSERTION FAILED',
+                    'Unexpected state (ID: b815)',
+                    'Unexpected state (ID: ca9)',
+                    'Timeout obteniendo datos de usuario'
+                ].some(pattern => errorMessage.includes(pattern));
+                
+                if (isCriticalFirestoreError) {
+                    console.warn('🚨 Error crítico detectado - cargando en modo offline');
+                    setUserData(defaultUserData);
+                    showToast('Cargando en modo offline debido a errores de conectividad', 'success');
+                } else {
+                    setUserData(defaultUserData);
+                    showToast("Cargando datos por defecto", "success");
+                }
             } finally {
                 const elapsedTime = Date.now() - startTime;
                 const remainingTime = 5000 - elapsedTime;
@@ -396,18 +483,43 @@ const App: React.FC = () => {
     useEffect(() => {
         if (!auth?.uid) return;
         const unsubscribe = subscribeUserData(auth.uid, (remote) => {
-            if (!remote) return;
+            if (!remote || !hasInitialDataLoaded.current || applyingRemoteRef.current) return;
+            
             let loadedData: UserData = { ...defaultUserData, ...remote };
             loadedData.lifelineData = { ...defaultUserData.lifelineData, ...(remote as any).lifelineData };
             if (!loadedData.unlockedAchievements || Array.isArray(loadedData.unlockedAchievements)) {
                 loadedData.unlockedAchievements = defaultUserData.unlockedAchievements;
             }
+            
+            // Comparar datos remotos con locales para sincronización inteligente
+            if (userData && loadedData) {
+                const remoteLastUpdated = loadedData.lastUpdated ? new Date(loadedData.lastUpdated).getTime() : 0;
+                const localLastUpdated = userData.lastUpdated ? new Date(userData.lastUpdated).getTime() : 0;
+                
+                // Solo actualizar si los datos remotos son más recientes
+                if (remoteLastUpdated <= localLastUpdated) {
+                    return;
+                }
+                
+                // Verificar si hay conflictos significativos en el progreso
+                const remoteProgress = loadedData.xp || 0;
+                const localProgress = userData.xp || 0;
+                
+                if (localProgress > remoteProgress && (localLastUpdated > remoteLastUpdated - 10000)) {
+                    // Los datos locales tienen más progreso y son recientes, no sobrescribir
+                    console.log('Datos locales tienen más progreso, manteniendo locales');
+                    return;
+                }
+                
+                showToast('Progreso sincronizado desde otro dispositivo', 'success');
+            }
+            
             applyingRemoteRef.current = true;
             setUserData(loadedData);
             setTimeout(() => { applyingRemoteRef.current = false; }, 0);
         });
         return unsubscribe;
-    }, [auth?.uid]);
+    }, [auth?.uid, userData, showToast]);
 
     // Cargar conteo de solicitudes de amistad periódicamente
     useEffect(() => {
@@ -1749,9 +1861,10 @@ const App: React.FC = () => {
     const isHomeView = view === 'home';
 
     return (
-        <OrientationLock>
-            <div className="relative min-h-screen w-full overflow-x-hidden text-[#3A3A3A] flex flex-col">
-            <Background />
+        <ErrorBoundary>
+            <OrientationLock>
+                <div className="relative min-h-screen w-full overflow-x-hidden text-[#3A3A3A] flex flex-col">
+                <Background />
             {!isFullScreenView && (
                 <header className="sticky top-0 left-0 right-0 z-40 flex-shrink-0">
                     <StatusBar
@@ -1828,8 +1941,10 @@ const App: React.FC = () => {
                     onOpenSettings={() => setActiveModal(prev => prev === 'settings' ? null : 'settings')}
                 />
             )}
+            
         </div>
-        </OrientationLock>
+            </OrientationLock>
+        </ErrorBoundary>
     );
 }
 

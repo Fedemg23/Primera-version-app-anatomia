@@ -124,6 +124,9 @@ export interface UserData {
   perfectStreak?: number;
   age?: number;
   occupation?: string;
+  lastUpdated?: string;
+  syncedFromDevice?: boolean;
+  migratedFromLocal?: boolean;
 }
 
 // TIPOS GENÉRICOS Y DE LA APP

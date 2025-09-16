@@ -80,8 +80,18 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ onSignIn }) => {
                 try { await mockFirebase.auth.resendVerification(email, password); } catch {}
             } else if (code === 'auth/email-verification-sent') {
                 setInfo('Te enviamos un correo de verificación. Revisa tu bandeja.');
+            } else if (code === 'auth/email-already-in-use') {
+                setError('Ya existe una cuenta con este email. Por favor, inicia sesión en lugar de crear una cuenta nueva.');
+            } else if (code === 'auth/weak-password') {
+                setError('La contraseña debe tener al menos 6 caracteres.');
+            } else if (code === 'auth/invalid-email') {
+                setError('El formato del email no es válido.');
+            } else if (code === 'auth/user-not-found') {
+                setError('No existe una cuenta con este email.');
+            } else if (code === 'auth/wrong-password') {
+                setError('Contraseña incorrecta.');
             } else {
-                setError('No se pudo iniciar sesión. Revisa tus datos.');
+                setError('No se pudo completar la operación. Revisa tus datos.');
             }
         } finally {
             setIsSigningIn(false);

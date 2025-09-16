@@ -43,7 +43,7 @@ const Background: React.FC = () => {
       
       
       {/* CSS para las animaciones */}
-      <style jsx>{`
+      <style>{`
         @keyframes breathe {
           0%, 100% { opacity: 0.7; transform: scale(1) translateX(0px); }
           50% { opacity: 1; transform: scale(1.08) translateX(5px); }
@@ -55,8 +55,6 @@ const Background: React.FC = () => {
           50% { transform: translateX(-12px) translateY(18px) scale(1.05); }
           75% { transform: translateX(10px) translateY(-8px) scale(1.04); }
         }
-        
-        
       `}</style>
     </div>
   );
