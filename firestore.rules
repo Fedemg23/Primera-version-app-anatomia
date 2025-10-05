@@ -1,0 +1,98 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Función auxiliar para verificar autenticación
+    function isSignedIn() {
+      return request.auth != null;
+    }
+    
+    // Función para verificar propiedad del documento
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+    
+    // Datos privados de usuario (userData)
+    match /userData/{userId} {
+      // Los usuarios pueden leer y escribir solo sus propios datos
+      allow read, write: if isOwner(userId);
+    }
+    
+    // Perfiles públicos (users) - para leaderboard
+    match /users/{userId} {
+      // Cualquiera puede leer perfiles públicos
+      allow read: if true;
+      // Solo el propietario puede actualizar su perfil público
+      allow write: if isOwner(userId);
+    }
+    
+    // Solicitudes de amistad (friendRequests)
+    match /friendRequests/{requestId} {
+      // Permitir leer si eres el remitente o destinatario
+      allow read: if isSignedIn() && 
+        (resource.data.fromUid == request.auth.uid || 
+         resource.data.toUid == request.auth.uid);
+      
+      // Permitir crear si eres el remitente
+      allow create: if isSignedIn() && 
+        request.resource.data.fromUid == request.auth.uid;
+      
+      // Permitir actualizar si eres el destinatario (para aceptar/rechazar)
+      allow update: if isSignedIn() && 
+        resource.data.toUid == request.auth.uid;
+    }
+    
+    // Links de amistad (friends)
+    match /friends/{friendId} {
+      // Permitir leer si eres uno de los amigos
+      allow read: if isSignedIn() && 
+        (resource.data.userA == request.auth.uid || 
+         resource.data.userB == request.auth.uid);
+      
+      // Solo permitir crear desde funciones del servidor o si eres uno de los usuarios
+      allow create: if isSignedIn() && 
+        (request.resource.data.userA == request.auth.uid || 
+         request.resource.data.userB == request.auth.uid);
+    }
+    
+    // Regalos de amigos (friendGifts)
+    match /friendGifts/{giftId} {
+      // Permitir leer si eres el remitente o destinatario
+      allow read: if isSignedIn() && 
+        (resource.data.fromUid == request.auth.uid || 
+         resource.data.toUid == request.auth.uid);
+      
+      // Permitir crear si eres el remitente
+      allow create: if isSignedIn() && 
+        request.resource.data.fromUid == request.auth.uid;
+      
+      // Permitir actualizar si eres el destinatario (para reclamar)
+      allow update: if isSignedIn() && 
+        resource.data.toUid == request.auth.uid;
+    }
+    
+    // Desafíos de amigos (friendChallenges)
+    match /friendChallenges/{challengeId} {
+      // Permitir leer si eres el remitente o destinatario
+      allow read: if isSignedIn() && 
+        (resource.data.fromUid == request.auth.uid || 
+         resource.data.toUid == request.auth.uid);
+      
+      // Permitir crear si eres el remitente
+      allow create: if isSignedIn() && 
+        request.resource.data.fromUid == request.auth.uid;
+      
+      // Permitir actualizar si eres uno de los participantes
+      allow update: if isSignedIn() && 
+        (resource.data.fromUid == request.auth.uid || 
+         resource.data.toUid == request.auth.uid);
+    }
+    
+    // Denegar acceso a cualquier otra colección por defecto
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
+
+

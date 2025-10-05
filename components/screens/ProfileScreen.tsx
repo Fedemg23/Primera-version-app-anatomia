@@ -9,6 +9,7 @@ import type { PublicUser, FriendRequest } from '../../services/firestore';
 import { AVATAR_DATA } from '../../constants';
 import { iconMap, CheckSquare, Target, Lock, CheckCircle, Edit, XCircle, LogOut, Star, Users, UserPlus } from '../icons';
 import FriendsScreen from './FriendsScreen';
+import Atlas from '../Atlas';
 
 const StatCard: React.FC<{ icon: React.ReactNode; label: string; value: string | number; colorClass: string; }> = memo(({ icon, label, value, colorClass }) => (
 	<div className="bg-slate-800/40 backdrop-blur-sm p-4 rounded-xl flex items-center space-x-4 border border-slate-700/50">
@@ -127,13 +128,24 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ userData, onAvatarChange,
 	}
 
 	return (
-		<div className="h-full overflow-y-auto p-4 md:p-6 pb-24">
+		<div className="h-full overflow-y-auto p-4 md:p-6 pb-24 pt-0">
 			<div className="space-y-6">
+				{/* Atlas saluda en el perfil */}
+				<div className="flex justify-center">
+					<Atlas 
+						size="small" 
+						expression="happy"
+						message={`¡Hola ${userData.name}! Soy Atlas (C1), tu guía en Anatomy Go. ¿Listo para seguir aprendiendo? 📚`}
+						showMessage={false}
+						userData={userData}
+					/>
+				</div>
+
 				{/* Profile Header Card */}
 				<div className="bg-slate-800/40 backdrop-blur-sm p-6 rounded-2xl shadow-md border border-slate-700/50 flex flex-col sm:flex-row items-center space-y-4 sm:space-y-0 sm:space-x-6">
 					<div className="relative">
 						<div className="w-32 h-32 rounded-full flex items-center justify-center bg-slate-700 ring-4 ring-slate-800/50 shadow-inner overflow-hidden">
-							{typeof userData.avatar === 'string' && /(png|webp|jpg|jpeg|svg)$/i.test(userData.avatar) ? (
+							{typeof userData.avatar === 'string' && userData.avatar.includes('/') ? (
 								<img src={userData.avatar} alt="Avatar" className="w-28 h-28 object-contain" />
 							) : (
 								<span className="text-7xl">{userData.avatar}</span>
@@ -207,7 +219,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ userData, onAvatarChange,
 								>
 									{isSelected && <div className="absolute -inset-px rounded-xl bg-blue-500/30 blur-md -z-10"></div>}
 									<div className="relative w-16 h-16 mx-auto flex items-center justify-center overflow-hidden rounded-md bg-slate-800/30">
-										{typeof avatar.emoji === 'string' && /(png|webp|jpg|jpeg|svg)$/i.test(avatar.emoji) ? (
+										{typeof avatar.emoji === 'string' && avatar.emoji.includes('/') ? (
 											<img src={avatar.emoji} alt={avatar.name} className={`w-full h-full object-contain ${unlocked ? '' : 'filter grayscale opacity-60'}`} />
 										) : (
 											<span className={`text-4xl transition-all duration-300 ${unlocked ? '' : 'filter grayscale opacity-60'}`}>{avatar.emoji}</span>
@@ -287,9 +299,9 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ userData, onAvatarChange,
 									<div className="flex gap-2 flex-wrap">
 										{friends.slice(0, 6).map(f => (
 											<div key={f.id} className="flex items-center gap-2 bg-slate-700/40 rounded-lg p-2 text-sm">
-												<div className="w-8 h-8 rounded-full bg-slate-700 flex items-center justify-center text-lg">
+												<div className="w-8 h-8 rounded-full bg-slate-700 flex items-center justify-center text-lg overflow-hidden">
 													{f.avatar?.includes('/') ? 
-														<img src={f.avatar} alt="avatar" className="w-8 h-8 rounded-full"/> : 
+														<img src={f.avatar} alt="avatar" className="w-8 h-8 object-contain"/> : 
 														<span>{f.avatar || '👤'}</span>
 													}
 												</div>

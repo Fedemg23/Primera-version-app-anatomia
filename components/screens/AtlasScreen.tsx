@@ -5,6 +5,7 @@ import { UserData } from '../../types';
 import { navigationData } from '../../constants';
 import HumanBody from '../HumanBody';
 import { Body, BookOpen, PlayCircleIcon, QuestionMarkCircle } from '../icons';
+import Atlas from '../Atlas';
 
 interface AtlasScreenProps {
     userData: UserData;
@@ -94,7 +95,7 @@ const AtlasScreen: React.FC<AtlasScreenProps> = ({ userData, onStartQuiz, onNavi
     };
 
     return (
-        <div className="p-4 md:p-6 pt-1 md:pt-2">
+        <div className="p-4 md:p-6 pt-0">
             <div className="text-center mb-6">
                 <div className="flex justify-center items-center gap-4">
                     <h2 className="font-graffiti text-4xl md:text-5xl tracking-wide -rotate-1 title-white-clean inline-block transform scale-105">
@@ -105,7 +106,14 @@ const AtlasScreen: React.FC<AtlasScreenProps> = ({ userData, onStartQuiz, onNavi
                     </button>
                 </div>
             </div>
-            <p className="text-slate-400 mb-6 text-center max-w-xl mx-auto">Selecciona una región en el modelo para explorarla, ver tu progreso y empezar un quiz.</p>
+            <div className="flex items-center justify-center gap-4 mb-4">
+                <Atlas 
+                    userData={userData}
+                    expression="happy"
+                    size="small"
+                />
+                <p className="text-slate-400 text-center max-w-xl">Selecciona una región en el modelo para explorarla, ver tu progreso y empezar un quiz.</p>
+            </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-start">
                 <div className={`md:col-span-2 bg-slate-800/30 backdrop-blur-sm p-4 rounded-2xl shadow-md border border-slate-700/50 ${!isReadyForInput ? 'pointer-events-none opacity-60' : ''}`}>

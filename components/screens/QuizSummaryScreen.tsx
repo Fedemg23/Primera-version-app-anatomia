@@ -3,6 +3,7 @@ import { Trophy, StarFilled, CheckCircle, XCircle, iconMap } from '../icons';
 import { QuizSummaryScreenProps, QuestionData } from '../../types';
 import { useAudio } from '../../src/contexts/AudioProvider';
 import { questionBank } from '../../constants';
+import Atlas from '../Atlas';
 
 const QuizSummaryScreen: React.FC<QuizSummaryScreenProps> = ({ earnedXp, earnedBones, isPerfect, onContinue, wasChallenge, mistakes, questionIds, answers, onReviewMistakes, leveledUpItems, onViewLeveledUp }) => {
 	const { playSound } = useAudio();
@@ -133,6 +134,15 @@ const QuizSummaryScreen: React.FC<QuizSummaryScreenProps> = ({ earnedXp, earnedB
 		</>
 	);
 
+	// Mensajes de Atlas según el resultado
+	const getAtlasMessage = () => {
+		if (isPerfect) return "¡Increíble! Como yo, que sostengo el cráneo, tú sostienes el conocimiento. 🎓";
+		if (scorePercentage >= 80) return "¡Excelente trabajo! Cada respuesta correcta fortalece tu base de conocimiento. 💪";
+		if (scorePercentage >= 60) return "Buen intento. Recuerda: yo soy la primera vértebra, ¡y tú estás dando tus primeros pasos! 🚀";
+		if (scorePercentage >= 40) return "No te desanimes. Incluso yo necesito el apoyo del axis. ¡Sigue practicando! 💙";
+		return "Cada error es una oportunidad de aprender. ¡Vuelve a intentarlo, yo creo en ti! 💡";
+	};
+
 	return (
 		<div className="fixed inset-0 z-[9999] flex items-center justify-center animate-fade-in bg-black/60">
 			<div className={`relative w-full h-full max-w-none p-6 md:p-10 text-center flex flex-col items-center justify-center bg-transparent`}>
@@ -145,6 +155,16 @@ const QuizSummaryScreen: React.FC<QuizSummaryScreenProps> = ({ earnedXp, earnedB
 						{subtitle && <p className={`${subTextColor} text-lg mb-4`}>{subtitle}</p>}
 					</>
 				)}
+				
+				{/* Atlas aparece con mensaje motivacional */}
+				<div className="my-4">
+					<Atlas 
+						size="medium" 
+						expression={isPerfect ? 'celebrating' : scorePercentage >= 60 ? 'happy' : 'encouraging'}
+						message={getAtlasMessage()}
+						showMessage={true}
+					/>
+				</div>
 				{wasChallenge && !isPerfect && (
 					<p className="text-slate-300 text-lg mb-6">Perdiste tus 50 <Bones className="w-5 h-5 inline-block align-[-2px]" />. ¡Más suerte la próxima vez!</p>
 				)}

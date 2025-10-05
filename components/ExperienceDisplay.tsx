@@ -23,50 +23,50 @@ const ExperienceDisplay: React.FC<ExperienceDisplayProps> = memo(({
   return (
     <button 
       onClick={onClick}
-      className={`group relative bg-slate-800/60 backdrop-blur-md border border-slate-700/50 rounded-2xl p-4 transition-all duration-300 hover:bg-slate-700/60 hover:border-slate-600/50 hover:shadow-lg hover:shadow-slate-900/25 active:scale-95 active:bg-slate-700/80 touch-manipulation ${className}`}
+      className={`group relative bg-gradient-to-br from-slate-800/80 to-slate-900/80 backdrop-blur-md border-2 border-slate-600/50 rounded-2xl p-5 transition-all duration-300 hover:bg-gradient-to-br hover:from-slate-700/80 hover:to-slate-800/80 hover:border-purple-500/50 hover:shadow-2xl hover:shadow-purple-900/30 active:scale-[0.98] active:bg-slate-700/80 touch-manipulation ${className}`}
       title={`XP ${Math.max(0, Math.floor(currentXp))}/${Math.max(0, Math.floor(xpForNextLevel))}${xpForNextLevel > 0 ? ` · Faltan ${neededXp}` : ''}`}
     >
       {/* Header */}
-      <div className="flex items-center justify-between mb-3">
-        <div className="flex items-center gap-2">
-          <div className="w-6 h-6 bg-gradient-to-r from-purple-500 to-pink-500 rounded-lg flex items-center justify-center">
-            <span className="text-white text-xs font-black">XP</span>
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 bg-gradient-to-br from-purple-500 via-pink-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg shadow-purple-500/30">
+            <span className="text-white text-sm font-black">XP</span>
           </div>
-          <span className="text-slate-300 text-sm font-semibold">Experiencia</span>
+          <span className="text-white text-base md:text-lg font-bold">Experiencia</span>
         </div>
         <div 
           key={levelUpAnimationKey}
-          className="bg-gradient-to-r from-blue-500 to-cyan-500 text-white font-black text-xs px-2 py-1 rounded-full shadow-md animate-level-up-pop"
+          className="bg-gradient-to-r from-blue-500 to-cyan-500 text-white font-black text-sm md:text-base px-4 py-2 rounded-full shadow-lg shadow-blue-500/30 animate-level-up-pop"
         >
           Nivel {level}
         </div>
       </div>
 
-      {/* Progress Bar */}
+      {/* Progress Bar - Más grande y prominente */}
       <div className="relative">
-        <div className="w-full bg-slate-700/80 rounded-full h-3 overflow-hidden shadow-inner">
+        <div className="w-full bg-slate-700/80 rounded-full h-5 md:h-6 overflow-hidden shadow-inner border border-slate-600/50">
           <div 
-            className="h-full bg-gradient-to-r from-purple-500 via-pink-500 to-purple-600 rounded-full transition-all duration-700 ease-out relative overflow-hidden"
+            className="h-full bg-gradient-to-r from-purple-500 via-pink-500 to-purple-600 rounded-full transition-all duration-700 ease-out relative overflow-hidden shadow-lg"
             style={{ width: `${xpRatio * 100}%` }}
           >
             {/* Animated shine effect */}
-            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent -skew-x-12 animate-shimmer"></div>
+            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent -skew-x-12 animate-shimmer"></div>
           </div>
         </div>
         
         {/* Progress text */}
-        <div className="flex justify-between items-center mt-2">
-          <span className="text-slate-400 text-xs font-semibold">
+        <div className="flex justify-between items-center mt-3">
+          <span className="text-slate-300 text-sm md:text-base font-bold">
             {Math.max(0, Math.floor(currentXp)).toLocaleString()} XP
           </span>
-          <span className="text-slate-400 text-xs font-semibold">
-            {xpForNextLevel > 0 ? `${neededXp.toLocaleString()} restantes` : 'Máximo'}
+          <span className="text-purple-300 text-sm md:text-base font-bold">
+            {xpForNextLevel > 0 ? `${neededXp.toLocaleString()} restantes` : 'Nivel Máximo'}
           </span>
         </div>
       </div>
 
-      {/* Hover indicator */}
-      <div className="absolute top-2 right-2 w-1.5 h-1.5 bg-slate-500/60 rounded-full transition-all duration-300 group-hover:bg-slate-400 group-hover:scale-125"></div>
+      {/* Hover indicator - Más visible */}
+      <div className="absolute top-3 right-3 w-2 h-2 bg-purple-500/60 rounded-full transition-all duration-300 group-hover:bg-purple-400 group-hover:scale-150 group-hover:shadow-lg group-hover:shadow-purple-400/50"></div>
     </button>
   );
 });

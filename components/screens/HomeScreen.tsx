@@ -4,6 +4,7 @@ import { HomeIconNotes, BookOpen, Target } from '../icons';
 import { useAudio } from '../../src/contexts/AudioProvider';
 import HelpIcon from '../HelpIcon';
 import { HomeScreenProps, View } from '../../types';
+import FloatingAtlas from '../FloatingAtlas';
 
 interface InfoModalProps {onClose: () => void}
 const InfoModal: React.FC<InfoModalProps> = memo(({ onClose }) => (
@@ -70,10 +71,17 @@ const NavItem: React.FC<{
 ));
 
 
+// Función auxiliar para calcular XP por nivel (coincide con LEVEL_REWARDS en constants.ts)
+const getXpForLevel = (level: number): number => {
+    if (level <= 1) return 0;
+    return Math.floor(150 * Math.pow(level - 1, 1.35));
+};
+
 const HomeScreen: React.FC<HomeScreenProps> = ({ onSelectMode, userData, onNavigate, notifications }) => {
     const { playSound } = useAudio();
     const [isInfoModalVisible, setIsInfoModalVisible] = useState(false);
     const [isReadyForInput, setIsReadyForInput] = useState(false);
+    const [showAtlas, setShowAtlas] = useState(true);
 
     useEffect(() => {
         const timer = setTimeout(() => setIsReadyForInput(true), 100);
@@ -96,149 +104,111 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onSelectMode, userData, onNavig
     };
 
     return (
-        <div className="relative flex flex-col min-h-[100vh] items-center p-4 pb-24 md:pb-28" style={{ paddingTop: '2rem', paddingBottom: 'calc(6rem + env(safe-area-inset-bottom))' }}>
+        <div className="relative flex flex-col min-h-[100vh] items-center p-4" style={{ paddingTop: '0rem' }}>
             
-            <div className="flex flex-col justify-start w-full max-w-6xl mx-auto min-h-full">
-                {/* Top Group: Title and Mode Buttons */}
-                <div className="flex flex-col items-center gap-4 md:gap-6 w-full mt-0 md:mt-0">
-                    <div className="w-11/12 max-w-[300px] sm:max-w-[440px] md:max-w-[680px] lg:max-w-[760px] ml-auto mr-4 md:mx-auto">
-                        <div className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-5 lg:gap-7 justify-items-end md:justify-items-center">
-                            <button
-                                onClick={() => handleNavigation('challenges')}
-                                disabled={!isReadyForInput}
-                                className={`${modeButtonClasses(!isReadyForInput)} aspect-[4/5] group relative overflow-hidden`}
-                            >
-                                <div className="rounded-2xl bg-gradient-to-br from-slate-800 via-slate-700 to-slate-600 w-full h-full flex flex-col items-center justify-center text-center shadow-2xl shadow-slate-900/50 transition-all duration-300 group-hover:shadow-[0_0_35px_rgba(251,146,60,0.3)] group-hover:scale-105 group-hover:-translate-y-1 group-active:scale-98 group-active:translate-y-0 border border-orange-400/20 group-hover:border-orange-400/40">
-                                    <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                                    <div className="mb-2 md:mb-3 transform transition-transform duration-300 group-hover:scale-110 group-hover:rotate-3 relative z-10">
-                                        <img 
-                                            src="/images/Png Emoji tiro al arco.png" 
-                                            alt="Desafíos" 
-                                            className="w-18 h-18 md:w-24 md:h-24 object-contain drop-shadow-lg"
-                                        />
-                                    </div>
-                                    <div className="h-10 flex flex-col justify-center relative z-10">
-                                        <span className="text-sm md:text-base font-extrabold text-white drop-shadow-md">Desafíos</span>
-                                    </div>
+            <div className="flex flex-col justify-start items-center w-full max-w-4xl mx-auto min-h-full gap-6 pt-4">
+                {/* Título de bienvenida */}
+                <div className="text-center">
+                    <h1 className="text-4xl md:text-5xl font-black text-white drop-shadow-lg mb-2">
+                        ¡Bienvenido a AnatomyGO!
+                    </h1>
+                    <p className="text-lg md:text-xl text-slate-300">
+                        Selecciona un modo de juego para comenzar
+                    </p>
+                </div>
+
+                {/* Barra de Experiencia Delgada */}
+                <div className="w-full max-w-3xl px-4">
+                    <div 
+                        className="relative group cursor-pointer"
+                        onClick={() => onNavigate('level_rewards')}
+                    >
+                        {/* Info superior: Nivel y XP */}
+                        <div className="flex items-center justify-between mb-2">
+                            <div className="flex items-center gap-2">
+                                <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-lg flex items-center justify-center shadow-lg shadow-blue-500/30">
+                                    <span className="text-white text-xs font-black">{userData.level}</span>
                                 </div>
-                                {notifications.challenges && (
-                                    <span className="absolute -top-1 -right-1 block h-4 w-4 rounded-full bg-red-500 ring-2 ring-slate-900 animate-notification-pulse"></span>
-                                )}
-                            </button>
-                            <button
-                                data-tour="home-study-btn"
-                                onClick={() => handleModeSelection('study')}
-                                disabled={!isReadyForInput}
-                                className={`${modeButtonClasses(!isReadyForInput)} aspect-[4/5] group relative overflow-hidden`}
-                            >
-                                <div className="rounded-2xl bg-gradient-to-br from-slate-800 via-slate-700 to-slate-600 w-full h-full flex flex-col items-center justify-center text-center shadow-2xl shadow-slate-900/50 transition-all duration-300 group-hover:shadow-[0_0_35px_rgba(59,130,246,0.3)] group-hover:scale-105 group-hover:-translate-y-1 group-active:scale-98 group-active:translate-y-0 border border-blue-400/20 group-hover:border-blue-400/40">
-                                    <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                                    <div className="mb-2 md:mb-3 transform transition-transform duration-300 group-hover:scale-110 group-hover:-rotate-2 relative z-10">
-                                        <img 
-                                            src="/images/Modo estudio.png" 
-                                            alt="Modo Estudio" 
-                                            className="w-18 h-18 md:w-24 md:h-24 object-contain drop-shadow-lg"
-                                        />
-                                    </div>
-                                    <div className="h-10 flex flex-col justify-center relative z-10">
-                                        <span className="text-sm md:text-base font-extrabold text-white drop-shadow-md leading-tight">
-                                            <span className="block">Modo</span>
-                                            <span className="block">Estudio</span>
-                                        </span>
-                                    </div>
-                                </div>
-                            </button>
-                            <button
-                                onClick={() => handleModeSelection('exam')}
-                                disabled={!isReadyForInput}
-                                className={`${modeButtonClasses(!isReadyForInput)} aspect-[4/5] group relative overflow-hidden`}
-                            >
-                                <div className="rounded-2xl bg-gradient-to-br from-slate-800 via-slate-700 to-slate-600 w-full h-full flex flex-col items-center justify-center text-center shadow-2xl shadow-slate-900/50 transition-all duration-300 group-hover:shadow-[0_0_35px_rgba(147,51,234,0.3)] group-hover:scale-105 group-hover:-translate-y-1 group-active:scale-98 group-active:translate-y-0 border border-purple-400/20 group-hover:border-purple-400/40">
-                                    <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                                    <div className="mb-2 md:mb-3 transform transition-transform duration-300 group-hover:scale-110 group-hover:rotate-1 relative z-10">
-                                        <img 
-                                            src="/images/Modo examen.png" 
-                                            alt="Modo Examen" 
-                                            className="w-18 h-18 md:w-24 md:h-24 object-contain drop-shadow-lg"
-                                        />
-                                    </div>
-                                    <div className="h-10 flex flex-col justify-center relative z-10">
-                                        <span className="text-sm md:text-base font-extrabold text-white drop-shadow-md leading-tight">
-                                            <span className="block">Modo</span>
-                                            <span className="block">Examen</span>
-                                        </span>
-                                    </div>
-                                </div>
-                            </button>
-                            <button
-                                onClick={() => handleNavigation('shop')}
-                                disabled={!isReadyForInput}
-                                className={`${modeButtonClasses(!isReadyForInput)} aspect-[4/5] group relative overflow-hidden`}
-                            >
-                                <div className="rounded-2xl bg-gradient-to-br from-slate-800 via-slate-700 to-slate-600 w-full h-full flex flex-col items-center justify-center text-center shadow-2xl shadow-slate-900/50 transition-all duration-300 group-hover:shadow-[0_0_35px_rgba(16,185,129,0.3)] group-hover:scale-105 group-hover:-translate-y-1 group-active:scale-98 group-active:translate-y-0 border border-emerald-400/20 group-hover:border-emerald-400/40">
-                                    <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                                    <div className="mb-2 md:mb-3 transform transition-transform duration-300 group-hover:scale-110 group-hover:-rotate-3 relative z-10">
-                                        <img 
-                                            src="/images/Tienda.png" 
-                                            alt="Tienda" 
-                                            className="w-18 h-18 md:w-24 md:h-24 object-contain drop-shadow-lg"
-                                        />
-                                    </div>
-                                    <div className="h-10 flex flex-col justify-center relative z-10">
-                                        <span className="text-sm md:text-base font-extrabold text-white drop-shadow-md">Tienda</span>
-                                    </div>
-                                </div>
-                                {notifications.shop && (
-                                    <span className="absolute -top-1 -right-1 block h-4 w-4 rounded-full bg-red-500 ring-2 ring-slate-900 animate-notification-pulse"></span>
-                                )}
-                            </button>
-                            <button
-                                onClick={() => handleNavigation('achievements')}
-                                disabled={!isReadyForInput}
-                                className={`${modeButtonClasses(!isReadyForInput)} aspect-[4/5] group relative overflow-hidden`}
-                            >
-                                <div className="rounded-2xl bg-gradient-to-br from-slate-800 via-slate-700 to-slate-600 w-full h-full flex flex-col items-center justify-center text-center shadow-2xl shadow-slate-900/50 transition-all duration-300 group-hover:shadow-[0_0_35px_rgba(234,179,8,0.3)] group-hover:scale-105 group-hover:-translate-y-1 group-active:scale-98 group-active:translate-y-0 border border-yellow-400/20 group-hover:border-yellow-400/40">
-                                    <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                                    <div className="mb-2 md:mb-3 transform transition-transform duration-300 group-hover:scale-110 group-hover:rotate-2 relative z-10">
-                                        <img 
-                                            src="/images/Logros.png" 
-                                            alt="Logros" 
-                                            className="w-18 h-18 md:w-24 md:h-24 object-contain drop-shadow-lg"
-                                        />
-                                    </div>
-                                    <div className="h-10 flex flex-col justify-center relative z-10">
-                                        <span className="text-sm md:text-base font-extrabold text-white drop-shadow-md">Logros</span>
-                                    </div>
-                                </div>
-                                {notifications.achievements && (
-                                    <span className="absolute -top-1 -right-1 block h-4 w-4 rounded-full bg-red-500 ring-2 ring-slate-900 animate-notification-pulse"></span>
-                                )}
-                            </button>
-                            <button
-                                onClick={() => handleNavigation('leaderboard')}
-                                disabled={!isReadyForInput}
-                                className={`${modeButtonClasses(!isReadyForInput)} aspect-[4/5] group relative overflow-hidden`}
-                            >
-                                <div className="rounded-2xl bg-gradient-to-br from-slate-800 via-slate-700 to-slate-600 w-full h-full flex flex-col items-center justify-center text-center shadow-2xl shadow-slate-900/50 transition-all duration-300 group-hover:shadow-[0_0_35px_rgba(100,116,139,0.3)] group-hover:scale-105 group-hover:-translate-y-1 group-active:scale-98 group-active:translate-y-0 border border-slate-400/20 group-hover:border-slate-400/40">
-                                    <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                                    <div className="mb-2 md:mb-3 transform transition-transform duration-300 group-hover:scale-110 group-hover:-rotate-1 relative z-10">
-                                        <img 
-                                            src="/images/Leaderboard.png" 
-                                            alt="Ranking" 
-                                            className="w-18 h-18 md:w-24 md:h-24 object-contain drop-shadow-lg"
-                                            onError={(e:any)=>{ e.currentTarget.src='/images/Logros.png'; }}
-                                        />
-                                    </div>
-                                    <div className="h-10 flex flex-col justify-center relative z-10">
-                                        <span className="text-sm md:text-base font-extrabold text-white drop-shadow-md">Ranking</span>
-                                    </div>
-                                </div>
-                            </button>
+                                <span className="text-white text-sm font-bold">Nivel {userData.level}</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <span className="text-slate-300 text-xs font-semibold">
+                                    {Math.floor(userData.xp - (userData.level > 1 ? getXpForLevel(userData.level) : 0)).toLocaleString()} / {Math.floor(getXpForLevel(userData.level + 1) - getXpForLevel(userData.level)).toLocaleString()} XP
+                                </span>
+                            </div>
                         </div>
+
+                        {/* Barra de progreso delgada */}
+                        <div className="relative w-full h-3 bg-slate-700/60 rounded-full overflow-hidden border border-slate-600/50 shadow-inner group-hover:border-purple-500/50 transition-all duration-300">
+                            <div 
+                                className="h-full bg-gradient-to-r from-purple-500 via-pink-500 to-purple-600 rounded-full transition-all duration-700 ease-out relative overflow-hidden shadow-lg"
+                                style={{ 
+                                    width: `${Math.min(100, Math.max(0, ((userData.xp - (userData.level > 1 ? getXpForLevel(userData.level) : 0)) / (getXpForLevel(userData.level + 1) - getXpForLevel(userData.level))) * 100))}%` 
+                                }}
+                            >
+                                {/* Efecto de brillo animado */}
+                                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent -skew-x-12 animate-shimmer"></div>
+                            </div>
+                        </div>
+
+                        {/* Indicador de hover */}
+                        <div className="absolute -top-1 -right-1 w-2 h-2 bg-purple-500/60 rounded-full opacity-0 group-hover:opacity-100 transition-all duration-300 group-hover:scale-150 group-hover:shadow-lg group-hover:shadow-purple-400/50"></div>
                     </div>
                 </div>
+
+                {/* Modos de juego principales */}
+                <div className="w-full max-w-2xl grid grid-cols-1 md:grid-cols-2 gap-4 px-4">
+                    <div
+                        data-tour="home-study-btn"
+                        onClick={() => handleModeSelection('study')}
+                        className="relative p-4 rounded-2xl overflow-hidden flex flex-col justify-center items-center text-center h-40 transition-all duration-300 bg-[#121212] ring-4 ring-blue-500/40 hover:ring-blue-500/70 transform hover:-translate-y-1 shadow-lg hover:shadow-blue-500/20 text-white cursor-pointer touch-manipulation"
+                    >
+                        <div className="absolute inset-0 bg-gradient-to-br from-blue-900/30 to-transparent opacity-50 group-hover:opacity-100 transition-opacity"></div>
+                        <img 
+                            src="/images/Modo estudio.png" 
+                            alt="Modo Estudio" 
+                            className="w-20 h-20 object-contain drop-shadow-2xl mb-2"
+                        />
+                        <h3 className="text-xl font-black tracking-tight text-white [text-shadow:0_2px_4px_rgba(0,0,0,0.5)]">
+                            Modo Estudio
+                        </h3>
+                    </div>
+
+                    <div
+                        onClick={() => handleModeSelection('exam')}
+                        className="relative p-4 rounded-2xl overflow-hidden flex flex-col justify-center items-center text-center h-40 transition-all duration-300 bg-[#121212] ring-4 ring-purple-500/40 hover:ring-purple-500/70 transform hover:-translate-y-1 shadow-lg hover:shadow-purple-500/20 text-white cursor-pointer touch-manipulation"
+                    >
+                        <div className="absolute inset-0 bg-gradient-to-br from-purple-900/30 to-transparent opacity-50 group-hover:opacity-100 transition-opacity"></div>
+                        <img 
+                            src="/images/Modo examen.png" 
+                            alt="Modo Examen" 
+                            className="w-20 h-20 object-contain drop-shadow-2xl mb-2"
+                        />
+                        <h3 className="text-xl font-black tracking-tight text-white [text-shadow:0_2px_4px_rgba(0,0,0,0.5)]">
+                            Modo Examen
+                        </h3>
+                    </div>
+                </div>
+
+                {/* Información adicional */}
+                <div className="flex items-center gap-2 text-slate-400 hover:text-slate-200 cursor-pointer transition-colors"
+                     onClick={() => setIsInfoModalVisible(true)}>
+                    <HelpIcon />
+                    <span className="text-sm font-medium">¿Necesitas ayuda? Toca aquí</span>
+                </div>
             </div>
+            
             {isInfoModalVisible && <InfoModal onClose={() => setIsInfoModalVisible(false)} />}
+            
+            {/* Atlas flotante */}
+            {showAtlas && (
+                <FloatingAtlas 
+                    userData={userData}
+                    onClose={() => setShowAtlas(false)}
+                    autoShow={true}
+                    autoHideDelay={10000}
+                />
+            )}
         </div>
     );
 };

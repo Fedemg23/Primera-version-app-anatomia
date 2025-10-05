@@ -19,7 +19,7 @@ interface DailyChallengesProps {
 const DailyChallenges: React.FC<DailyChallengesProps> = ({ dailyStats, onClaimChallenge, claimedChallenges }) => {
 
     return (
-        <div className="p-4 md:p-6">
+        <div className="p-4 md:p-6 pt-0">
             <div className="flex justify-center items-center gap-4 mb-12 text-center">
                 <h2 className="font-graffiti text-4xl md:text-5xl tracking-wide -rotate-1 title-white-clean inline-block transform scale-105">
                     Desafíos Diarios

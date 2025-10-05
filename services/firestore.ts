@@ -77,19 +77,28 @@ export const getTopUsers = async (max = 50): Promise<PublicUser[]> => {
       return [];
     }
     
-    // Trae un lote amplio y filtra por activos para evitar índices compuestos
+    // Trae un lote amplio ordenado por XP
     const q = query(collection(db, 'users'), orderBy('xp', 'desc'), limit(Math.max(max, 200)));
     const snap = await getDocs(q);
     const all = snap.docs.map(d => ({ id: d.id, ...(d.data() as Omit<PublicUser, 'id'>) }));
-    const cutoff = Date.now() - 2 * 60 * 1000; // 2 minutos
-    const activeOnly = all.filter(u => {
+    
+    // Filtro más permisivo: usuarios activos en los últimos 30 días (o sin timestamp = recién creados)
+    const cutoff = Date.now() - 30 * 24 * 60 * 60 * 1000; // 30 días
+    const filtered = all.filter(u => {
       const anyU = u as any;
-      const isActive = anyU.active === true;
+      
+      // Si no tiene lastSeenAt, es un usuario nuevo que aún no se ha sincronizado, inclúyelo
+      if (!anyU.lastSeenAt) return true;
+      
+      // Si tiene lastSeenAt, verifica que esté dentro de los últimos 30 días
       const ts = anyU.lastSeenAt;
       const ms = ts?.toMillis?.() ? ts.toMillis() : (typeof ts?.seconds === 'number' ? ts.seconds * 1000 : 0);
-      return isActive && ms >= cutoff;
+      
+      // Incluir usuarios activos en los últimos 30 días
+      return ms >= cutoff;
     });
-    return activeOnly.slice(0, max);
+    
+    return filtered.slice(0, max);
   } catch (error) {
     console.warn('Error obteniendo top usuarios:', error);
     return [];
@@ -323,7 +332,6 @@ export const getPendingGifts = async (uid: string): Promise<FriendGift[]> => {
   try {
     const db = resolveDb();
     if (!db) {
-      console.warn('Firestore no disponible, devolviendo lista vacía de regalos');
       return [];
     }
     
@@ -335,7 +343,11 @@ export const getPendingGifts = async (uid: string): Promise<FriendGift[]> => {
     );
     const snap = await getDocs(q);
     return snap.docs.map(d => ({ id: d.id, ...(d.data() as Omit<FriendGift, 'id'>) }));
-  } catch (error) {
+  } catch (error: any) {
+    // Silenciar errores de permisos - funcionalidad opcional
+    if (error?.code === 'permission-denied' || error?.message?.includes('permission')) {
+      return [];
+    }
     console.warn('Error obteniendo regalos pendientes:', error);
     return [];
   }

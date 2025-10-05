@@ -378,6 +378,7 @@ const BASE_AVATARS: Avatar[] = [
     { id: 'novice', emoji: '💀', name: 'Novato', unlockCondition: { type: 'level', value: 1, description: 'Alcanza el Nivel 1' } },
     { id: 'brainiac', emoji: '🧠', name: 'Cerebrito', unlockCondition: { type: 'level', value: 5, description: 'Alcanza el Nivel 5' } },
     { id: 'explorer', emoji: '🧭', name: 'Explorador', unlockCondition: { type: 'level', value: 10, description: 'Alcanza el Nivel 10' } },
+    { id: 'atlas', emoji: '🗺️', name: 'Atlas', unlockCondition: { type: 'level', value: 15, description: 'Alcanza el Nivel 15 - La mascota oficial de Anatomy Go' } },
     { id: 'master', emoji: '🎓', name: 'Maestro', unlockCondition: { type: 'level', value: 20, description: 'Alcanza el Nivel 20' } },
     { id: 'legend', emoji: '🏆', name: 'Leyenda', unlockCondition: { type: 'level', value: 40, description: 'Alcanza el Nivel 40' } },
     { id: 'robot', emoji: '🤖', name: 'Robot', unlockCondition: { type: 'achievement', value: 'perfectionist:2', description: 'Alcanza Nivel 2 en Perfeccionista (5 tests perfectos)' } },
@@ -437,14 +438,14 @@ const IMAGE_AVATARS_MAPPED: Avatar[] = [
 			id: `img_${img.id}`,
 			emoji: img.url,
 			name: img.name,
-			unlockCondition: { type: 'level', value: levelValue, description: `Alcanza el Nivel ${levelValue}` }
+			unlockCondition: { type: 'level' as const, value: levelValue, description: `Alcanza el Nivel ${levelValue}` }
 		};
 	}),
 	...imageAvatarsForMystery.map((img) => ({
 		id: `img_${img.id}`,
 		emoji: img.url,
 		name: img.name,
-		unlockCondition: { type: 'achievement', value: 'mystery_box', description: 'Encuéntralo en una Caja Misteriosa' }
+		unlockCondition: { type: 'achievement' as const, value: 'mystery_box', description: 'Encuéntralo en una Caja Misteriosa' }
 	}))
 ];
 

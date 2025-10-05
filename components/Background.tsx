@@ -8,16 +8,16 @@ const Background: React.FC = () => {
         className="absolute inset-0 w-full"
         style={{
           background: `
-            radial-gradient(ellipse at 15% 20%, #374151 0%, transparent 40%),
-            radial-gradient(ellipse at 85% 30%, #6b7280 0%, transparent 45%),
-            radial-gradient(ellipse at 40% 70%, #ffffff 0%, transparent 50%),
-            radial-gradient(ellipse at 75% 85%, #374151 0%, transparent 35%),
-            radial-gradient(ellipse at 25% 85%, #6b7280 0%, transparent 40%),
-            radial-gradient(ellipse at 90% 15%, #ffffff 0%, transparent 45%),
-            radial-gradient(ellipse at 10% 60%, #ffffff 0%, transparent 35%),
-            radial-gradient(ellipse at 60% 25%, #374151 0%, transparent 30%),
-            radial-gradient(ellipse at 35% 40%, #6b7280 0%, transparent 35%),
-            linear-gradient(to bottom right, #6b7280 0%, #ffffff 100%)
+            radial-gradient(ellipse at 15% 20%, #111827 0%, transparent 40%),
+            radial-gradient(ellipse at 85% 30%, #1e293b 0%, transparent 45%),
+            radial-gradient(ellipse at 40% 70%, #312e81 0%, transparent 50%),
+            radial-gradient(ellipse at 75% 85%, #111827 0%, transparent 35%),
+            radial-gradient(ellipse at 25% 85%, #1e293b 0%, transparent 40%),
+            radial-gradient(ellipse at 90% 15%, #4f46e5 0%, transparent 45%),
+            radial-gradient(ellipse at 10% 60%, #312e81 0%, transparent 35%),
+            radial-gradient(ellipse at 60% 25%, #111827 0%, transparent 30%),
+            radial-gradient(ellipse at 35% 40%, #1e293b 0%, transparent 35%),
+            linear-gradient(to bottom right, #111827 0%, #1e293b 100%)
           `,
           minHeight: 'max(100vh, 100%)',
           height: 'auto',
@@ -30,10 +30,10 @@ const Background: React.FC = () => {
         className="absolute inset-0 w-full"
         style={{
           background: `
-            radial-gradient(ellipse at top, rgba(255,255,255,0.4) 0%, transparent 70%),
-            radial-gradient(ellipse at bottom, rgba(55,65,81,0.5) 0%, transparent 70%),
-            radial-gradient(ellipse at left, rgba(107,114,128,0.3) 0%, transparent 60%),
-            radial-gradient(ellipse at right, rgba(107,114,128,0.3) 0%, transparent 60%)
+            radial-gradient(ellipse at top, rgba(79, 70, 229, 0.3) 0%, transparent 70%),
+            radial-gradient(ellipse at bottom, rgba(30, 41, 59, 0.5) 0%, transparent 70%),
+            radial-gradient(ellipse at left, rgba(49, 46, 129, 0.2) 0%, transparent 60%),
+            radial-gradient(ellipse at right, rgba(49, 46, 129, 0.2) 0%, transparent 60%)
           `,
           minHeight: 'max(100vh, 100%)',
           animation: 'breathe 4s ease-in-out infinite'

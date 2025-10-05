@@ -147,7 +147,7 @@ const LeaderboardScreen: React.FC = () => {
     };
 
     return (
-        <div className="p-4 md:p-6 pt-1 md:pt-2">
+        <div className="p-4 md:p-6 pt-0">
             <div className="text-center mb-6">
                 <h2 className="font-graffiti text-4xl md:text-5xl tracking-wide -rotate-1 title-white-clean inline-block transform scale-105">
                     Ranking
@@ -159,16 +159,39 @@ const LeaderboardScreen: React.FC = () => {
                 <div className="max-w-2xl mx-auto space-y-3">
                     {error && <div className="text-center text-red-400">{error}</div>}
                     {info && <div className="text-center text-sky-300">{info}</div>}
-                    {users.length === 0 && (
-                        <div className="text-center space-y-3">
-                            <div className="text-slate-500">Aún no hay jugadores en el ranking.</div>
+                    
+                    {/* Botón para publicar/actualizar perfil - siempre visible */}
+                    {auth && !users.find(u => u.id === auth.uid) && (
+                        <div className="bg-blue-900/30 border-2 border-blue-500 rounded-xl p-4 text-center space-y-2">
+                            <p className="text-slate-200 font-semibold">¡Únete al ranking!</p>
+                            <p className="text-slate-400 text-sm">Publica tu perfil para aparecer en el leaderboard y competir con otros estudiantes.</p>
                             <button
                                 onClick={handlePublishMe}
                                 disabled={publishing}
-                                className="px-4 py-2 rounded-lg bg-blue-600 text-white font-bold hover:bg-blue-500 disabled:opacity-60"
+                                className="px-6 py-3 rounded-xl bg-gradient-to-r from-blue-600 to-blue-500 text-white font-bold hover:from-blue-500 hover:to-blue-400 disabled:opacity-60 shadow-lg transition-all active:scale-95"
                             >
-                                {publishing ? 'Publicando…' : 'Publicar mi perfil ahora'}
+                                {publishing ? 'Publicando…' : '🚀 Publicar mi perfil'}
                             </button>
+                        </div>
+                    )}
+                    
+                    {/* Botón para actualizar perfil si ya existe */}
+                    {auth && users.find(u => u.id === auth.uid) && (
+                        <div className="flex justify-end">
+                            <button
+                                onClick={handlePublishMe}
+                                disabled={publishing}
+                                className="px-4 py-2 rounded-lg bg-slate-700 text-slate-200 text-sm font-semibold hover:bg-slate-600 disabled:opacity-60 transition-all"
+                            >
+                                {publishing ? 'Actualizando…' : '🔄 Actualizar mi perfil'}
+                            </button>
+                        </div>
+                    )}
+                    
+                    {users.length === 0 && (
+                        <div className="text-center space-y-3 py-8">
+                            <div className="text-slate-500 text-lg">Aún no hay jugadores en el ranking.</div>
+                            <div className="text-slate-600 text-sm">¡Sé el primero en aparecer!</div>
                         </div>
                     )}
                     {users.map((u, idx) => {

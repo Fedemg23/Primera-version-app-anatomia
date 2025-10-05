@@ -3,6 +3,7 @@ import { UserData, ShopItem, ShopScreenProps } from '../../types';
 import { shopItems } from '../../constants';
 import { iconMap, Gift, ShopCartBold } from '../icons';
 import HelpIcon from '../HelpIcon';
+import Atlas from '../Atlas';
 import {
     Rarity,
     getRewardRarity,
@@ -182,7 +183,7 @@ export default function ShopScreen({ userData, onPurchase, onClaimDailyReward }:
 
 	return (
 		<div className="bg-transparent h-full overflow-y-auto overflow-x-hidden">
-			<div className="max-w-4xl mx-auto p-4 md:p-6 space-y-2 md:space-y-4 pb-24 pt-1 md:pt-2">
+			<div className="max-w-4xl mx-auto p-4 md:p-6 space-y-2 md:space-y-4 pb-24 pt-0">
 				<div className="text-center mb-6">
 					<div className="inline-flex items-center gap-3">
 						<h2 className="inline-block font-graffiti text-4xl md:text-5xl tracking-wide -rotate-1 title-white-clean transform scale-105">
@@ -198,6 +199,20 @@ export default function ShopScreen({ userData, onPurchase, onClaimDailyReward }:
 								<li><strong>Caja Misteriosa</strong>: recompensa aleatoria (huesitos, boost, vida o avatar).</li>
 							</ul>
 						</HelpIcon>
+					</div>
+				</div>
+				
+				{/* Atlas da la bienvenida a la tienda */}
+				<div className="flex items-center gap-4 bg-slate-800/30 rounded-xl p-4 border border-slate-700/50 mb-6">
+					<Atlas 
+						size="small" 
+						expression="happy"
+						showMessage={false}
+					/>
+					<div className="flex-1">
+						<p className="text-slate-200 text-sm">
+							<span className="font-bold text-emerald-400">Atlas (C1) te recomienda:</span> Usa tus huesitos sabiamente. Los comodines del Botiquín pueden salvarte en momentos difíciles. 💡
+						</p>
 					</div>
 				</div>
 

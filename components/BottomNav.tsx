@@ -4,13 +4,19 @@
 
 
 import React, { memo } from 'react';
-import { BookOpen, Store, Award, Body, ListCheck } from './icons';
+import { Home, UserCircle, Store, Award, ListCheck, Trophy } from './icons';
 import { View } from '../types';
 
 interface BottomNavProps {
     activeTab: View;
     onTabChange: (tab: View) => void;
-    pendingClaims: boolean;
+    notifications: {
+        shop: boolean;
+        achievements: boolean;
+        challenges: boolean;
+        study: boolean;
+        levelRewards: boolean;
+    };
 }
 
 const NavButton = memo(({
@@ -28,34 +34,36 @@ const NavButton = memo(({
 }) => (
     <button
         onClick={onClick}
-        className={`flex-1 flex flex-col items-center justify-center py-2 px-1 rounded-lg relative group transition-colors duration-200 z-10 touch-manipulation bg-[#121212] border ${
+        className={`flex-1 flex flex-col items-center justify-center py-2.5 px-1 rounded-xl relative group transition-all duration-200 z-10 touch-manipulation ${
             isActive 
-                ? 'text-slate-100 border-white ring-2 ring-amber-400/50' 
-                : 'text-slate-400 hover:text-slate-200 border-white/40 ring-2 ring-amber-400/30'
+                ? 'text-white bg-gradient-to-br from-slate-700 to-slate-800 shadow-lg scale-105' 
+                : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50'
         }`}
     >
-        <div className={`relative flex items-center justify-center h-8 w-8 mb-0.5`}>
+        <div className={`relative flex items-center justify-center h-7 w-7 mb-1`}>
            {icon}
            {hasNotification && (
-               <span className="absolute top-0 right-0 block h-2.5 w-2.5 transform -translate-y-1/4 translate-x-1/4 rounded-full bg-red-500 ring-2 ring-slate-900 animate-notification-pulse"></span>
+               <span className="absolute -top-1 -right-1 block h-2.5 w-2.5 rounded-full bg-red-500 ring-2 ring-[#121212] animate-notification-pulse"></span>
            )}
         </div>
-        <span className="text-[11px] font-semibold tracking-tight">{label}</span>
+        <span className="text-[10px] font-bold tracking-tight uppercase">{label}</span>
     </button>
 ));
 
-const BottomNav: React.FC<BottomNavProps> = ({ activeTab, onTabChange, pendingClaims }) => {
+const BottomNav: React.FC<BottomNavProps> = ({ activeTab, onTabChange, notifications }) => {
     
-    const tabsConfig: {id: View, label: string, icon: React.ReactNode}[] = [
-        { id: 'play', label: "JUGAR", icon: <BookOpen className="w-7 h-7"/> },
-        { id: 'challenges', label: "DESAFÍOS", icon: <ListCheck className="w-7 h-7"/> },
-        { id: 'shop', label: "TIENDA", icon: <Store className="w-7 h-7"/> },
-        { id: 'achievements', label: "LOGROS", icon: <Award className="w-7 h-7"/> },
+    const tabsConfig: {id: View, label: string, icon: React.ReactNode, notification?: boolean}[] = [
+        { id: 'home', label: "Inicio", icon: <Home className="w-6 h-6"/> },
+        { id: 'challenges', label: "Desafíos", icon: <ListCheck className="w-6 h-6"/>, notification: notifications.challenges },
+        { id: 'shop', label: "Tienda", icon: <Store className="w-6 h-6"/>, notification: notifications.shop },
+        { id: 'achievements', label: "Logros", icon: <Award className="w-6 h-6"/>, notification: notifications.achievements },
+        { id: 'leaderboard', label: "Ranking", icon: <Trophy className="w-6 h-6"/> },
+        { id: 'profile', label: "Perfil", icon: <UserCircle className="w-6 h-6"/>, notification: notifications.levelRewards },
     ];
 
     return (
-        <nav className="fixed bottom-0 left-0 right-0 z-30 border-t border-slate-800 bg-[#121212]">
-            <div className="max-w-4xl mx-auto flex items-stretch justify-around gap-1 p-1" style={{ paddingBottom: 'calc(0.25rem + env(safe-area-inset-bottom))' }}>
+        <nav className="fixed bottom-0 left-0 right-0 z-30 border-t border-slate-700/50 bg-[#121212]/95 backdrop-blur-lg shadow-[0_-4px_20px_rgba(0,0,0,0.3)]">
+            <div className="max-w-4xl mx-auto flex items-stretch justify-around gap-1 px-2 py-1.5" style={{ paddingBottom: 'calc(0.375rem + env(safe-area-inset-bottom))' }}>
                 {tabsConfig.map((tab) => (
                      <NavButton
                         key={tab.id}
@@ -63,7 +71,7 @@ const BottomNav: React.FC<BottomNavProps> = ({ activeTab, onTabChange, pendingCl
                         icon={tab.icon}
                         isActive={activeTab === tab.id}
                         onClick={() => onTabChange(tab.id)}
-                        hasNotification={tab.id === 'achievements' && pendingClaims}
+                        hasNotification={tab.notification}
                     />
                 ))}
             </div>

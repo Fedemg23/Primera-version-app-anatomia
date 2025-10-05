@@ -133,7 +133,8 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ onSignIn }) => {
                         }}
                     />
                 </div>
-                <p className="text-slate-600 mb-2 md:mb-3 text-lg -mt-12">Tu aventura de anatomía te espera.</p>
+                
+                <p className="text-slate-600 mb-2 md:mb-3 text-lg">Tu aventura de anatomía te espera.</p>
 
                 <div className="space-y-3 max-w-sm mx-auto w-full">
                     <button

@@ -54,6 +54,7 @@ import WelcomeModal from './components/WelcomeModal';
 import FriendGiftsModal from './components/FriendGiftsModal';
 import FloatingFriendGiftsButton from './components/FloatingFriendGiftsButton';
 import FriendRequestNotification from './components/FriendRequestNotification';
+import BottomNav from './components/BottomNav';
 
 
 type ModalType = 'dailyBonus' | 'mysteryBox' | 'settings' | 'noLives' | 'friendGifts';
@@ -1905,6 +1906,7 @@ const App: React.FC = () => {
 
     const isFullScreenView = ['quiz', 'duel'].includes(view);
     const isHomeView = view === 'home';
+    const showBottomNav = !isFullScreenView;
 
     return (
         <ErrorBoundary>
@@ -1936,6 +1938,7 @@ const App: React.FC = () => {
                 className={`flex-grow overflow-x-hidden overflow-y-auto`}
                 style={{
                     minHeight: '100vh',
+                    paddingBottom: showBottomNav ? 'calc(4rem + env(safe-area-inset-bottom))' : '0',
                     scrollbarGutter: 'stable both-edges'
                 }}
             >
@@ -2051,6 +2054,15 @@ const App: React.FC = () => {
                 onComplete={handleCompleteWelcome}
                 userEmail={auth?.email}
             />
+            
+            {/* Barra de navegación inferior */}
+            {showBottomNav && (
+                <BottomNav 
+                    activeTab={view}
+                    onTabChange={handleNavigate}
+                    notifications={notifications}
+                />
+            )}
             
         </div>
             </OrientationLock>
