@@ -1,16 +1,52 @@
 
 
-import React, { memo } from 'react';
+import React, { memo, useState } from 'react';
 import { LEVEL_REWARDS, AVATAR_DATA } from '../constants';
 import { Lock, CheckCircle, Star, iconMap } from './icons';
 import { LevelRewardsModalProps } from '../types';
+import ClaimEffects from './ClaimEffects';
+import { useAnimation } from './AnimationProvider';
 
 const isImageAvatar = (value: string) => typeof value === 'string' && /(png|webp|jpg|jpeg|svg)$/i.test(value);
 
 const LevelRewardsModal: React.FC<LevelRewardsModalProps> = ({ isOpen, userLevel, claimedLevelRewards, onClose, onClaimReward }) => {
+    const [effectTrigger, setEffectTrigger] = useState(0);
+    const [effectPosition, setEffectPosition] = useState({ x: 0, y: 0 });
+    const { triggerAnimation } = useAnimation();
+    
     if (!isOpen) return null;
 
     const Bones = iconMap['bones'];
+    
+    const handleClaimClick = (level: number, button: HTMLElement) => {
+        const reward = LEVEL_REWARDS.find(r => r.level === level);
+        if (!reward) return;
+        
+        // Calcular posición del centro del botón
+        const rect = button.getBoundingClientRect();
+        const centerX = rect.left + rect.width / 2;
+        const centerY = rect.top + rect.height / 2;
+        
+        // Disparar efectos visuales
+        setEffectPosition({ x: centerX, y: centerY });
+        setEffectTrigger(Date.now());
+        
+        // Animar partículas de huesitos (limitado a 10 para evitar sobrecarga)
+        triggerAnimation({
+            type: 'bone',
+            count: 10,
+            startElement: button,
+        });
+        
+        // Si hay avatar, mostrar celebración extra
+        if (reward.avatarId) {
+            setTimeout(() => {
+                setEffectTrigger(Date.now());
+            }, 300);
+        }
+        
+        onClaimReward(level, button);
+    };
 
     return (
         <div 
@@ -65,8 +101,8 @@ const LevelRewardsModal: React.FC<LevelRewardsModalProps> = ({ isOpen, userLevel
                                     <div className="flex-shrink-0 w-28 text-right">
                                         {isClaimable ? (
                                             <button 
-                                                onClick={(e) => onClaimReward(reward.level, e.currentTarget)}
-                                                className="bg-gradient-to-r from-amber-500 to-orange-500 text-white font-bold px-4 py-2 rounded-lg shadow-md hover:shadow-lg transition-all transform hover:-translate-y-0.5 active:scale-95 animate-shine touch-manipulation"
+                                                onClick={(e) => handleClaimClick(reward.level, e.currentTarget)}
+                                                className="bg-gradient-to-r from-amber-500 to-orange-500 text-white font-bold px-4 py-2 rounded-lg shadow-md hover:shadow-lg transition-all transform hover:-translate-y-0.5 active:scale-95 animate-shine animate-reward-light-pulse touch-manipulation"
                                             >
                                                 Reclamar
                                             </button>
@@ -121,6 +157,15 @@ const LevelRewardsModal: React.FC<LevelRewardsModalProps> = ({ isOpen, userLevel
                         )
                     })}
                 </div>
+                
+                {/* Efectos especiales de reclamación */}
+                <ClaimEffects
+                    trigger={effectTrigger}
+                    effectType="starburst"
+                    materialType="gold"
+                    position={effectPosition}
+                    intensity="high"
+                />
             </div>
         </div>
     );

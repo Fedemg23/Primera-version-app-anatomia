@@ -355,3 +355,5 @@ Una vez colocada la imagen de Atlas en `public/images/atlas.png`, se mostrará a
 **¡Atlas está listo para guiar a los estudiantes en su viaje por la anatomía! 🦴📚**
 
 
+
+

@@ -4,7 +4,6 @@ import { HomeIconNotes, BookOpen, Target } from '../icons';
 import { useAudio } from '../../src/contexts/AudioProvider';
 import HelpIcon from '../HelpIcon';
 import { HomeScreenProps, View } from '../../types';
-import FloatingAtlas from '../FloatingAtlas';
 
 interface InfoModalProps {onClose: () => void}
 const InfoModal: React.FC<InfoModalProps> = memo(({ onClose }) => (
@@ -81,7 +80,6 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onSelectMode, userData, onNavig
     const { playSound } = useAudio();
     const [isInfoModalVisible, setIsInfoModalVisible] = useState(false);
     const [isReadyForInput, setIsReadyForInput] = useState(false);
-    const [showAtlas, setShowAtlas] = useState(true);
 
     useEffect(() => {
         const timer = setTimeout(() => setIsReadyForInput(true), 100);
@@ -199,16 +197,6 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onSelectMode, userData, onNavig
             </div>
             
             {isInfoModalVisible && <InfoModal onClose={() => setIsInfoModalVisible(false)} />}
-            
-            {/* Atlas flotante */}
-            {showAtlas && (
-                <FloatingAtlas 
-                    userData={userData}
-                    onClose={() => setShowAtlas(false)}
-                    autoShow={true}
-                    autoHideDelay={10000}
-                />
-            )}
         </div>
     );
 };

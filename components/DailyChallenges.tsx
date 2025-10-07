@@ -1,8 +1,10 @@
-import React, { memo } from 'react';
+import React, { memo, useState } from 'react';
 import { DailyStats, DailyChallenge } from '../types';
 import { dailyChallengesData } from '../constants';
 import { ChecklistBold, ChallengeBoltBold, ChallengeTargetBold, CheckCircle } from './icons';
 import { iconMap } from './icons';
+import ClaimEffects from './ClaimEffects';
+import { useAnimation } from './AnimationProvider';
 
 const challengeIcons: { [key: string]: React.FC<any> } = {
   'CheckSquare': ChecklistBold,
@@ -17,6 +19,29 @@ interface DailyChallengesProps {
 }
 
 const DailyChallenges: React.FC<DailyChallengesProps> = ({ dailyStats, onClaimChallenge, claimedChallenges }) => {
+    const [effectTrigger, setEffectTrigger] = useState(0);
+    const [effectPosition, setEffectPosition] = useState({ x: 0, y: 0 });
+    const { triggerAnimation } = useAnimation();
+
+    const handleClaimClick = (challenge: DailyChallenge, button: HTMLElement) => {
+        // Calcular posición del centro del botón
+        const rect = button.getBoundingClientRect();
+        const centerX = rect.left + rect.width / 2;
+        const centerY = rect.top + rect.height / 2;
+        
+        // Disparar efectos visuales
+        setEffectPosition({ x: centerX, y: centerY });
+        setEffectTrigger(Date.now());
+        
+        // Animar partículas de huesitos (limitado a 8 para evitar sobrecarga)
+        triggerAnimation({
+            type: 'bone',
+            count: 8,
+            startElement: button,
+        });
+        
+        onClaimChallenge(challenge);
+    };
 
     return (
         <div className="p-4 md:p-6 pt-0">
@@ -56,7 +81,7 @@ const DailyChallenges: React.FC<DailyChallengesProps> = ({ dailyStats, onClaimCh
                                 </div>
                             </div>
                             <button 
-                                onClick={() => onClaimChallenge(challenge)} 
+                                onClick={(e) => handleClaimClick(challenge, e.currentTarget)} 
                                 disabled={!isCompleted || isClaimed}
                                 className={`
                                     w-32 flex-shrink-0 h-10 flex items-center justify-center gap-1.5 px-3 py-1 rounded-lg font-bold text-white transition-all duration-200 active:scale-95 shadow-md touch-manipulation
@@ -64,7 +89,7 @@ const DailyChallenges: React.FC<DailyChallengesProps> = ({ dailyStats, onClaimCh
                                         ? 'bg-slate-500 cursor-default' 
                                         : !isCompleted 
                                             ? 'bg-slate-600 cursor-not-allowed' 
-                                            : `bg-gradient-to-r from-green-500 to-green-600 active:shadow-lg ${!isClaimed && isCompleted ? 'animate-shine' : ''}`
+                                            : `bg-gradient-to-r from-green-500 to-green-600 active:shadow-lg ${!isClaimed && isCompleted ? 'animate-shine animate-reward-pulse' : ''}`
                                     }
                                 `}
                             >
@@ -85,6 +110,15 @@ const DailyChallenges: React.FC<DailyChallengesProps> = ({ dailyStats, onClaimCh
                     );
                 })}
             </div>
+            
+            {/* Efectos especiales de reclamación */}
+            <ClaimEffects
+                trigger={effectTrigger}
+                effectType="confetti"
+                materialType="emerald"
+                position={effectPosition}
+                intensity="medium"
+            />
         </div>
     );
 };

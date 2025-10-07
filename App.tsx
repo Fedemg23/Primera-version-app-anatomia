@@ -15,7 +15,6 @@ import { iconMap } from './components/icons';
 import StatusBar from './components/Header';
 import Background from './components/Background';
 import Toast from './components/Toast';
-import FloatingSettingsButton from './components/FloatingSettingsButton';
 import DailyBonusModal from './components/DailyBonusModal';
 import MysteryBoxModal from './components/MysteryBoxModal';
 import OrientationLock from './components/OrientationLock';
@@ -229,7 +228,7 @@ const App: React.FC = () => {
         if (dailyBonus.reward > 0 && dailyBonusRewardRef.current) {
             triggerAnimation({
                 type: 'bone',
-                count: Math.min(10, Math.ceil(dailyBonus.reward / 5)),
+                count: 8,
                 startElement: dailyBonusRewardRef.current
             });
         }
@@ -1406,7 +1405,7 @@ const App: React.FC = () => {
             const xpReward = tier?.reward?.xp || 0;
             const avatarRewardId = (tier?.reward as { bones?: number; xp?: number; avatarId?: string } | undefined)?.avatarId;
     
-            if (bonesReward > 0) triggerAnimation({ type: 'bone', count: Math.min(10, Math.ceil(bonesReward / 10)), startElement });
+            if (bonesReward > 0) triggerAnimation({ type: 'bone', count: 8, startElement });
             if (xpReward > 0) triggerAnimation({ type: 'xp', count: Math.min(10, Math.ceil(xpReward / 20)), startElement });
             
             // Unlock avatar if it's part of the achievement reward
@@ -1634,7 +1633,7 @@ const App: React.FC = () => {
             newUserData.claimedLevelRewards.push(level);
             
             if (reward.bones > 0) {
-                triggerAnimation({ type: 'bone', count: Math.min(10, Math.ceil(reward.bones / 10)), startElement });
+                triggerAnimation({ type: 'bone', count: 8, startElement });
             }
 
             return newUserData;
@@ -1683,7 +1682,7 @@ const App: React.FC = () => {
             triggerAnimation({ type: 'xp', count: Math.min(10, Math.ceil(lastQuizResult.earnedXp / 10)), startRect: rewardPositions.xp });
         }
         if (lastQuizResult?.earnedBones && rewardPositions.bones) {
-            triggerAnimation({ type: 'bone', count: Math.min(10, Math.ceil(lastQuizResult.earnedBones / 5)), startRect: rewardPositions.bones });
+            triggerAnimation({ type: 'bone', count: 8, startRect: rewardPositions.bones });
         }
         setLastQuizResult(null);
         setView('home');
@@ -2024,11 +2023,6 @@ const App: React.FC = () => {
             )}
             
             {/* Floating Settings Button */}
-            {!isFullScreenView && (
-                <FloatingSettingsButton 
-                    onOpenSettings={() => setActiveModal(prev => prev === 'settings' ? null : 'settings')}
-                />
-            )}
             
             {/* Floating Friend Gifts Button */}
             {!isFullScreenView && auth && (
@@ -2060,6 +2054,7 @@ const App: React.FC = () => {
                 <BottomNav 
                     activeTab={view}
                     onTabChange={handleNavigate}
+                    onOpenSettings={() => setActiveModal(prev => prev === 'settings' ? null : 'settings')}
                     notifications={notifications}
                 />
             )}

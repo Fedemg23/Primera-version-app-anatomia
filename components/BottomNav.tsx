@@ -4,12 +4,13 @@
 
 
 import React, { memo } from 'react';
-import { Home, UserCircle, Store, Award, ListCheck, Trophy } from './icons';
+import { Home, UserCircle, Store, Award, ListCheck, Trophy, Settings } from './icons';
 import { View } from '../types';
 
 interface BottomNavProps {
     activeTab: View;
     onTabChange: (tab: View) => void;
+    onOpenSettings: () => void;
     notifications: {
         shop: boolean;
         achievements: boolean;
@@ -50,7 +51,7 @@ const NavButton = memo(({
     </button>
 ));
 
-const BottomNav: React.FC<BottomNavProps> = ({ activeTab, onTabChange, notifications }) => {
+const BottomNav: React.FC<BottomNavProps> = ({ activeTab, onTabChange, onOpenSettings, notifications }) => {
     
     const tabsConfig: {id: View, label: string, icon: React.ReactNode, notification?: boolean}[] = [
         { id: 'home', label: "Inicio", icon: <Home className="w-6 h-6"/> },
@@ -74,6 +75,16 @@ const BottomNav: React.FC<BottomNavProps> = ({ activeTab, onTabChange, notificat
                         hasNotification={tab.notification}
                     />
                 ))}
+                {/* Botón de Configuración */}
+                <button
+                    onClick={onOpenSettings}
+                    className="flex-1 flex flex-col items-center justify-center py-2.5 px-1 rounded-xl relative group transition-all duration-200 z-10 touch-manipulation text-slate-400 hover:text-slate-200 hover:bg-slate-800/50"
+                >
+                    <div className="relative flex items-center justify-center h-7 w-7 mb-1">
+                        <Settings className="w-6 h-6" />
+                    </div>
+                    <span className="text-[10px] font-bold tracking-tight uppercase">Config</span>
+                </button>
             </div>
         </nav>
     );

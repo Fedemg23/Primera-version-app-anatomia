@@ -1,6 +1,7 @@
-import React, { memo } from 'react';
+import React, { memo, useEffect, useState } from 'react';
 import { LeveledUpAchievement } from '../types';
 import { iconMap } from './icons';
+import ClaimEffects from './ClaimEffects';
 
 const RewardItem: React.FC<{ achievement: LeveledUpAchievement, delay: number }> = ({ achievement, delay }) => {
 	// Resolver icono: imagen (url), iconMap o emoji/texto
@@ -53,6 +54,22 @@ interface AchievementUnlockedModalProps {
 }
 
 const AchievementUnlockedModal: React.FC<AchievementUnlockedModalProps> = ({ isOpen, onClose, achievements }) => {
+    const [effectTrigger, setEffectTrigger] = useState(0);
+    
+    useEffect(() => {
+        if (isOpen) {
+            // Disparar efectos cuando se abre el modal
+            setEffectTrigger(Date.now());
+            
+            // Disparar efectos adicionales escalonados
+            achievements.forEach((_, index) => {
+                setTimeout(() => {
+                    setEffectTrigger(Date.now());
+                }, 200 + index * 300);
+            });
+        }
+    }, [isOpen, achievements]);
+    
     if (!isOpen) return null;
     
     const userLevelUp = achievements.find(a => a.type === 'user_level');
@@ -61,7 +78,7 @@ const AchievementUnlockedModal: React.FC<AchievementUnlockedModalProps> = ({ isO
     return (
         <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 animate-fade-in p-4" onClick={onClose}>
             <div
-                className="relative bg-slate-900 border border-slate-700/50 p-6 rounded-2xl shadow-2xl text-center w-full max-w-sm max-h-[90vh] flex flex-col animate-scale-in reward-celebration"
+                className="relative bg-slate-900 border border-slate-700/50 p-6 rounded-2xl shadow-2xl text-center w-full max-w-sm max-h-[90vh] flex flex-col animate-bounce-in reward-celebration"
                 onClick={(e) => e.stopPropagation()}
             >
                 <div className="flex-shrink-0">
@@ -82,10 +99,19 @@ const AchievementUnlockedModal: React.FC<AchievementUnlockedModalProps> = ({ isO
 
                 <button
                     onClick={onClose}
-                    className="w-full bg-slate-200 text-black font-bold py-3 px-4 rounded-xl text-lg shadow-lg hover:shadow-xl transition-shadow active:scale-95 mt-auto flex-shrink-0 touch-manipulation"
+                    className="w-full bg-gradient-to-r from-amber-500 to-orange-500 text-white font-bold py-3 px-4 rounded-xl text-lg shadow-lg hover:shadow-xl transition-all active:scale-95 mt-auto flex-shrink-0 touch-manipulation animate-reward-pulse"
                 >
                     ¡Genial!
                 </button>
+                
+                {/* Efectos especiales celebratorios */}
+                <ClaimEffects
+                    trigger={effectTrigger}
+                    effectType="material-burst"
+                    materialType={userLevelUp ? 'diamond' : 'gold'}
+                    position={{ x: window.innerWidth / 2, y: window.innerHeight / 2 }}
+                    intensity="high"
+                />
             </div>
         </div>
     );

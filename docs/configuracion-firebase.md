@@ -347,3 +347,5 @@ allow write: if request.resource.data.name is string &&
 **¡Firebase ahora está correctamente configurado y los errores están resueltos! 🎉**
 
 
+
+
