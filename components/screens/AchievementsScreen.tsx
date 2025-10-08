@@ -1,151 +1,117 @@
 import React, { memo, useState } from 'react';
 import { achievementsData } from '../../constants';
-import { UserData, AchievementsScreenProps, Achievement } from '../../types';
+import { UserData, AchievementsScreenProps, Achievement, AchievementRank } from '../../types';
 import { QuestionMarkCircle, StarFilled, iconMap } from '../icons';
 import HelpIcon from '../HelpIcon';
 import Atlas from '../Atlas';
 
-type MaterialKey = 'wood' | 'stone' | 'bronze' | 'iron' | 'silver' | 'gold' | 'platinum' | 'emerald' | 'ruby' | 'diamond';
-
-const getAchievementAnimation = (achievementId: string, material: MaterialKey, level: number) => {
-  // Intensidad basada en nivel (1-10) -> var CSS
-  const levelFactor = Math.min(10, Math.max(1, level));
-  // Mapear id a clases de overlay/ícono/anillo/número
-  // Usa ids presentes en constants.ts: quiz_completer, perfectionist, level_achiever, streaker, explorer, spender, etc.
-  const base = {
-    overlayClass: '',
-    ringClass: '',
-    iconClass: '',
-    numberClass: 'animate-level-number',
-    styleVars: { ['--level-factor' as any]: String(levelFactor) } as React.CSSProperties,
-  };
-  switch (achievementId) {
-    case 'quiz_completer':
-      return { ...base, overlayClass: 'anim-quiz-sparkle', iconClass: 'icon-pop' };
-    case 'perfectionist':
-      return { ...base, overlayClass: 'anim-target-ripple', ringClass: 'anim-ring-rotate-slow', iconClass: 'icon-crisp' };
-    case 'level_achiever':
-      return { ...base, overlayClass: 'anim-level-arcs', ringClass: 'anim-ring-rotate-medium' };
-    case 'streaker':
-      return { ...base, overlayClass: 'anim-flame-flicker', iconClass: 'icon-heat', ringClass: 'anim-ring-wobble' };
-    case 'explorer':
-      return { ...base, overlayClass: 'anim-orbit-dots', ringClass: 'anim-ring-rotate-slow' };
-    case 'spender':
-      return { ...base, overlayClass: 'anim-coins-twinkle', iconClass: 'icon-shine' };
-    default:
-      // Materiales nobles: rotación leve del anillo
-      if (['gold','silver','platinum','emerald','ruby','diamond'].includes(material)) {
-        return { ...base, ringClass: 'anim-ring-rotate-slow', iconClass: 'icon-shine' };
-      }
-      return base;
-  }
+const rankToLevelMap: Record<AchievementRank, number> = {
+    bronze: 1,
+    silver: 2,
+    gold: 3,
+    ruby: 4,
+    emerald: 5,
+    diamond: 6,
 };
 
-const getLevelBasedStyles = (level: number) => {
-  const baseReturn = {
-    levelIndicatorStyle: { background: '#374151' } as React.CSSProperties,
-    levelIndicatorAnimationClass: 'animate-level-number',
-    cardGlowStyle: {} as React.CSSProperties,
-    cardGlowClass: '',
-    showSheen: false,
-    ringColor: '#374151',
-    ringWidth: 12,
-    materialKey: 'wood' as MaterialKey,
-  } as const;
+// Lista de logros que tienen imagen completa (sin emoji)
+// Agrega aquí el ID de nuevos logros cuando tengan imágenes completas
+const ACHIEVEMENTS_WITH_FULL_IMAGE = ['quiz_completer'];
 
-  if (level <= 0) return baseReturn;
-
-  const materials: { key: MaterialKey; color: string; glow: string }[] = [
-    { key: 'wood',     color: '#8B4513', glow: 'rgba(139,69,19,0.18)' },
-    { key: 'stone',    color: '#696969', glow: 'rgba(105,105,105,0.16)' },
-    { key: 'bronze',   color: '#CD7F32', glow: 'rgba(205,127,50,0.20)' },
-    { key: 'iron',     color: '#708090', glow: 'rgba(112,128,144,0.18)' },
-    { key: 'silver',   color: '#C0C0C0', glow: 'rgba(192,192,192,0.22)' },
-    { key: 'gold',     color: '#FFD700', glow: 'rgba(255,215,0,0.22)' },
-    { key: 'platinum', color: '#E5E4E2', glow: 'rgba(229,228,226,0.22)' },
-    { key: 'emerald',  color: '#50C878', glow: 'rgba(80,200,120,0.22)' },
-    { key: 'ruby',     color: '#E0115F', glow: 'rgba(224,17,95,0.22)' },
-    { key: 'diamond',  color: '#B9F2FF', glow: 'rgba(185,242,255,0.24)' },
-  ];
-
-  const idx = Math.min(level - 1, materials.length - 1);
-  const m = materials[idx];
-
-  const gradients = {
-    wood: 'conic-gradient(from 180deg at 50% 50%, #8B4513 0deg, #A0522D 60deg, #8B4513 120deg, #654321 180deg, #8B4513 240deg, #8B4513 360deg)',
-    stone: 'conic-gradient(from 180deg at 50% 50%, #696969 0deg, #808080 60deg, #696969 120deg, #556B2F 180deg, #696969 240deg, #696969 360deg)',
-    bronze: 'conic-gradient(from 180deg at 50% 50%, #CD7F32 0deg, #DAA520 60deg, #CD7F32 120deg, #B8860B 180deg, #CD7F32 240deg, #CD7F32 360deg)',
-    iron: 'conic-gradient(from 180deg at 50% 50%, #708090 0deg, #778899 60deg, #708090 120deg, #2F4F4F 180deg, #708090 240deg, #708090 360deg)',
-    silver: 'conic-gradient(from 180deg at 50% 50%, #C0C0C0 0deg, #E5E5E5 60deg, #C0C0C0 120deg, #A9A9A9 180deg, #C0C0C0 240deg, #C0C0C0 360deg)',
-    gold: 'conic-gradient(from 180deg at 50% 50%, #FFD700 0deg, #FFA500 60deg, #FFD700 120deg, #FF8C00 180deg, #FFD700 240deg, #FFD700 360deg)',
-    platinum: 'conic-gradient(from 180deg at 50% 50%, #E5E4E2 0deg, #F5F5F5 60deg, #E5E4E2 120deg, #C0C0C0 180deg, #E5E4E2 240deg, #E5E4E2 360deg)',
-    emerald: 'conic-gradient(from 180deg at 50% 50%, #50C878 0deg, #00FF7F 60deg, #50C878 120deg, #228B22 180deg, #50C878 240deg, #50C878 360deg)',
-    ruby: 'conic-gradient(from 180deg at 50% 50%, #E0115F 0deg, #FF1493 60deg, #E0115F 120deg, #B22222 180deg, #E0115F 240deg, #E0115F 360deg)',
-    diamond: 'conic-gradient(from 180deg at 50% 50%, #B9F2FF 0deg, #FFFFFF 60deg, #B9F2FF 120deg, #87CEEB 180deg, #B9F2FF 240deg, #B9F2FF 360deg)'
-  } as const;
-
-  const levelIndicatorStyle: React.CSSProperties = { background: gradients[m.key] };
-
-  // Brillo de fondo de alta calidad: usamos halo-layer con gradientes; el box-shadow solo de apoyo
-  const strong = m.glow.replace(/,\s*0?\.?\d+\)/, ', 0.35)');
-  const mid = m.glow.replace(/,\s*0?\.?\d+\)/, ', 0.18)');
-  const cardGlowStyle: React.CSSProperties = {
-    boxShadow: `0 0 4px ${m.glow}, 0 0 10px ${mid}`,
-    ['--glow-color' as any]: m.glow,
-    ['--halo-strong' as any]: strong,
-    ['--halo-mid' as any]: mid,
-  };
-
-  const showSheen = false;
-
-  return { levelIndicatorStyle, levelIndicatorAnimationClass: 'animate-level-number', cardGlowStyle, cardGlowClass: 'animate-card-glow-subtle', showSheen, ringColor: m.color, ringWidth: 12, materialKey: m.key as MaterialKey } as const;
+const getFrameUrl = (achievementId: string, rank: AchievementRank | null): string => {
+    if (!rank) {
+        return ''; // O una URL a un marco por defecto para logros no desbloqueados
+    }
+    
+    if (achievementId === 'quiz_completer') {
+        const specialNames: Record<string, string> = {
+            'bronze': 'Maestro_De_Los_Quizzes_Bronce',
+            'silver': 'Maestro_De_Quizzes_Plata',
+            'gold': 'Maestro_De_Quizzes_Oro',
+            'ruby': 'Maestro_De_Los_Quizzes_Rubi_',
+            'emerald': 'Maestro_De_Los_Quizzes_Esmeralda',
+            'diamond': 'Maestro_De_Los_Quizzes_Diamante'
+        };
+        return `/images/Achievements/${specialNames[rank]}.png`;
+    } else {
+        const genericNames: Record<string, string> = {
+            'bronze': 'Logros_Bronce',
+            'silver': 'Logros_Plata',
+            'gold': 'Logros_Oro',
+            'ruby': 'Logros_Rubí',
+            'emerald': 'Logros_Esmeralda',
+            'diamond': 'Logros_Diamante_'
+        };
+        return `/images/Achievements/${genericNames[rank]}.png`;
+    }
 };
 
-const AchievementCircle: React.FC<{ level: number; levelIndicatorStyle: React.CSSProperties; levelIndicatorAnimationClass: string; cardGlowStyle: React.CSSProperties; cardGlowClass: string; showSheen: boolean; ringColor: string; ringWidth: number; icon: string; materialKey: MaterialKey; overlayClass: string; ringAnimClass: string; iconAnimClass: string; numberClass: string; overlayStyle?: React.CSSProperties; }> = ({ level, levelIndicatorStyle, levelIndicatorAnimationClass, cardGlowStyle, cardGlowClass, showSheen, ringColor, ringWidth, icon, materialKey, overlayClass, ringAnimClass, iconAnimClass, numberClass, overlayStyle }) => {
+
+const AchievementCircle: React.FC<{ frameUrl: string; icon: string; level: number; rank: AchievementRank | null; achievementId: string }> = ({ frameUrl, icon, level, rank, achievementId }) => {
+  const hasFullImage = ACHIEVEMENTS_WITH_FULL_IMAGE.includes(achievementId);
+  const isLocked = !rank || level === 0;
+  
+  // Para logros no desbloqueados, usar el marco de bronce
+  const displayFrameUrl = isLocked ? getFrameUrl(achievementId, 'bronze') : frameUrl;
+  
   return (
     <div 
-      className={`relative rounded-full flex items-center justify-center bg-slate-900/60 backdrop-blur-sm shadow-[inset_0_4px_8px_rgba(0,0,0,0.35)] border border-slate-700/50 transition-all duration-300 ${cardGlowClass} w-28 h-28 sm:w-32 sm:h-32 lg:w-36 lg:h-36 shrink-0`}
-      style={{ ...cardGlowStyle, transform: 'translateZ(0)', willChange: 'transform' as any }}
-      data-material={materialKey}
+      className="relative rounded-full flex items-center justify-center w-28 h-28 sm:w-32 sm:h-32 lg:w-36 lg:h-36 shrink-0"
+      style={{ 
+        backgroundImage: displayFrameUrl ? `url("${displayFrameUrl}")` : 'none',
+        backgroundSize: 'contain',
+        backgroundPosition: 'center',
+        backgroundRepeat: 'no-repeat',
+        // Aplicar filtro de escala de grises y reducir opacidad para logros bloqueados
+        filter: isLocked ? 'grayscale(100%) brightness(0.6)' : 'none',
+        opacity: isLocked ? 0.5 : 1
+      }}
     >
-      {/* Halo de alta calidad fuera del círculo */}
-      <div className="halo-layer" />
-      {/* Anillo nítido */}
-      <div className={`absolute inset-0 rounded-full pointer-events-none ${ringAnimClass}`} style={{ border: `${ringWidth}px solid ${ringColor}` }} />
-      {showSheen && <div className="achievement-sheen spin-slow"></div>}
-      <div className={`anim-overlay ${overlayClass}`} style={overlayStyle}></div>
-      {(() => {
+      {!hasFullImage && (() => {
         const ImgIcon = (iconMap as any)[icon];
         const isSpecial = icon === 'llama' || icon === 'graduation_hat' || icon === 'archery' || icon === 'money_bag';
-        const imgSizeClass = isSpecial ? 'w-[104px] h-[104px]' : 'w-14 h-14';
+        const imgSizeClass = isSpecial ? 'w-14 h-14 sm:w-16 sm:h-16' : 'w-12 h-12 sm:w-14 sm:h-14';
         return (
-          <span className={`icon-elevated ${iconAnimClass}`} style={{ fontSize: '3.4rem' }}>
+          <span style={{ 
+            fontSize: '3rem', 
+            filter: isLocked ? 'grayscale(100%) brightness(0.6) drop-shadow(0 2px 4px rgba(0,0,0,0.3))' : 'drop-shadow(0 2px 4px rgba(0,0,0,0.3))',
+            opacity: isLocked ? 0.5 : 1
+          }}>
             {ImgIcon ? <ImgIcon className={imgSizeClass} /> : icon}
           </span>
         );
       })()}
-      {level > 0 && (
+      {level > 0 && rank && (
         <div 
-          className={`absolute -bottom-3 -right-3 w-11 h-11 sm:w-12 sm:h-12 rounded-full flex items-center justify-center font-black text-xl sm:text-2xl border-6 shadow-lg ${levelIndicatorAnimationClass} ${numberClass} level-badge`}
-          style={{ ...levelIndicatorStyle, transform: 'translateZ(0)' }}
+          className="absolute -bottom-2 -right-2 w-9 h-9 sm:w-10 sm:h-10 rounded-full flex items-center justify-center font-bold text-lg sm:text-xl border-3 border-slate-900 bg-gradient-to-br from-amber-400 to-yellow-600 shadow-md"
         >
-          <span className="level-badge-halo" aria-hidden="true"></span>
-          <span className="level-number-text">{level}</span>
-          <span className="level-number-sheen-overlay" aria-hidden="true"></span>
+          <span className="text-slate-900" style={{ textShadow: '0px 1px 1px rgba(255,255,255,0.5)' }}>{rankToLevelMap[rank]}</span>
         </div>
       )}
-      {/* Cara interna con texturas del material */}
-      <div className="mat-layer" style={{ inset: ringWidth }} />
     </div>
   );
 };
 
-const AchievementCard: React.FC<{ achievement: Achievement; userData: UserData; onClaimReward: (achievementId: string, level: number, startElement: HTMLElement) => void; onAction: (action: Achievement['action']) => void; isAnimating: boolean; }> = memo(({ achievement, userData, onClaimReward, onAction, isAnimating }) => {
+const AchievementCard: React.FC<{ achievement: Achievement; userData: UserData; onClaimReward: (achievementId: string, rank: AchievementRank, level: number, startElement: HTMLElement) => void; onAction: (action: Achievement['action']) => void; isAnimating: boolean; }> = memo(({ achievement, userData, onClaimReward, onAction, isAnimating }) => {
     const unlockedLevel = userData.unlockedAchievements[achievement.id] || 0;
-    const unclaimedRewards = userData.unclaimedAchievementRewards.filter(r => r.startsWith(achievement.id)).map(r => parseInt(r.split(':')[1], 10));
-    const hasUnclaimedRewards = unclaimedRewards.length > 0;
-    const displayLevel = unlockedLevel; // mostrar nivel reclamado; el siguiente nivel es el reclamable
-    const isFirstUnlock = unlockedLevel === 0 && unclaimedRewards.includes(1);
+    const unclaimedRewardsRaw = userData.unclaimedAchievementRewards.filter(r => r.startsWith(achievement.id));
+    
+    const getRankByLevel = (level: number): AchievementRank | null => {
+        const tier = achievement.tiers.find(t => t.level === level);
+        return tier ? tier.rank : null;
+    };
+    
+    const unclaimedRanks = unclaimedRewardsRaw.map(r => {
+        const level = parseInt(r.split(':')[1], 10);
+        return getRankByLevel(level);
+    }).filter((r): r is AchievementRank => r !== null);
+
+    const hasUnclaimedRewards = unclaimedRanks.length > 0;
+    
+    const displayLevel = unlockedLevel;
+    const displayRank = getRankByLevel(displayLevel);
+
+    const isFirstUnlock = unlockedLevel === 0 && unclaimedRanks.length > 0;
 
     const [claimFeedback, setClaimFeedback] = useState<{ xp?: number; bones?: number; key: number } | null>(null);
 
@@ -159,22 +125,23 @@ const AchievementCard: React.FC<{ achievement: Achievement; userData: UserData; 
     const progressPercentage = Math.min(100, (progressInTier / tierRange) * 100);
     const remaining = Math.max(0, upperBound - Math.max(progressValue, lowerBound));
 
-    const { levelIndicatorStyle, levelIndicatorAnimationClass, cardGlowStyle, cardGlowClass, showSheen, ringColor, ringWidth, materialKey } = getLevelBasedStyles(displayLevel);
-    const anim = getAchievementAnimation(achievement.id, materialKey, Math.max(1, Math.min(displayLevel || 1, 10)));
+    const frameUrl = getFrameUrl(achievement.id, displayRank);
 
     const handleClaimClick = (e: React.MouseEvent<HTMLButtonElement>) => {
         e.stopPropagation();
         if (hasUnclaimedRewards) {
-            const levelToClaim = Math.min(...unclaimedRewards);
-            const tier = achievement.tiers.find(t => t.level === levelToClaim);
-            onClaimReward(achievement.id, levelToClaim, e.currentTarget);
-            // Animación local
-            const card = (e.currentTarget.closest('.group') as HTMLElement) || e.currentTarget as unknown as HTMLElement;
-            card.classList.add('ach-claim-burst');
-            setTimeout(() => card.classList.remove('ach-claim-burst'), 900);
-            // Feedback flotante
-            setClaimFeedback({ xp: tier?.reward?.xp, bones: tier?.reward?.bones, key: Date.now() });
-            setTimeout(() => setClaimFeedback(null), 1200);
+            const rankToClaim = unclaimedRanks[0];
+            const tierToClaim = achievement.tiers.find(t => t.rank === rankToClaim);
+            if (tierToClaim) {
+                onClaimReward(achievement.id, tierToClaim.rank, tierToClaim.level, e.currentTarget);
+                
+                const card = (e.currentTarget.closest('.group') as HTMLElement) || e.currentTarget as unknown as HTMLElement;
+                card.classList.add('ach-claim-burst');
+                setTimeout(() => card.classList.remove('ach-claim-burst'), 900);
+                
+                setClaimFeedback({ xp: tierToClaim.reward?.xp, bones: tierToClaim.reward?.bones, key: Date.now() });
+                setTimeout(() => setClaimFeedback(null), 1200);
+            }
         }
     };
     
@@ -196,21 +163,11 @@ const AchievementCard: React.FC<{ achievement: Achievement; userData: UserData; 
       )}
       <div className="relative flex flex-col items-center justify-between h-[260px] sm:h-[280px] p-4 sm:p-6">
         <AchievementCircle
-          level={displayLevel}
-          levelIndicatorStyle={levelIndicatorStyle}
-          levelIndicatorAnimationClass={levelIndicatorAnimationClass}
-          cardGlowStyle={cardGlowStyle}
-          cardGlowClass={cardGlowClass}
-          showSheen={showSheen}
-          ringColor={ringColor}
-          ringWidth={ringWidth}
+          frameUrl={frameUrl}
           icon={achievement.icon}
-          materialKey={materialKey}
-          overlayClass={anim.overlayClass}
-          ringAnimClass={anim.ringClass}
-          iconAnimClass={anim.iconClass}
-          numberClass={anim.numberClass}
-          overlayStyle={anim.styleVars}
+          level={displayLevel}
+          rank={displayRank}
+          achievementId={achievement.id}
         />
 
         <div className="w-full text-center mt-3">
@@ -276,10 +233,10 @@ const AchievementsScreen: React.FC<AchievementsScreenProps> = ({ userData, onCla
           </h2>
           <HelpIcon modalTitle="Cómo funcionan los Logros" ariaLabel="Cómo funcionan los Logros">
             <ul>
-              <li>Cada logro tiene <strong>10 niveles</strong> desde Madera → Diamante.</li>
+              <li>Cada logro tiene <strong>6 rangos</strong>: Bronce, Plata, Oro, Rubí, Esmeralda y Diamante.</li>
               <li>Al subir de nivel, aparecen <strong>recompensas pendientes</strong> para reclamar.</li>
-              <li>El halo y el anillo reflejan el <strong>material</strong> de tu nivel actual.</li>
-              <li>Apunta a un <strong>nivel diamante</strong> como objetivo máximo <StarFilled className="inline w-4 h-4"/>.</li>
+              <li>El marco del logro refleja tu <strong>rango</strong> actual.</li>
+              <li>¡Apunta al <strong>rango de Diamante</strong> como objetivo máximo <StarFilled className="inline w-4 h-4"/>!</li>
             </ul>
           </HelpIcon>
         </div>
@@ -300,7 +257,7 @@ const AchievementsScreen: React.FC<AchievementsScreenProps> = ({ userData, onCla
       </div>
       {showHelp && (
         <div id="achievements-help" className="mb-6 md:mb-8 p-3 sm:p-4 bg-slate-800/50 border border-slate-700/60 rounded-lg text-slate-300 text-xs sm:text-sm leading-relaxed">
-          Gana niveles de logro completando objetivos. Cada logro tiene 10 niveles (Madera → Diamante). Las animaciones y el halo reflejan el material y el tipo de logro. La barra indica tu progreso hacia el siguiente nivel.
+          Gana rangos de logro completando objetivos. Cada logro tiene 6 rangos (Bronce → Diamante). El marco refleja el rango y el tipo de logro. La barra indica tu progreso hacia el siguiente rango.
             </div>
       )}
       <div className="grid grid-cols-3 gap-x-10 gap-y-28 place-items-center">

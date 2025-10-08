@@ -23,7 +23,7 @@ const StatCard: React.FC<{ icon: React.ReactNode; label: string; value: string |
 	</div>
 ));
 
-const ProfileScreen: React.FC<ProfileScreenProps> = ({ userData, onAvatarChange, onNameChange, xpInCurrentLevel, xpNeededForNextLevel, onSignOut }) => {
+const ProfileScreen: React.FC<ProfileScreenProps> = ({ userData, onAvatarChange, onNameChange, xpInCurrentLevel, xpNeededForNextLevel, onSignOut, onClaimChallengeReward }) => {
 	const [isEditingName, setIsEditingName] = useState(false);
 	const [nameInput, setNameInput] = useState(userData.name);
 	const [isReadyForInput, setIsReadyForInput] = useState(false);
@@ -123,6 +123,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ userData, onAvatarChange,
 				userData={userData}
 				auth={authForFriends}
 				onBack={() => setShowFriendsView(false)}
+				onClaimChallengeReward={onClaimChallengeReward}
 			/>
 		);
 	}

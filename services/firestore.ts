@@ -1,5 +1,5 @@
 import { getApp } from 'firebase/app';
-import { getFirestore, doc, setDoc, serverTimestamp, getDocs, collection, query, orderBy, limit, Firestore, addDoc, getDoc, where, updateDoc } from 'firebase/firestore';
+import { getFirestore, doc, setDoc, serverTimestamp, getDocs, collection, query, orderBy, limit, Firestore, addDoc, getDoc, where, updateDoc, onSnapshot, Unsubscribe } from 'firebase/firestore';
 import { getDb } from './firebase';
 
 export type PublicUser = {
@@ -298,7 +298,14 @@ export type FriendChallenge = {
   endDate: any;
   fromUserScore: number;
   toUserScore: number;
+  // Para accuracy_battle: tracking de correctas/totales
+  fromUserCorrect?: number;
+  fromUserTotal?: number;
+  toUserCorrect?: number;
+  toUserTotal?: number;
   targetScore?: number;
+  winner?: string; // uid del ganador, o 'tie' si empate
+  rewardClaimed?: boolean; // si el ganador ya reclamó su recompensa
   rules?: {
     timeLimit?: number;
     questionCount?: number;
@@ -375,34 +382,17 @@ export const challengeFriend = async (fromUid: string, toUid: string, challengeT
       throw new Error('Firestore no disponible');
     }
     
-    // Calculate end date based on challenge type
+    // Todos los desafíos duran 3 minutos
     const now = new Date();
-    let endDate: Date;
-    
-    switch (challengeType) {
-      case 'weekly_score':
-        endDate = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
-        break;
-      case 'quiz_streak':
-        endDate = new Date(now.getTime() + 3 * 24 * 60 * 60 * 1000);
-        break;
-      case 'accuracy_battle':
-        endDate = new Date(now.getTime() + 24 * 60 * 60 * 1000);
-        break;
-      case 'speed_run':
-        endDate = new Date(now.getTime() + 60 * 60 * 1000); // 1 hour
-        break;
-      default:
-        endDate = new Date(now.getTime() + 24 * 60 * 60 * 1000);
-    }
+    const endDate = new Date(now.getTime() + 3 * 60 * 1000); // 3 minutos
     
     await addDoc(collection(db, 'friendChallenges'), {
       fromUid,
       toUid,
       type: challengeType,
-      status: 'pending',
+      status: 'active', // Cambiar a 'active' inmediatamente
       createdAt: serverTimestamp(),
-      endDate: serverTimestamp(),
+      endDate: endDate,
       fromUserScore: 0,
       toUserScore: 0,
       rules: rules || {}
@@ -421,16 +411,16 @@ export const getActiveChallenges = async (uid: string): Promise<FriendChallenge[
       return [];
     }
     
-    // Get challenges where user is either sender or receiver
+    // Get challenges where user is either sender or receiver (incluye 'completed' para recompensas)
     const qSent = query(
       collection(db, 'friendChallenges'),
       where('fromUid', '==', uid),
-      where('status', 'in', ['pending', 'active'])
+      where('status', 'in', ['pending', 'active', 'completed'])
     );
     const qReceived = query(
       collection(db, 'friendChallenges'),
       where('toUid', '==', uid),
-      where('status', 'in', ['pending', 'active'])
+      where('status', 'in', ['pending', 'active', 'completed'])
     );
     
     const [sentSnap, receivedSnap] = await Promise.all([getDocs(qSent), getDocs(qReceived)]);
@@ -442,5 +432,332 @@ export const getActiveChallenges = async (uid: string): Promise<FriendChallenge[
   } catch (error) {
     console.warn('Error obteniendo desafíos activos:', error);
     return [];
+  }
+};
+
+// Listener en tiempo real para desafíos activos
+export const subscribeToActiveChallenges = (
+  uid: string, 
+  onUpdate: (challenges: FriendChallenge[]) => void
+): Unsubscribe => {
+  const db = resolveDb();
+  if (!db) {
+    console.warn('Firestore no disponible');
+    return () => {};
+  }
+
+  const unsubscribers: Unsubscribe[] = [];
+
+  // Query para desafíos enviados (incluye 'completed' para poder reclamar recompensas)
+  const qSent = query(
+    collection(db, 'friendChallenges'),
+    where('fromUid', '==', uid),
+    where('status', 'in', ['pending', 'active', 'completed'])
+  );
+
+  // Query para desafíos recibidos (incluye 'completed' para poder reclamar recompensas)
+  const qReceived = query(
+    collection(db, 'friendChallenges'),
+    where('toUid', '==', uid),
+    where('status', 'in', ['pending', 'active', 'completed'])
+  );
+
+  let sentChallenges: FriendChallenge[] = [];
+  let receivedChallenges: FriendChallenge[] = [];
+
+  const updateChallenges = () => {
+    const allChallenges = [...sentChallenges, ...receivedChallenges];
+    // Eliminar duplicados por ID
+    const uniqueChallenges = Array.from(
+      new Map(allChallenges.map(c => [c.id, c])).values()
+    );
+    onUpdate(uniqueChallenges);
+  };
+
+  // Listener para desafíos enviados
+  const unsubSent = onSnapshot(qSent, (snapshot) => {
+    sentChallenges = snapshot.docs.map(d => ({ 
+      id: d.id, 
+      ...(d.data() as Omit<FriendChallenge, 'id'>) 
+    }));
+    updateChallenges();
+  }, (error) => {
+    console.warn('Error en listener de desafíos enviados:', error);
+  });
+
+  // Listener para desafíos recibidos
+  const unsubReceived = onSnapshot(qReceived, (snapshot) => {
+    receivedChallenges = snapshot.docs.map(d => ({ 
+      id: d.id, 
+      ...(d.data() as Omit<FriendChallenge, 'id'>) 
+    }));
+    updateChallenges();
+  }, (error) => {
+    console.warn('Error en listener de desafíos recibidos:', error);
+  });
+
+  unsubscribers.push(unsubSent, unsubReceived);
+
+  // Retornar función para cancelar todas las suscripciones
+  return () => {
+    unsubscribers.forEach(unsub => unsub());
+  };
+};
+
+// Listener en tiempo real para regalos pendientes
+export const subscribeToPendingGifts = (
+  uid: string,
+  onUpdate: (gifts: FriendGift[]) => void
+): Unsubscribe => {
+  const db = resolveDb();
+  if (!db) {
+    console.warn('Firestore no disponible');
+    return () => {};
+  }
+
+  const q = query(
+    collection(db, 'friendGifts'),
+    where('toUid', '==', uid),
+    where('status', '==', 'pending'),
+    orderBy('createdAt', 'desc')
+  );
+
+  return onSnapshot(q, (snapshot) => {
+    const gifts = snapshot.docs.map(d => ({ 
+      id: d.id, 
+      ...(d.data() as Omit<FriendGift, 'id'>) 
+    }));
+    onUpdate(gifts);
+  }, (error) => {
+    if (error?.code === 'permission-denied' || error?.message?.includes('permission')) {
+      // Silenciar errores de permisos
+      return;
+    }
+    console.warn('Error en listener de regalos:', error);
+  });
+};
+
+// Limpiar desafíos finalizados (más de 8 horas después de expirar)
+export const cleanupExpiredChallenges = async (uid: string): Promise<void> => {
+  try {
+    const db = resolveDb();
+    if (!db) return;
+
+    const now = Date.now();
+    const eightHoursAgo = now - 8 * 60 * 60 * 1000;
+
+    // Buscar desafíos donde el usuario participa
+    const qSent = query(
+      collection(db, 'friendChallenges'),
+      where('fromUid', '==', uid)
+    );
+    const qReceived = query(
+      collection(db, 'friendChallenges'),
+      where('toUid', '==', uid)
+    );
+
+    const [sentSnap, receivedSnap] = await Promise.all([getDocs(qSent), getDocs(qReceived)]);
+    
+    const deletions: Promise<void>[] = [];
+    
+    // Primero marcar ganadores de desafíos que acaban de expirar
+    const updates: Promise<void>[] = [];
+    
+    [...sentSnap.docs, ...receivedSnap.docs].forEach(docSnap => {
+      const challenge = docSnap.data() as FriendChallenge;
+      
+      // Verificar si el desafío ha expirado
+      let endTime: number;
+      if (challenge.endDate?.toMillis) {
+        endTime = challenge.endDate.toMillis();
+      } else if (challenge.endDate instanceof Date) {
+        endTime = challenge.endDate.getTime();
+      } else if (typeof challenge.endDate === 'string') {
+        endTime = new Date(challenge.endDate).toMillis();
+      } else {
+        return; // No se puede determinar la fecha
+      }
+      
+      // Si está activo y ya expiró, determinar ganador
+      if (challenge.status === 'active' && endTime < now) {
+        let winner: string | undefined;
+        
+        if (challenge.fromUserScore > challenge.toUserScore) {
+          winner = challenge.fromUid;
+        } else if (challenge.toUserScore > challenge.fromUserScore) {
+          winner = challenge.toUid;
+        } else {
+          winner = 'tie';
+        }
+        
+        updates.push(
+          updateDoc(doc(db, 'friendChallenges', docSnap.id), {
+            status: 'completed',
+            winner: winner,
+            rewardClaimed: false
+          })
+        );
+      }
+      
+      // Si ha expirado hace más de 8 horas O si ya se reclamó la recompensa, marcarlo como expired
+      if (endTime < eightHoursAgo || (challenge.status === 'completed' && challenge.rewardClaimed)) {
+        deletions.push(
+          updateDoc(doc(db, 'friendChallenges', docSnap.id), {
+            status: 'expired'
+          })
+        );
+      }
+    });
+    
+    await Promise.all([...updates, ...deletions]);
+  } catch (error) {
+    console.warn('Error limpiando desafíos expirados:', error);
+  }
+};
+
+// Actualizar puntuación de desafíos activos
+export const updateChallengeScore = async (uid: string, scoreToAdd: number, quizzesCompleted: number = 0, correctAnswers: number = 0, questionsAnswered: number = 0): Promise<void> => {
+  try {
+    const db = resolveDb();
+    if (!db) {
+      console.warn('Firestore no disponible');
+      return;
+    }
+
+    // Obtener desafíos activos donde el usuario participa
+    const qSent = query(
+      collection(db, 'friendChallenges'),
+      where('fromUid', '==', uid),
+      where('status', '==', 'active')
+    );
+    const qReceived = query(
+      collection(db, 'friendChallenges'),
+      where('toUid', '==', uid),
+      where('status', '==', 'active')
+    );
+
+    const [sentSnap, receivedSnap] = await Promise.all([getDocs(qSent), getDocs(qReceived)]);
+    
+    // Actualizar todos los desafíos activos
+    const updates: Promise<void>[] = [];
+    
+    sentSnap.docs.forEach(docSnap => {
+      const challenge = docSnap.data() as FriendChallenge;
+      const currentScore = challenge.fromUserScore || 0;
+      
+      // Calcular puntuación según el tipo de desafío
+      let newScore = currentScore;
+      const updateData: any = {};
+      
+      switch (challenge.type) {
+        case 'weekly_score':
+          // Sumar XP directamente
+          newScore = currentScore + scoreToAdd;
+          updateData.fromUserScore = newScore;
+          break;
+        case 'quiz_streak':
+          // Contar quizzes perfectos (solo si accuracy es 100%)
+          const isPerfect = questionsAnswered > 0 && correctAnswers === questionsAnswered;
+          newScore = currentScore + (isPerfect ? 1 : 0);
+          updateData.fromUserScore = newScore;
+          break;
+        case 'accuracy_battle':
+          // Calcular porcentaje de aciertos
+          const newCorrect = (challenge.fromUserCorrect || 0) + correctAnswers;
+          const newTotal = (challenge.fromUserTotal || 0) + questionsAnswered;
+          newScore = newTotal > 0 ? Math.round((newCorrect / newTotal) * 100) : 0;
+          updateData.fromUserScore = newScore;
+          updateData.fromUserCorrect = newCorrect;
+          updateData.fromUserTotal = newTotal;
+          break;
+        case 'speed_run':
+          // Sumar preguntas respondidas (velocidad)
+          newScore = currentScore + questionsAnswered;
+          updateData.fromUserScore = newScore;
+          break;
+      }
+      
+      updates.push(
+        updateDoc(doc(db, 'friendChallenges', docSnap.id), updateData)
+      );
+    });
+    
+    receivedSnap.docs.forEach(docSnap => {
+      const challenge = docSnap.data() as FriendChallenge;
+      const currentScore = challenge.toUserScore || 0;
+      
+      // Calcular puntuación según el tipo de desafío
+      let newScore = currentScore;
+      const updateData: any = {};
+      
+      switch (challenge.type) {
+        case 'weekly_score':
+          newScore = currentScore + scoreToAdd;
+          updateData.toUserScore = newScore;
+          break;
+        case 'quiz_streak':
+          // Contar quizzes perfectos (solo si accuracy es 100%)
+          const isPerfect = questionsAnswered > 0 && correctAnswers === questionsAnswered;
+          newScore = currentScore + (isPerfect ? 1 : 0);
+          updateData.toUserScore = newScore;
+          break;
+        case 'accuracy_battle':
+          // Calcular porcentaje de aciertos
+          const newCorrect = (challenge.toUserCorrect || 0) + correctAnswers;
+          const newTotal = (challenge.toUserTotal || 0) + questionsAnswered;
+          newScore = newTotal > 0 ? Math.round((newCorrect / newTotal) * 100) : 0;
+          updateData.toUserScore = newScore;
+          updateData.toUserCorrect = newCorrect;
+          updateData.toUserTotal = newTotal;
+          break;
+        case 'speed_run':
+          newScore = currentScore + questionsAnswered;
+          updateData.toUserScore = newScore;
+          break;
+      }
+      
+      updates.push(
+        updateDoc(doc(db, 'friendChallenges', docSnap.id), updateData)
+      );
+    });
+
+    await Promise.all(updates);
+  } catch (error) {
+    console.warn('Error actualizando puntuación de desafíos:', error);
+  }
+};
+
+// Reclamar recompensa de un desafío ganado
+export const claimChallengeReward = async (challengeId: string, uid: string): Promise<void> => {
+  try {
+    const db = resolveDb();
+    if (!db) {
+      throw new Error('Firestore no disponible');
+    }
+    
+    // Obtener el desafío
+    const challengeDoc = await getDoc(doc(db, 'friendChallenges', challengeId));
+    if (!challengeDoc.exists()) {
+      throw new Error('Desafío no encontrado');
+    }
+    
+    const challenge = challengeDoc.data() as FriendChallenge;
+    
+    // Verificar que el usuario es el ganador y no ha reclamado aún
+    if (challenge.winner !== uid) {
+      throw new Error('No eres el ganador de este desafío');
+    }
+    
+    if (challenge.rewardClaimed) {
+      throw new Error('Ya reclamaste la recompensa de este desafío');
+    }
+    
+    // Marcar como reclamado
+    await updateDoc(doc(db, 'friendChallenges', challengeId), {
+      rewardClaimed: true
+    });
+  } catch (error) {
+    console.warn('Error reclamando recompensa de desafío:', error);
+    throw error;
   }
 };

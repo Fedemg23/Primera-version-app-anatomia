@@ -5,6 +5,10 @@ import type { AuthUser, UserData } from '../../types';
 import { achievementsData } from '../../constants';
 import { iconMap } from '../icons';
 
+// Lista de logros que tienen imagen completa (sin emoji)
+// Agrega aquí el ID de nuevos logros cuando tengan imágenes completas
+const ACHIEVEMENTS_WITH_FULL_IMAGE = ['quiz_completer'];
+
 const LeaderboardScreen: React.FC = () => {
     const [users, setUsers] = useState<PublicUser[]>([]);
     const [loading, setLoading] = useState(true);
@@ -117,27 +121,85 @@ const LeaderboardScreen: React.FC = () => {
         }
     };
 
+    const getFrameUrl = (achievementId: string, rank: 'bronze' | 'silver' | 'gold' | 'ruby' | 'emerald' | 'diamond'): string => {
+        if (achievementId === 'quiz_completer') {
+            const specialNames: Record<string, string> = {
+                'bronze': 'Maestro_De_Los_Quizzes_Bronce',
+                'silver': 'Maestro_De_Quizzes_Plata',
+                'gold': 'Maestro_De_Quizzes_Oro',
+                'ruby': 'Maestro_De_Los_Quizzes_Rubi_',
+                'emerald': 'Maestro_De_Los_Quizzes_Esmeralda',
+                'diamond': 'Maestro_De_Los_Quizzes_Diamante'
+            };
+            return `/images/Achievements/${specialNames[rank]}.png`;
+        } else {
+            const genericNames: Record<string, string> = {
+                'bronze': 'Logros_Bronce',
+                'silver': 'Logros_Plata',
+                'gold': 'Logros_Oro',
+                'ruby': 'Logros_Rubí',
+                'emerald': 'Logros_Esmeralda',
+                'diamond': 'Logros_Diamante_'
+            };
+            return `/images/Achievements/${genericNames[rank]}.png`;
+        }
+    };
+
     const renderAchievements = (u: PublicUser) => {
-        const entries = Object.entries(u.unlockedAchievements || {});
-        if (entries.length === 0) return <span className="text-slate-500 text-sm">Sin logros</span>;
+        // Mostrar todos los logros, tanto desbloqueados como bloqueados
+        const allAchievements = achievementsData;
+        
         return (
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 max-h-60 overflow-auto pr-1">
-                {entries.map(([id, lvl]) => {
-                    const ach = achievementsData.find(a => a.id === id);
-                    const Icon = ach ? (iconMap as any)[ach.icon] : null;
+                {allAchievements.map((ach) => {
+                    const unlockedLevel = u.unlockedAchievements?.[ach.id] || 0;
+                    const isLocked = unlockedLevel === 0;
+                    const Icon = (iconMap as any)[ach.icon];
+                    
+                    // Determinar el rango según el nivel desbloqueado
+                    const tier = ach.tiers.find(t => t.level === unlockedLevel);
+                    const rank = tier?.rank || 'bronze';
+                    const frameUrl = getFrameUrl(ach.id, rank);
+                    
+                    // Verificar si el logro tiene imagen completa (sin emoji)
+                    const hasFullImage = ACHIEVEMENTS_WITH_FULL_IMAGE.includes(ach.id);
+                    
                     return (
-                        <div key={id} className="relative bg-slate-800/60 border border-slate-700 rounded-xl p-3 flex items-center gap-3 hover:bg-slate-800 transition-colors">
+                        <div key={ach.id} className={`relative bg-slate-800/60 border border-slate-700 rounded-xl p-3 flex items-center gap-3 transition-colors ${isLocked ? 'opacity-60' : 'hover:bg-slate-800'}`}>
                             <div className="relative">
-                                <div className="w-10 h-10 rounded-full bg-slate-700 flex items-center justify-center text-xl">
-                                    {Icon ? <Icon className="w-6 h-6"/> : <span>🏆</span>}
+                                <div 
+                                    className="w-10 h-10 rounded-full flex items-center justify-center text-xl relative"
+                                    style={{
+                                        backgroundImage: `url("${frameUrl}")`,
+                                        backgroundSize: 'contain',
+                                        backgroundPosition: 'center',
+                                        backgroundRepeat: 'no-repeat',
+                                        filter: isLocked ? 'grayscale(100%) brightness(0.6)' : 'none',
+                                        opacity: isLocked ? 0.7 : 1
+                                    }}
+                                >
+                                    {!hasFullImage && (
+                                        <span style={{
+                                            filter: isLocked ? 'grayscale(100%) brightness(0.6)' : 'none',
+                                            opacity: isLocked ? 0.7 : 1
+                                        }}>
+                                            {Icon ? <Icon className="w-6 h-6"/> : <span>🏆</span>}
+                                        </span>
+                                    )}
                                 </div>
-                                <span className="absolute -top-2 -right-2 bg-amber-400 text-black text-[10px] font-black px-1.5 py-0.5 rounded-full border border-amber-500 shadow">
-                                    Lv {lvl as number}
-                                </span>
+                                {!isLocked && (
+                                    <span className="absolute -top-2 -right-2 bg-amber-400 text-black text-[10px] font-black px-1.5 py-0.5 rounded-full border border-amber-500 shadow">
+                                        Lv {unlockedLevel}
+                                    </span>
+                                )}
                             </div>
                             <div className="min-w-0">
-                                <div className="text-slate-100 text-sm font-bold truncate">{ach?.name || id}</div>
-                                <div className="text-slate-400 text-[11px] truncate">{ach?.tiers.find(t=>t.level===1)?.description || 'Logro desbloqueado'}</div>
+                                <div className={`text-sm font-bold truncate ${isLocked ? 'text-slate-500' : 'text-slate-100'}`}>
+                                    {isLocked ? '???' : ach.name}
+                                </div>
+                                <div className="text-slate-400 text-[11px] truncate">
+                                    {isLocked ? 'Logro bloqueado' : (ach.tiers.find(t=>t.level===1)?.description || 'Logro desbloqueado')}
+                                </div>
                             </div>
                         </div>
                     );

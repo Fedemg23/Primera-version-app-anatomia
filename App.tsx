@@ -44,7 +44,7 @@ import { imageAvatars } from './src/avatarLoader';
 import { getWeightedReward } from './src/features/rewards';
 import { AudioProvider, useAudio } from './src/contexts/AudioProvider';
 import { AnimationProvider } from './components/AnimationProvider';
-import { upsertUser, setUserActive } from './services/firestore';
+import { upsertUser, setUserActive, updateChallengeScore } from './services/firestore';
 import { getIncomingFriendRequests } from './services/firestore';
 import LeaderboardScreen from './components/screens/LeaderboardScreen';
 import FriendsScreen from './components/screens/FriendsScreen';
@@ -1040,6 +1040,17 @@ const App: React.FC = () => {
                 xpEarned: oldUserData.dailyStats.xpEarned + earnedXp,
                 perfectQuizzes: oldUserData.dailyStats.perfectQuizzes + (isPerfect && !isPractice ? 1 : 0),
             };
+
+            // Actualizar puntuaciones de desafíos activos
+            if (auth?.uid && !isPractice) {
+                updateChallengeScore(
+                    auth.uid,
+                    earnedXp, // XP ganado
+                    isPerfect ? 1 : 0, // Quizzes perfectos
+                    correctCount, // Respuestas correctas
+                    questions.length // Total de preguntas respondidas
+                ).catch(err => console.warn('Error actualizando desafíos:', err));
+            }
             
             const { leveledUpItems, newUnclaimedRewards, finalLevel } = handleQuizCompletionAchievements(oldUserData, newUserData);
             newUserData.level = finalLevel;
@@ -1279,6 +1290,15 @@ const App: React.FC = () => {
         setActiveModal(null); // Close the modal after claiming
     };
 
+    const handleClaimChallengeReward = useCallback((challengeId: string) => {
+        // Generar una recompensa aleatoria
+        const chosenReward = getWeightedReward();
+        setMysteryBoxReward(chosenReward);
+        
+        // Mostrar la animación de Mystery Box
+        setTimeout(() => setActiveModal('mysteryBox'), 100);
+    }, []);
+
     const handlePurchase = useCallback((itemId: ShopItem['id'], startElement: HTMLElement) => {
         setUserData(prev => {
             if (!prev) return null;
@@ -1381,12 +1401,15 @@ const App: React.FC = () => {
         });
     }, [showToast, triggerAnimation]);
 
-    const handleClaimAchievementReward = useCallback((achievementId: string, level: number, startElement: HTMLElement) => {
+    const handleClaimAchievementReward = useCallback((achievementId: string, rank: any, level: number, startElement: HTMLElement) => {
         if (animatingAchievementId) return;
 
         setAnimatingAchievementId(achievementId);
 
         let leveledUpFromClaim: LeveledUpAchievement[] = [];
+        let bonesReward = 0;
+        let xpReward = 0;
+        
         setUserData(prev => {
             if (!prev) return null;
     
@@ -1401,12 +1424,9 @@ const App: React.FC = () => {
             if (!achievement) return prev;
     
             const tier = achievement.tiers.find(t => t.level === level);
-            const bonesReward = tier?.reward?.bones || 0;
-            const xpReward = tier?.reward?.xp || 0;
+            bonesReward = tier?.reward?.bones || 0;
+            xpReward = tier?.reward?.xp || 0;
             const avatarRewardId = (tier?.reward as { bones?: number; xp?: number; avatarId?: string } | undefined)?.avatarId;
-    
-            if (bonesReward > 0) triggerAnimation({ type: 'bone', count: 8, startElement });
-            if (xpReward > 0) triggerAnimation({ type: 'xp', count: Math.min(10, Math.ceil(xpReward / 20)), startElement });
             
             // Unlock avatar if it's part of the achievement reward
             if (avatarRewardId && !newUserData.unlockedAvatars.includes(avatarRewardId)) {
@@ -1445,6 +1465,10 @@ const App: React.FC = () => {
             return newUserData;
         });
         
+        // Trigger animations AFTER state update
+        if (bonesReward > 0) triggerAnimation({ type: 'bone', count: 8, startElement });
+        if (xpReward > 0) triggerAnimation({ type: 'xp', count: Math.min(10, Math.ceil(xpReward / 20)), startElement });
+        
         setTimeout(() => {
             setAnimatingAchievementId(null);
         }, 800);
@@ -1453,7 +1477,7 @@ const App: React.FC = () => {
         if (leveledUpFromClaim.length > 0) {
             setLeveledUpItemsToShow(leveledUpFromClaim);
         }
-    }, [triggerAnimation, animatingAchievementId]);
+    }, [triggerAnimation, animatingAchievementId, showToast]);
 
     const handleAchievementAction = useCallback((action: Achievement['action']) => {
         if (action) {
@@ -1861,7 +1885,7 @@ const App: React.FC = () => {
             case 'level_rewards':
                 return <LevelRewardsScreen userData={userData} onBack={handleBack} onClaimReward={handleClaimLevelReward} />;
             case 'profile':
-                return <ProfileScreen userData={userData} onAvatarChange={(avatar) => setUserData(p => p ? { ...p, avatar } : null)} onNameChange={(name) => setUserData(p => p ? { ...p, name } : null)} xpInCurrentLevel={xpInCurrentLevel} xpNeededForNextLevel={xpForNextLevel} onSignOut={handleSignOut} />;
+                return <ProfileScreen userData={userData} onAvatarChange={(avatar) => setUserData(p => p ? { ...p, avatar } : null)} onNameChange={(name) => setUserData(p => p ? { ...p, name } : null)} xpInCurrentLevel={xpInCurrentLevel} xpNeededForNextLevel={xpForNextLevel} onSignOut={handleSignOut} onClaimChallengeReward={handleClaimChallengeReward} />;
             case 'quiz': {
                 const isExam = currentQuiz.id === 'exam';
                 const isPractice = currentQuiz.id === 'practice';
@@ -1925,7 +1949,7 @@ const App: React.FC = () => {
                         pendingLevelRewards={pendingLevelRewards}
                         onBack={handleBack}
                         onNavigateToProfile={() => handleNavigate('profile')}
-                        showBackButton={view !== 'home'}
+                        showBackButton={view === 'study' || view === 'exam'}
                         onNavigate={handleNavigate}
                         friendRequestsCount={friendRequestsCount}
                     />

@@ -417,28 +417,24 @@ p, span, button, input, select, textarea, label {
   animation: golden-glow 2s ease-in-out infinite;
 }
 
-/* Explosión de logro */
+/* Explosión de logro - SIMPLIFICADA */
 @keyframes achievement-claim-burst {
   0% {
     transform: scale(1);
-    filter: brightness(1);
-  }
-  25% {
-    transform: scale(1.1);
-    filter: brightness(1.5) drop-shadow(0 0 30px rgba(255, 215, 0, 0.8));
+    opacity: 1;
   }
   50% {
-    transform: scale(0.95);
-    filter: brightness(1.2);
+    transform: scale(1.05);
+    opacity: 0.95;
   }
   100% {
     transform: scale(1);
-    filter: brightness(1);
+    opacity: 1;
   }
 }
 
 .ach-claim-burst {
-  animation: achievement-claim-burst 0.9s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  animation: achievement-claim-burst 0.3s ease-out;
 }
 
 /* Rotación con brillo */

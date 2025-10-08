@@ -1,7 +1,7 @@
 
 import React, { useState, useRef, useEffect, useCallback, memo } from 'react';
 import { CreateNoteScreenProps } from '../../types';
-import { Save, ArrowLeft, Undo2, Eraser, Pencil, Trash2 } from '../icons';
+import { Save, Undo2, Eraser, Pencil, Trash2 } from '../icons';
 
 const colors = ['#FFFFFF', '#EF4444', '#F59E0B', '#22C55E', '#3B82F6', '#A855F7'];
 const strokeWidths = [2, 5, 10, 20];
@@ -158,9 +158,7 @@ const CreateNoteScreen: React.FC<CreateNoteScreenProps> = ({ onSave, onBack }) =
         <div className="flex flex-col h-full bg-slate-900">
             {/* Header */}
             <header className="flex-shrink-0 bg-slate-950/50 backdrop-blur-sm p-3 border-b border-slate-700 z-10 flex items-center justify-between">
-                <button onClick={onBack} className="p-2 rounded-full active:bg-slate-800 transition-colors">
-                    <ArrowLeft className="w-6 h-6 text-slate-200" />
-                </button>
+                <div className="w-10"></div>
                 <h2 className="font-bold text-lg text-white">Crear Nota</h2>
                 <button onClick={handleSaveNote} className="font-bold text-lg text-blue-400 p-2 rounded-lg active:bg-blue-900/50 transition-colors flex items-center gap-2">
                     <Save className="w-6 h-6"/> Guardar

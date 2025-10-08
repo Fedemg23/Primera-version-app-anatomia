@@ -161,8 +161,11 @@ export interface ShopScreenProps {
     onClaimDailyReward: (startElement: HTMLElement) => void;
 }
 
+export type AchievementRank = "bronze" | "silver" | "gold" | "ruby" | "emerald" | "diamond";
+
 export interface AchievementTier {
-  level: number;
+  rank: AchievementRank;
+  level: number; // Mantener para la lógica de recompensa y progreso
   description: string;
   target: number;
   reward?: {
@@ -190,7 +193,7 @@ export interface Achievement {
 
 export interface AchievementsScreenProps {
     userData: UserData;
-    onClaimReward: (achievementId: string, level: number, startElement: HTMLElement) => void;
+    onClaimReward: (achievementId: string, rank: AchievementRank, level: number, startElement: HTMLElement) => void;
     onAction: (action: Achievement['action']) => void;
     animatingAchievementId: string | null;
 }
@@ -357,6 +360,7 @@ export interface ProfileScreenProps {
     xpInCurrentLevel: number;
     xpNeededForNextLevel: number;
     onSignOut: () => void;
+    onClaimChallengeReward?: (challengeId: string) => void;
 }
 
 // --- DUEL MODE TYPES (REWORKED) ---

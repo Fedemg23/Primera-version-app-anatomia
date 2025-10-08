@@ -81,13 +81,13 @@ const FriendGiftsModal: React.FC<FriendGiftsModalProps> = ({
     const getGiftIcon = (type: FriendGift['type']) => {
         switch (type) {
             case 'heart':
-                return <Heart className="w-8 h-8 text-red-400" />;
+                return <Heart className="w-3 h-3 text-red-300" />;
             case 'xp_boost':
-                return <Zap className="w-8 h-8 text-yellow-400" />;
+                return <Zap className="w-3 h-3 text-yellow-300" />;
             case 'hint':
-                return <Lightbulb className="w-8 h-8 text-blue-400" />;
+                return <Lightbulb className="w-3 h-3 text-blue-300" />;
             default:
-                return <Gift className="w-8 h-8 text-purple-400" />;
+                return <Gift className="w-3 h-3 text-purple-300" />;
         }
     };
 
@@ -110,70 +110,97 @@ const FriendGiftsModal: React.FC<FriendGiftsModalProps> = ({
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 p-4">
-            <div className="bg-slate-800 rounded-2xl p-6 w-full max-w-lg max-h-[80vh] overflow-hidden flex flex-col">
+        <div className="fixed inset-0 z-50 grid place-items-center p-4" onClick={onClose}>
+            <div className="absolute inset-0 bg-gradient-to-b from-black/80 via-black/70 to-black/80 backdrop-blur-sm" />
+            <div className="relative w-full max-w-lg max-h-[85vh] rounded-3xl overflow-hidden border-2 border-purple-500/30 shadow-2xl flex flex-col" onClick={e => e.stopPropagation()}>
+                <div className="absolute inset-0 bg-gradient-to-br from-purple-900/40 via-slate-900/90 to-pink-900/40" />
+                
                 {/* Header */}
-                <div className="flex items-center justify-between mb-6">
-                    <div className="flex items-center gap-3">
-                        <Gift className="w-8 h-8 text-purple-400" />
-                        <h2 className="text-2xl font-bold text-white">Regalos de Amigos</h2>
+                <div className="relative px-6 pt-6 pb-4 border-b border-slate-700/50">
+                    <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                            <div className="w-12 h-12 rounded-full bg-gradient-to-br from-purple-500/20 to-pink-500/20 flex items-center justify-center border-2 border-purple-500/30">
+                                <Gift className="w-7 h-7 text-purple-400" />
+                            </div>
+                            <div>
+                                <h2 className="text-2xl font-black text-white">Regalos de Amigos</h2>
+                                <p className="text-sm text-slate-400">{gifts.length > 0 ? `${gifts.length} regalo${gifts.length > 1 ? 's' : ''} pendiente${gifts.length > 1 ? 's' : ''}` : 'No hay regalos'}</p>
+                            </div>
+                        </div>
+                        <button
+                            onClick={onClose}
+                            className="p-2 rounded-lg hover:bg-slate-700/50 text-slate-400 hover:text-white transition-all"
+                        >
+                            <X className="w-6 h-6" />
+                        </button>
                     </div>
-                    <button
-                        onClick={onClose}
-                        className="p-2 text-slate-400 hover:text-white transition-colors"
-                    >
-                        <X className="w-6 h-6" />
-                    </button>
                 </div>
 
                 {/* Content */}
-                <div className="flex-1 overflow-y-auto">
+                <div className="relative flex-1 overflow-y-auto p-6">
                     {loading ? (
-                        <div className="text-center py-8">
-                            <div className="text-slate-400">Cargando regalos...</div>
+                        <div className="text-center py-12">
+                            <div className="w-12 h-12 border-4 border-purple-500/20 border-t-purple-500 rounded-full animate-spin mx-auto mb-4"></div>
+                            <div className="text-slate-400 font-semibold">Cargando regalos...</div>
                         </div>
                     ) : gifts.length === 0 ? (
-                        <div className="text-center py-8 space-y-4">
-                            <Gift className="w-16 h-16 mx-auto text-slate-500" />
-                            <p className="text-slate-400">No tienes regalos pendientes</p>
-                            <p className="text-sm text-slate-500">¡Tus amigos pueden enviarte corazones y otros regalos!</p>
+                        <div className="text-center py-12 space-y-4">
+                            <div className="w-20 h-20 mx-auto rounded-full bg-gradient-to-br from-purple-500/20 to-pink-500/20 flex items-center justify-center border-2 border-slate-700/50">
+                                <Gift className="w-10 h-10 text-slate-500" />
+                            </div>
+                            <div>
+                                <p className="text-slate-300 font-bold text-lg">No tienes regalos pendientes</p>
+                                <p className="text-sm text-slate-500 mt-1">¡Tus amigos pueden enviarte corazones y otros regalos!</p>
+                            </div>
                         </div>
                     ) : (
                         <div className="space-y-3">
                             {gifts.map(gift => (
                                 <div
                                     key={gift.id}
-                                    className="bg-slate-700/50 rounded-xl p-4 border border-slate-600"
+                                    className="relative group"
                                 >
-                                    <div className="flex items-center justify-between">
-                                        <div className="flex items-center gap-3">
-                                            <div className="w-12 h-12 rounded-full bg-slate-600 flex items-center justify-center">
-                                                {gift.sender?.avatar?.includes('/') ? 
-                                                    <img src={gift.sender.avatar} alt="avatar" className="w-12 h-12 rounded-full" /> : 
-                                                    <span className="text-2xl">{gift.sender?.avatar || '👤'}</span>
-                                                }
-                                            </div>
-                                            <div className="flex-1">
-                                                <div className="flex items-center gap-2 mb-1">
-                                                    {getGiftIcon(gift.type)}
-                                                    <span className="font-bold text-white text-sm">
-                                                        {getGiftDescription(gift)}
-                                                    </span>
+                                    <div className="absolute inset-0 bg-gradient-to-r from-purple-500/10 via-pink-500/10 to-rose-500/10 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 blur-xl" />
+                                    <div className="relative bg-slate-800/60 backdrop-blur-sm rounded-2xl p-4 border border-slate-700/50 hover:border-purple-500/30 transition-all duration-300">
+                                        <div className="flex items-start gap-3">
+                                            <div className="relative flex-shrink-0">
+                                                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-slate-700 to-slate-800 flex items-center justify-center border-2 border-slate-600 shadow-inner overflow-hidden">
+                                                    {gift.sender?.avatar?.includes('/') ? 
+                                                        <img src={gift.sender.avatar} alt="avatar" className="w-full h-full object-cover" /> : 
+                                                        <span className="text-xl">{gift.sender?.avatar || '👤'}</span>
+                                                    }
                                                 </div>
-                                                {gift.message && (
-                                                    <p className="text-sm text-slate-300 italic">
-                                                        "{gift.message}"
-                                                    </p>
-                                                )}
+                                                <div className="absolute -bottom-1 -right-1 w-5 h-5 rounded-lg bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center border-2 border-slate-800 shadow-lg">
+                                                    {getGiftIcon(gift.type)}
+                                                </div>
+                                            </div>
+                                            <div className="flex-1 min-w-0">
+                                                <div className="flex items-start justify-between gap-2 mb-1">
+                                                    <div className="min-w-0 flex-1">
+                                                        <p className="font-black text-white text-sm truncate">{getGiftDescription(gift)}</p>
+                                                        {gift.message && (
+                                                            <p className="text-xs text-slate-400 italic mt-1 line-clamp-2">
+                                                                "{gift.message}"
+                                                            </p>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                                <button
+                                                    onClick={() => handleClaimGift(gift)}
+                                                    disabled={claiming === gift.id}
+                                                    className="mt-2 w-full px-4 py-2 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-500 hover:to-emerald-500 text-white rounded-xl font-black text-sm disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 active:scale-95 shadow-lg"
+                                                >
+                                                    {claiming === gift.id ? (
+                                                        <span className="flex items-center justify-center gap-2">
+                                                            <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
+                                                            Reclamando...
+                                                        </span>
+                                                    ) : (
+                                                        '✓ Reclamar Regalo'
+                                                    )}
+                                                </button>
                                             </div>
                                         </div>
-                                        <button
-                                            onClick={() => handleClaimGift(gift)}
-                                            disabled={claiming === gift.id}
-                                            className="px-4 py-2 bg-green-600 text-white rounded-lg font-bold hover:bg-green-500 disabled:opacity-50 transition-colors"
-                                        >
-                                            {claiming === gift.id ? 'Reclamando...' : 'Reclamar'}
-                                        </button>
                                     </div>
                                 </div>
                             ))}
@@ -183,7 +210,7 @@ const FriendGiftsModal: React.FC<FriendGiftsModalProps> = ({
 
                 {/* Footer */}
                 {gifts.length > 0 && (
-                    <div className="mt-6 pt-4 border-t border-slate-700">
+                    <div className="relative px-6 pb-6 pt-4 border-t border-slate-700/50">
                         <button
                             onClick={async () => {
                                 // Claim all gifts
@@ -192,9 +219,9 @@ const FriendGiftsModal: React.FC<FriendGiftsModalProps> = ({
                                 }
                             }}
                             disabled={claiming !== null}
-                            className="w-full px-4 py-3 bg-purple-600 text-white rounded-xl font-bold hover:bg-purple-500 disabled:opacity-50 transition-colors"
+                            className="w-full px-4 py-4 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white rounded-xl font-black disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 active:scale-95 shadow-lg text-lg"
                         >
-                            Reclamar Todos los Regalos
+                            🎁 Reclamar Todos los Regalos
                         </button>
                     </div>
                 )}

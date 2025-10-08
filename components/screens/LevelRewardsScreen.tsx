@@ -1,5 +1,5 @@
 import React, { memo } from 'react';
-import { ArrowLeft, Award, Zap, Shield, Heart, Star } from '../icons';
+import { Award, Zap, Shield, Heart, Star } from '../icons';
 import { LEVEL_REWARDS, MAX_LEVEL, AVATAR_DATA } from '../../constants';
 import { UserData } from '../../types';
 import { useAudio } from '../../src/contexts/AudioProvider';
