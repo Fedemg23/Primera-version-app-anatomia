@@ -81,3 +81,5 @@ Si sigues viendo errores después de desplegar:
 - ✅ `firestore.indexes.json` - Índices para consultas
 - ✅ `firestore.rules` - Ya existía, con reglas actualizadas
 
+
+

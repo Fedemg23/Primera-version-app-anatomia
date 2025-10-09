@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback, useRef, useMemo, memo } from '
 import { GoogleGenAI, Chat, Type } from "@google/genai";
 
 import { 
-    UserData, AuthUser, LastQuizResult, QuestionData, DailyChallenge, ShopItem, MysteryReward, Avatar, ExamResult, LifelineData, View, ExamConfigSelection, LeveledUpAchievement, Achievement, SettingsPopoverProps, AnimationType, AIOpponent, DuelState, DuelSummaryScreenProps, DuelMessage, MasterNote, UserNote
+    UserData, AuthUser, LastQuizResult, QuestionData, DailyChallenge, ShopItem, MysteryReward, Avatar, ExamResult, LifelineData, View, ExamConfigSelection, LeveledUpAchievement, Achievement, SettingsPopoverProps, AnimationType, AIOpponent, DuelState, DuelSummaryScreenProps, DuelMessage, MasterNote, UserNote, RankedProfile, MatchMode
 } from './types';
 import { 
     LEVEL_REWARDS, MAX_LEVEL, achievementsData, shopItems, questionBank, PASS_THRESHOLD, AVATAR_DATA, dailyChallengesData, navigationData, HEART_REGEN_TIME, aiOpponentsData
@@ -39,12 +39,17 @@ import DuelSummaryScreen from './components/screens/DuelSummaryScreen';
 import CreateNoteScreen from './components/screens/CreateNoteScreen'; 
 import LoadingScreen from './components/LoadingScreen';
 import LevelRewardsScreen from './components/screens/LevelRewardsScreen';
+import RankedScreen from './components/screens/RankedScreen';
+import MatchmakingModal from './components/MatchmakingModal';
+import RankedMatchScreen, { MatchResult } from './components/screens/RankedMatchScreen';
+import RankedMatchSummary from './components/RankedMatchSummary';
 import { preloadImages } from './src/utils';
 import { imageAvatars } from './src/avatarLoader';
 import { getWeightedReward } from './src/features/rewards';
 import { AudioProvider, useAudio } from './src/contexts/AudioProvider';
 import { AnimationProvider } from './components/AnimationProvider';
-import { upsertUser, setUserActive, updateChallengeScore } from './services/firestore';
+import { upsertUser, setUserActive, updateChallengeScore, getRankedProfile, updateRankedProfile, recordMatch } from './services/firestore';
+import { calculateRatingDelta, getLeagueFromRating } from './utils/rankedElo';
 import { getIncomingFriendRequests } from './services/firestore';
 import LeaderboardScreen from './components/screens/LeaderboardScreen';
 import FriendsScreen from './components/screens/FriendsScreen';
@@ -106,7 +111,7 @@ const NoLivesModal: React.FC<{
 
 const App: React.FC = () => {
     // --- STATE MANAGEMENT ---
-    const { playMusic, stopMusic } = useAudio();
+    const { playMusic, stopMusic, playSound } = useAudio();
     const [isLoading, setIsLoading] = useState(true);
     const [isInitialLoad, setIsInitialLoad] = useState(true);
     
@@ -142,6 +147,25 @@ const App: React.FC = () => {
     // Duel State
     const [duelState, setDuelState] = useState<DuelState | null>(null);
     const [duelSummary, setDuelSummary] = useState<Omit<DuelSummaryScreenProps, 'onPlayAgain' | 'onContinue'> | null>(null);
+    
+    // Ranked state
+    const [rankedProfile, setRankedProfile] = useState<RankedProfile | null>(null);
+    const [isMatchmaking, setIsMatchmaking] = useState(false);
+    const [selectedMatchMode, setSelectedMatchMode] = useState<MatchMode>('Clasico');
+    const [rankedMatchData, setRankedMatchData] = useState<{
+        questions: QuestionData[];
+        opponentData: { userId: string; name: string; avatar: string; rating: number; league: League };
+    } | null>(null);
+    const [rankedMatchResult, setRankedMatchResult] = useState<{
+        winner: 'me' | 'opponent' | 'draw';
+        myScore: number;
+        opponentScore: number;
+        ratingChange: number;
+        newRating: number;
+        oldRating: number;
+        newLeague: League;
+        oldLeague: League;
+    } | null>(null);
 
     // Modals & UI Feedback State
     const [activeModal, setActiveModal] = useState<ModalType | null>(null);
@@ -1094,6 +1118,123 @@ const App: React.FC = () => {
 
     const duelCorrectRef = useRef(0);
 
+    // Ranked handlers
+    const handleStartMatchmaking = useCallback((mode: MatchMode) => {
+        setSelectedMatchMode(mode);
+        setIsMatchmaking(true);
+        playSound('button-click');
+    }, [playSound]);
+
+    const handleCancelMatchmaking = useCallback(() => {
+        setIsMatchmaking(false);
+        playSound('button-click');
+    }, [playSound]);
+
+    const handleMatchFound = useCallback((opponentData: any) => {
+        setIsMatchmaking(false);
+        
+        // Seleccionar 10 preguntas aleatorias del banco
+        const shuffled = [...questionBank].sort(() => Math.random() - 0.5);
+        const selectedQuestions = shuffled.slice(0, 10);
+        
+        setRankedMatchData({
+            questions: selectedQuestions,
+            opponentData
+        });
+        
+        setView('ranked_match');
+        showToast(`¡Match encontrado vs ${opponentData.name}!`, 'success');
+    }, [showToast]);
+
+    const handleRankedMatchComplete = useCallback(async (matchResult: MatchResult) => {
+        if (!rankedProfile || !auth || !userData || !rankedMatchData) return;
+        
+        try {
+            const oldRating = rankedProfile.rating;
+            const oldLeague = rankedProfile.league;
+            const opponentRating = rankedMatchData.opponentData.rating;
+            
+            // Calcular delta de rating
+            const outcome = matchResult.winner === 'me' ? 1 : matchResult.winner === 'draw' ? 0.5 : 0;
+            const delta = calculateRatingDelta(
+                oldRating,
+                opponentRating,
+                outcome,
+                rankedProfile.streak,
+                rankedProfile.league,
+                rankedProfile.provisionalGames,
+                Math.abs(matchResult.myScore - matchResult.opponentScore)
+            );
+            
+            const newRating = oldRating + delta;
+            const newLeague = getLeagueFromRating(newRating);
+            const newStreak = matchResult.winner === 'me' ? rankedProfile.streak + 1 : 0;
+            
+            // Actualizar perfil ranked
+            await updateRankedProfile(auth.uid, {
+                rating: newRating,
+                league: newLeague,
+                streak: newStreak,
+                bestRating: Math.max(rankedProfile.bestRating || 0, newRating),
+                totalMatches: (rankedProfile.totalMatches || 0) + 1,
+                wins: matchResult.winner === 'me' ? (rankedProfile.wins || 0) + 1 : rankedProfile.wins,
+                losses: matchResult.winner === 'opponent' ? (rankedProfile.losses || 0) + 1 : rankedProfile.losses,
+                draws: matchResult.winner === 'draw' ? (rankedProfile.draws || 0) + 1 : rankedProfile.draws,
+                provisionalGames: Math.max(0, rankedProfile.provisionalGames - 1)
+            });
+            
+            // Actualizar estado local
+            setRankedProfile(prev => prev ? {
+                ...prev,
+                rating: newRating,
+                league: newLeague,
+                streak: newStreak,
+                bestRating: Math.max(prev.bestRating || 0, newRating),
+                totalMatches: (prev.totalMatches || 0) + 1,
+                wins: matchResult.winner === 'me' ? (prev.wins || 0) + 1 : prev.wins,
+                losses: matchResult.winner === 'opponent' ? (prev.losses || 0) + 1 : prev.losses,
+                draws: matchResult.winner === 'draw' ? (prev.draws || 0) + 1 : prev.draws,
+                provisionalGames: Math.max(0, prev.provisionalGames - 1)
+            } : null);
+            
+            // Mostrar resultado
+            setRankedMatchResult({
+                winner: matchResult.winner,
+                myScore: matchResult.myScore,
+                opponentScore: matchResult.opponentScore,
+                ratingChange: delta,
+                newRating,
+                oldRating,
+                newLeague,
+                oldLeague
+            });
+            
+            playSound(matchResult.winner === 'me' ? 'correct' : 'incorrect');
+            
+            // Registrar match (opcional, para historial)
+            // await recordMatch({ ... });
+            
+        } catch (error) {
+            console.error('Error actualizando rating:', error);
+            showToast('Error al actualizar rating', 'error');
+        }
+    }, [rankedProfile, auth, userData, rankedMatchData, playSound, showToast]);
+
+    const handleRankedMatchForfeit = useCallback(() => {
+        if (confirm('¿Seguro que quieres abandonar? Esto contará como derrota.')) {
+            // Contar como derrota
+            handleRankedMatchComplete({
+                winner: 'opponent',
+                myScore: 0,
+                opponentScore: 10,
+                myAnswers: [],
+                opponentAnswers: [],
+                myTimes: [],
+                opponentTimes: []
+            });
+        }
+    }, [handleRankedMatchComplete]);
+
     const handleStartDuel = useCallback(async (maestro: AIOpponent) => {
         const apiKey = (import.meta as any)?.env?.VITE_GEMINI_API_KEY || localStorage.getItem('VITE_GEMINI_API_KEY');
         if (!userData || !ai || !apiKey) {
@@ -1811,6 +1952,22 @@ const App: React.FC = () => {
         }).catch(() => {});
     }, [auth?.uid, userData?.name, userData?.avatar, userData?.xp, userData?.level, userData?.totalQuizzesCompleted, userData?.totalCorrectAnswers, userData?.totalQuestionsAnswered, userData?.unlockedAchievements]);
 
+    // Cargar perfil ranked
+    useEffect(() => {
+        if (!auth?.uid) return;
+        
+        const loadRankedProfile = async () => {
+            try {
+                const profile = await getRankedProfile(auth.uid!);
+                setRankedProfile(profile);
+            } catch (error) {
+                console.warn('Error loading ranked profile:', error);
+            }
+        };
+        
+        loadRankedProfile();
+    }, [auth?.uid]);
+
     // Presencia activa para ranking: heartbeat periódico y limpieza al salir
     useEffect(() => {
         if (!auth?.uid) return;
@@ -1912,6 +2069,32 @@ const App: React.FC = () => {
                 return duelState ? <DuelScreen duelState={duelState} playerAvatar={userData.avatar} onSendMessage={handleSendDuelMessage} /> : null;
             case 'leaderboard':
                 return <LeaderboardScreen />;
+            case 'ranked':
+                return (
+                    <RankedScreen 
+                        userData={userData}
+                        rankedProfile={rankedProfile}
+                        onNavigate={handleNavigate}
+                        onStartMatchmaking={handleStartMatchmaking}
+                    />
+                );
+            case 'ranked_match':
+                return rankedMatchData && rankedProfile ? (
+                    <RankedMatchScreen
+                        mode={selectedMatchMode}
+                        questions={rankedMatchData.questions}
+                        myData={{
+                            userId: auth!.uid,
+                            name: userData.name,
+                            avatar: userData.avatar,
+                            rating: rankedProfile.rating,
+                            league: rankedProfile.league
+                        }}
+                        opponentData={rankedMatchData.opponentData}
+                        onMatchComplete={handleRankedMatchComplete}
+                        onForfeit={handleRankedMatchForfeit}
+                    />
+                ) : null;
             default:
                 return <HomeScreen onSelectMode={handleSelectMode} userData={userData} onNavigate={handleNavigate} notifications={notifications}/>;
         }
@@ -1927,7 +2110,7 @@ const App: React.FC = () => {
     const xpInCurrentLevel = Math.max(0, userData.xp - baseXpThisLevel);
     const xpForNextLevel = Math.max(1, baseXpNextLevel - baseXpThisLevel);
 
-    const isFullScreenView = ['quiz', 'duel'].includes(view);
+    const isFullScreenView = ['quiz', 'duel', 'ranked_match'].includes(view);
     const isHomeView = view === 'home';
     const showBottomNav = !isFullScreenView;
 
@@ -2046,6 +2229,19 @@ const App: React.FC = () => {
                 />
             )}
             
+            {/* Matchmaking Modal */}
+            {rankedProfile && (
+                <MatchmakingModal
+                    isOpen={isMatchmaking}
+                    myRating={rankedProfile.rating}
+                    myLeague={rankedProfile.league}
+                    myAvatar={userData.avatar}
+                    mode={selectedMatchMode}
+                    onCancel={handleCancelMatchmaking}
+                    onMatchFound={handleMatchFound}
+                />
+            )}
+            
             {/* Floating Settings Button */}
             
             {/* Floating Friend Gifts Button */}
@@ -2072,6 +2268,32 @@ const App: React.FC = () => {
                 onComplete={handleCompleteWelcome}
                 userEmail={auth?.email}
             />
+            
+            {/* Ranked Match Summary */}
+            {rankedMatchResult && rankedMatchData && (
+                <RankedMatchSummary
+                    isOpen={true}
+                    result={rankedMatchResult}
+                    myData={{
+                        name: userData.name,
+                        avatar: userData.avatar
+                    }}
+                    opponentData={{
+                        name: rankedMatchData.opponentData.name,
+                        avatar: rankedMatchData.opponentData.avatar
+                    }}
+                    onContinue={() => {
+                        setRankedMatchResult(null);
+                        setRankedMatchData(null);
+                        handleNavigate('ranked');
+                    }}
+                    onPlayAgain={() => {
+                        setRankedMatchResult(null);
+                        setRankedMatchData(null);
+                        setIsMatchmaking(true);
+                    }}
+                />
+            )}
             
             {/* Barra de navegación inferior */}
             {showBottomNav && (

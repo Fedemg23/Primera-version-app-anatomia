@@ -45,8 +45,52 @@
           "arrayConfig": "CONTAINS"
         }
       ]
+    },
+    {
+      "collectionGroup": "rankedMatches",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "p1.userId",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "finishedAt",
+          "order": "DESCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "rankedMatches",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "p2.userId",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "finishedAt",
+          "order": "DESCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "rankedProfiles",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "rating",
+          "order": "DESCENDING"
+        },
+        {
+          "fieldPath": "provisionalGames",
+          "order": "ASCENDING"
+        }
+      ]
     }
   ],
   "fieldOverrides": []
 }
+
+
 

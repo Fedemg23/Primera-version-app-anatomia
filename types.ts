@@ -175,7 +175,7 @@ export interface AchievementTier {
   };
 }
 
-export type View = 'home' | 'play' | 'shop' | 'achievements' | 'level_rewards' | 'profile' | 'challenges' | 'study' | 'exam' | 'practice' | 'quiz' | 'quiz_summary' | 'exam_results' | 'duel_lobby' | 'duel' | 'duel_summary' | 'leaderboard';
+export type View = 'home' | 'play' | 'shop' | 'achievements' | 'level_rewards' | 'profile' | 'challenges' | 'study' | 'exam' | 'practice' | 'quiz' | 'quiz_summary' | 'exam_results' | 'duel_lobby' | 'duel' | 'duel_summary' | 'leaderboard' | 'ranked' | 'ranked_match';
 
 
 export interface Achievement {
@@ -426,4 +426,83 @@ export interface BibliographyEntry {
 export interface CreateNoteScreenProps {
     onSave: (note: Omit<UserNote, 'id' | 'timestamp'>) => void;
     onBack: () => void;
+}
+
+// --- RANKED MODE TYPES ---
+
+export type League = 'Bronce' | 'Plata' | 'Oro' | 'Rubí' | 'Esmeralda' | 'Diamante';
+
+export interface RankedProfile {
+  userId: string;
+  rating: number; // Eritros
+  league: League;
+  provisionalGames: number; // 0..10
+  streak: number; // racha actual
+  seasonId: string;
+  currencyBalance: number; // saldo de Eritros
+  decayProtectedUntil?: string; // ISO date
+  lastMatchAt?: string; // ISO date
+  bestRating?: number; // máximo rating alcanzado
+  totalMatches?: number;
+  wins?: number;
+  losses?: number;
+  draws?: number;
+}
+
+export type MatchMode = 'Clasico' | 'Ataque' | 'Robo' | 'ImagenClick' | 'MuerteSubita';
+
+export interface MatchRecord {
+  matchId: string;
+  seasonId: string;
+  mode: MatchMode;
+  bankVersion: string;
+  startedAt: string;
+  finishedAt: string;
+  p1: { 
+    userId: string; 
+    ratingBefore: number; 
+    ratingAfter: number; 
+    delta: number; 
+    latencyMs: number;
+    avatar?: string;
+    name?: string;
+  };
+  p2: { 
+    userId: string; 
+    ratingBefore: number; 
+    ratingAfter: number; 
+    delta: number; 
+    latencyMs: number;
+    avatar?: string;
+    name?: string;
+  };
+  outcome: 'p1' | 'p2' | 'draw' | 'abandon';
+  details?: { 
+    items?: string[]; 
+    rounds?: Array<{
+      qId: string;
+      p1Ans: boolean;
+      p2Ans: boolean;
+      timeP1: number;
+      timeP2: number;
+    }>;
+  };
+}
+
+export interface RankedLeaderboardEntry {
+  userId: string;
+  name: string;
+  avatar: string;
+  rating: number;
+  league: League;
+  streak: number;
+  country?: string;
+  rank?: number;
+}
+
+export interface RankedScreenProps {
+  userData: UserData;
+  rankedProfile: RankedProfile | null;
+  onNavigate: (view: View) => void;
+  onStartMatchmaking: (mode: MatchMode) => void;
 }

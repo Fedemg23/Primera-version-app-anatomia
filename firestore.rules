@@ -89,6 +89,59 @@ service cloud.firestore {
          resource.data.toUid == request.auth.uid);
     }
     
+    // Perfiles Ranked (rankedProfiles)
+    match /rankedProfiles/{userId} {
+      // Cualquiera puede leer perfiles ranked para leaderboard
+      allow read: if true;
+      
+      // Solo el propietario puede crear su perfil
+      // Verificar que el userId del documento coincida con el auth.uid y con el campo userId del documento
+      allow create: if isSignedIn() && 
+        request.auth.uid == userId &&
+        request.resource.data.userId == request.auth.uid;
+      
+      // Solo el propietario puede actualizar su perfil
+      // Validaciones básicas para prevenir trampas
+      allow update: if isOwner(userId) &&
+        // El rating no puede cambiar más de 50 puntos en una actualización
+        (request.resource.data.rating - resource.data.rating < 50 &&
+         resource.data.rating - request.resource.data.rating < 50) &&
+        // La temporada debe ser válida
+        request.resource.data.seasonId is string;
+    }
+    
+    // Matches de Ranked (rankedMatches)
+    match /rankedMatches/{matchId} {
+      // Permitir leer si eres uno de los jugadores
+      allow read: if isSignedIn() && 
+        (resource.data.p1.userId == request.auth.uid || 
+         resource.data.p2.userId == request.auth.uid);
+      
+      // Permitir crear si eres uno de los jugadores
+      // En producción, esto debería ser solo servidor
+      allow create: if isSignedIn() && 
+        (request.resource.data.p1.userId == request.auth.uid || 
+         request.resource.data.p2.userId == request.auth.uid);
+      
+      // No permitir actualizar matches (son inmutables)
+      allow update: if false;
+    }
+    
+    // Cola de matchmaking (matchmakingQueue) - opcional para implementación real
+    match /matchmakingQueue/{queueId} {
+      // Permitir leer tu propia entrada en la cola
+      allow read: if isSignedIn() && 
+        resource.data.userId == request.auth.uid;
+      
+      // Permitir crear tu entrada en la cola
+      allow create: if isSignedIn() && 
+        request.resource.data.userId == request.auth.uid;
+      
+      // Permitir actualizar/eliminar tu entrada (para cancelar)
+      allow update, delete: if isSignedIn() && 
+        resource.data.userId == request.auth.uid;
+    }
+    
     // Denegar acceso a cualquier otra colección por defecto
     match /{document=**} {
       allow read, write: if false;

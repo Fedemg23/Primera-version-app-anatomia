@@ -761,3 +761,233 @@ export const claimChallengeReward = async (challengeId: string, uid: string): Pr
     throw error;
   }
 };
+
+// --- RANKED MODE API ---
+
+import { RankedProfile, MatchRecord, RankedLeaderboardEntry, League, MatchMode } from '../types';
+import { getLeagueFromRating } from '../utils/rankedElo';
+
+const CURRENT_SEASON_ID = 'season_7'; // Actualizar cada temporada
+
+/**
+ * Obtiene o crea el perfil ranked del usuario
+ */
+export const getRankedProfile = async (uid: string): Promise<RankedProfile> => {
+  try {
+    const db = resolveDb();
+    if (!db) {
+      throw new Error('Firestore no disponible');
+    }
+
+    const profileRef = doc(db, 'rankedProfiles', uid);
+    const profileSnap = await getDoc(profileRef);
+
+    if (profileSnap.exists()) {
+      return profileSnap.data() as RankedProfile;
+    }
+
+    // Crear perfil inicial
+    const initialProfile: RankedProfile = {
+      userId: uid,
+      rating: 1000, // Rating inicial
+      league: 'Bronce',
+      provisionalGames: 10,
+      streak: 0,
+      seasonId: CURRENT_SEASON_ID,
+      currencyBalance: 1000,
+      lastMatchAt: new Date().toISOString(),
+      bestRating: 1000,
+      totalMatches: 0,
+      wins: 0,
+      losses: 0,
+      draws: 0
+    };
+
+    await setDoc(profileRef, initialProfile);
+    return initialProfile;
+  } catch (error) {
+    console.warn('Error obteniendo perfil ranked:', error);
+    throw error;
+  }
+};
+
+/**
+ * Actualiza el perfil ranked después de un match
+ */
+export const updateRankedProfile = async (
+  uid: string,
+  updates: Partial<RankedProfile>
+): Promise<void> => {
+  try {
+    const db = resolveDb();
+    if (!db) {
+      throw new Error('Firestore no disponible');
+    }
+
+    const profileRef = doc(db, 'rankedProfiles', uid);
+    
+    // Actualizar liga si el rating cambió
+    if (updates.rating !== undefined) {
+      updates.league = getLeagueFromRating(updates.rating);
+    }
+
+    await updateDoc(profileRef, { ...updates, lastMatchAt: new Date().toISOString() });
+  } catch (error) {
+    console.warn('Error actualizando perfil ranked:', error);
+    throw error;
+  }
+};
+
+/**
+ * Registra un match completado
+ */
+export const recordMatch = async (match: MatchRecord): Promise<void> => {
+  try {
+    const db = resolveDb();
+    if (!db) {
+      throw new Error('Firestore no disponible');
+    }
+
+    await setDoc(doc(db, 'rankedMatches', match.matchId), match);
+  } catch (error) {
+    console.warn('Error registrando match:', error);
+    throw error;
+  }
+};
+
+/**
+ * Obtiene el historial de matches del usuario
+ */
+export const getMatchHistory = async (uid: string, limitCount: number = 20): Promise<MatchRecord[]> => {
+  try {
+    const db = resolveDb();
+    if (!db) {
+      return [];
+    }
+
+    // Buscar matches donde el usuario es p1 o p2
+    const q1 = query(
+      collection(db, 'rankedMatches'),
+      where('p1.userId', '==', uid),
+      orderBy('finishedAt', 'desc'),
+      limit(limitCount)
+    );
+
+    const q2 = query(
+      collection(db, 'rankedMatches'),
+      where('p2.userId', '==', uid),
+      orderBy('finishedAt', 'desc'),
+      limit(limitCount)
+    );
+
+    const [snap1, snap2] = await Promise.all([getDocs(q1), getDocs(q2)]);
+
+    const matches = [
+      ...snap1.docs.map(d => d.data() as MatchRecord),
+      ...snap2.docs.map(d => d.data() as MatchRecord)
+    ];
+
+    // Ordenar por fecha y limitar
+    matches.sort((a, b) => new Date(b.finishedAt).getTime() - new Date(a.finishedAt).getTime());
+
+    return matches.slice(0, limitCount);
+  } catch (error) {
+    console.warn('Error obteniendo historial de matches:', error);
+    return [];
+  }
+};
+
+/**
+ * Obtiene el leaderboard ranked
+ */
+export const getRankedLeaderboard = async (
+  scope: 'global' | 'country' | 'friends' = 'global',
+  mode?: MatchMode,
+  userIds?: string[],
+  limitCount: number = 50
+): Promise<RankedLeaderboardEntry[]> => {
+  try {
+    const db = resolveDb();
+    if (!db) {
+      return [];
+    }
+
+    let q = query(
+      collection(db, 'rankedProfiles'),
+      orderBy('rating', 'desc'),
+      limit(limitCount)
+    );
+
+    // Filtrar por IDs (para amigos)
+    if (scope === 'friends' && userIds && userIds.length > 0) {
+      // Firestore no soporta IN con más de 10 elementos, limitar
+      const idsToQuery = userIds.slice(0, 10);
+      q = query(
+        collection(db, 'rankedProfiles'),
+        where('userId', 'in', idsToQuery),
+        orderBy('rating', 'desc')
+      );
+    }
+
+    const snap = await getDocs(q);
+    const profiles = snap.docs.map(d => d.data() as RankedProfile);
+
+    // Obtener datos públicos de usuarios
+    const userDataPromises = profiles.map(p => getUserById(p.userId));
+    const usersData = await Promise.all(userDataPromises);
+
+    const leaderboard: RankedLeaderboardEntry[] = profiles.map((profile, idx) => {
+      const userData = usersData[idx];
+      return {
+        userId: profile.userId,
+        name: userData?.name || 'Anónimo',
+        avatar: userData?.avatar || '👤',
+        rating: profile.rating,
+        league: profile.league,
+        streak: profile.streak,
+        country: undefined, // TODO: Agregar país a perfil público
+        rank: idx + 1
+      };
+    });
+
+    // Filtrar provisionales del ranking global
+    if (scope === 'global') {
+      return leaderboard.filter((_, idx) => {
+        const profile = profiles[idx];
+        return profile.provisionalGames === 0;
+      });
+    }
+
+    return leaderboard;
+  } catch (error) {
+    console.warn('Error obteniendo leaderboard ranked:', error);
+    return [];
+  }
+};
+
+/**
+ * Obtiene la posición del usuario en el leaderboard
+ */
+export const getUserRankedPosition = async (uid: string): Promise<number | null> => {
+  try {
+    const db = resolveDb();
+    if (!db) {
+      return null;
+    }
+
+    const userProfile = await getRankedProfile(uid);
+
+    // Contar usuarios con rating mayor
+    const q = query(
+      collection(db, 'rankedProfiles'),
+      where('rating', '>', userProfile.rating),
+      where('provisionalGames', '==', 0)
+    );
+
+    const snap = await getDocs(q);
+    return snap.size + 1;
+  } catch (error) {
+    console.warn('Error obteniendo posición ranked:', error);
+    return null;
+  }
+};

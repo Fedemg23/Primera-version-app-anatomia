@@ -188,6 +188,37 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onSelectMode, userData, onNavig
                     </div>
                 </div>
 
+                {/* Modo Ranked - Destacado */}
+                <div className="w-full max-w-2xl px-4">
+                    <div
+                        onClick={() => handleNavigation('ranked')}
+                        className="relative p-6 rounded-2xl overflow-hidden flex flex-row justify-between items-center h-32 transition-all duration-300 bg-gradient-to-r from-red-600 via-orange-500 to-yellow-500 hover:from-red-500 hover:via-orange-400 hover:to-yellow-400 transform hover:-translate-y-1 shadow-2xl hover:shadow-red-500/40 text-white cursor-pointer touch-manipulation group"
+                    >
+                        <div className="absolute inset-0 bg-gradient-to-br from-black/20 to-transparent"></div>
+                        
+                        <div className="relative z-10 flex items-center gap-4">
+                            <div className="text-5xl animate-pulse">🏆</div>
+                            <div>
+                                <h3 className="text-2xl font-black tracking-tight text-white [text-shadow:0_2px_8px_rgba(0,0,0,0.5)]">
+                                    Ranked 1v1
+                                </h3>
+                                <p className="text-sm text-white/90 mt-1">
+                                    Compite con Eritros
+                                </p>
+                            </div>
+                        </div>
+                        
+                        <div className="relative z-10 text-right">
+                            <div className="bg-white/20 backdrop-blur-sm px-4 py-2 rounded-xl border border-white/30">
+                                <span className="text-xs font-bold uppercase tracking-wider">¡Nuevo!</span>
+                            </div>
+                        </div>
+                        
+                        {/* Efectos de brillo animados */}
+                        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -skew-x-12 animate-shimmer opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                    </div>
+                </div>
+
                 {/* Información adicional */}
                 <div className="flex items-center gap-2 text-slate-400 hover:text-slate-200 cursor-pointer transition-colors"
                      onClick={() => setIsInfoModalVisible(true)}>
