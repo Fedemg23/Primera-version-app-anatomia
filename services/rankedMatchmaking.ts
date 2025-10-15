@@ -235,10 +235,11 @@ export const findMatch = async (
       status: 'waiting'
     };
 
-    // Guardar la partida
+    // PASO 5: Guardar la partida en activeMatches
     await setDoc(doc(db, 'activeMatches', matchId), match);
 
-    // Actualizar entradas de cola
+    // PASO 6: Actualizar entradas de cola para AMBOS jugadores
+    // Esto activará los listeners de ambos jugadores simultáneamente
     await Promise.all([
       updateDoc(doc(db, 'matchmakingQueue', myQueueId), { 
         status: 'matched', 
@@ -250,17 +251,23 @@ export const findMatch = async (
       })
     ]);
 
-    // Limpiar entradas de cola después de 10 segundos
+    console.log(`✅ Match creado: ${matchId}`);
+    console.log(`   Jugador 1: ${myEntry.name} (${myEntry.rating})`);
+    console.log(`   Jugador 2: ${bestOpponent.data.name} (${bestOpponent.data.rating})`);
+
+    // PASO 7: Limpiar entradas de cola después de 15 segundos
+    // (dar tiempo a que ambos jugadores lean el matchId)
     setTimeout(async () => {
       try {
         await Promise.all([
           deleteDoc(doc(db, 'matchmakingQueue', myQueueId)),
           deleteDoc(doc(db, 'matchmakingQueue', bestOpponent!.id))
         ]);
+        console.log(`🧹 Limpiadas entradas de cola para match ${matchId}`);
       } catch (error) {
         console.error('Error limpiando cola:', error);
       }
-    }, 10000);
+    }, 15000); // Aumentado a 15s para dar más margen
 
     return matchId;
   } catch (error) {

@@ -112,6 +112,7 @@ const MatchmakingModal: React.FC<MatchmakingModalProps> = ({
         const unsubscribe = subscribeToMatchmakingQueue(
           id,
           (foundMatchId) => {
+            console.log(`🎮 [${myName}] Match detectado por listener: ${foundMatchId}`);
             setMatchId(foundMatchId);
             // La partida se manejará en otro efecto
           },
@@ -187,12 +188,18 @@ const MatchmakingModal: React.FC<MatchmakingModalProps> = ({
   }, [isOpen]);
 
   // Buscar partida activamente cada 3 segundos
+  // IMPORTANTE: NO establecemos matchId aquí, lo hacemos cuando la suscripción detecte el cambio
+  // Esto asegura que AMBOS jugadores (el que crea la partida y el emparejado) 
+  // pasen por el mismo flujo y entren a la partida simultáneamente
   useEffect(() => {
     if (!isOpen || !queueId || matchId) return;
 
     searchIntervalRef.current = setInterval(async () => {
       try {
-        const foundMatchId = await findMatch(queueId, {
+        // Solo intentar crear el match, pero NO actualizar estado local
+        // El listener de subscribeToMatchmakingQueue se encargará de detectar 
+        // cuando nuestro documento cambie a status: 'matched'
+        await findMatch(queueId, {
           userId: myUserId,
           name: myName,
           avatar: myAvatar,
@@ -202,13 +209,10 @@ const MatchmakingModal: React.FC<MatchmakingModalProps> = ({
           timestamp: new Date(),
           status: 'searching'
         });
-
-        if (foundMatchId) {
-          setMatchId(foundMatchId);
-          if (searchIntervalRef.current) {
-            clearInterval(searchIntervalRef.current);
-          }
-        }
+        
+        // No hacemos nada con el resultado aquí
+        // Ambos jugadores serán notificados por el listener cuando su entrada 
+        // en matchmakingQueue cambie a status: 'matched'
       } catch (error) {
         console.error('Error buscando partida:', error);
       }
