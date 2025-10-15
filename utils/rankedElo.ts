@@ -266,3 +266,4 @@ export function applySeasonReset(rating: number, league: League): number {
   return Math.max(leagueMin, resetRating);
 }
 
+

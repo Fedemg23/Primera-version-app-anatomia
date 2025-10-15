@@ -548,3 +548,4 @@ export function RankedStatsCard({ userId }: { userId: string }) {
 - [Cloud Functions para Firebase](https://firebase.google.com/docs/functions)
 - [Realtime Database](https://firebase.google.com/docs/database)
 
+

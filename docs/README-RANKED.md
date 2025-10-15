@@ -330,3 +330,4 @@ Parte del proyecto Anatomy Go - Sistema educativo de anatomía gamificado.
 **Versión**: 1.0.0  
 **Estado**: ✅ Producción (Frontend) / ⏳ Desarrollo (Backend)
 
+

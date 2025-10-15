@@ -1,15 +1,25 @@
-import React, { useState, useEffect, memo } from 'react';
+import React, { useState, useEffect, memo, useRef } from 'react';
 import { MatchMode, League } from '../types';
 import { getMatchmakingRange } from '../utils/rankedElo';
+import {
+  joinMatchmakingQueue,
+  leaveMatchmakingQueue,
+  subscribeToMatchmakingQueue,
+  findMatch
+} from '../services/rankedMatchmaking';
+import { matchmakingRateLimiter, sanitizeUsername } from '../utils/rankedValidation';
 
 interface MatchmakingModalProps {
   isOpen: boolean;
+  myUserId: string;
+  myName: string;
   myRating: number;
   myLeague: League;
   myAvatar: string;
   mode: MatchMode;
   onCancel: () => void;
-  onMatchFound?: (opponentData: {
+  onMatchFound?: (matchId: string, opponentData: {
+    userId: string;
     avatar: string;
     name: string;
     rating: number;
@@ -33,6 +43,8 @@ const tips = [
 
 const MatchmakingModal: React.FC<MatchmakingModalProps> = ({
   isOpen,
+  myUserId,
+  myName,
   myRating,
   myLeague,
   myAvatar,
@@ -46,16 +58,83 @@ const MatchmakingModal: React.FC<MatchmakingModalProps> = ({
   const [isSearching, setIsSearching] = useState(true);
   const [countdown, setCountdown] = useState<number | null>(null);
   const [opponentData, setOpponentData] = useState<any>(null);
+  const [queueId, setQueueId] = useState<string | null>(null);
+  const [matchId, setMatchId] = useState<string | null>(null);
+  const searchIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Simular tiempo de espera y expansión de rango
+  // Unirse a la cola de matchmaking
   useEffect(() => {
     if (!isOpen) {
+      // Limpiar estado
       setWaitTime(0);
       setIsSearching(true);
       setCountdown(null);
       setOpponentData(null);
+      setQueueId(null);
+      setMatchId(null);
+      
+      // Salir de la cola si estaba en ella
+      if (queueId) {
+        leaveMatchmakingQueue(queueId);
+      }
+      
+      // Limpiar intervalo de búsqueda
+      if (searchIntervalRef.current) {
+        clearInterval(searchIntervalRef.current);
+      }
       return;
     }
+
+    // Unirse a la cola
+    const initQueue = async () => {
+      try {
+        // Rate limiting
+        if (!matchmakingRateLimiter.isAllowed(myUserId)) {
+          console.error('Demasiados intentos de matchmaking');
+          return;
+        }
+
+        // Sanitizar nombre
+        const safeName = sanitizeUsername(myName);
+
+        const id = await joinMatchmakingQueue(
+          myUserId,
+          safeName,
+          myAvatar,
+          myRating,
+          myLeague,
+          mode
+        );
+        setQueueId(id);
+        
+        // Suscribirse a actualizaciones de la cola
+        const unsubscribe = subscribeToMatchmakingQueue(
+          id,
+          (foundMatchId) => {
+            setMatchId(foundMatchId);
+            // La partida se manejará en otro efecto
+          },
+          (error) => {
+            console.error('Error en cola:', error);
+          }
+        );
+
+        return unsubscribe;
+      } catch (error) {
+        console.error('Error uniéndose a la cola:', error);
+      }
+    };
+
+    const unsubscribePromise = initQueue();
+
+    return () => {
+      unsubscribePromise?.then(unsub => unsub?.());
+    };
+  }, [isOpen, myUserId, myName, myAvatar, myRating, myLeague, mode]);
+
+  // Contador de tiempo de espera
+  useEffect(() => {
+    if (!isOpen) return;
 
     const interval = setInterval(() => {
       setWaitTime(prev => prev + 1);
@@ -82,38 +161,69 @@ const MatchmakingModal: React.FC<MatchmakingModalProps> = ({
     return () => clearInterval(interval);
   }, [isOpen]);
 
-  // Simular encontrar rival después de 3-8 segundos (para demo)
+  // Buscar partida activamente cada 3 segundos
   useEffect(() => {
-    if (!isOpen) return;
+    if (!isOpen || !queueId || matchId) return;
 
-    const matchTime = 3000 + Math.random() * 5000; // 3-8 segundos
-    const timeout = setTimeout(() => {
-      // Simular rival encontrado
-      const opponent = {
-        avatar: ['🧑‍⚕️', '👨‍🎓', '👩‍🔬', '🧑‍🏫'][Math.floor(Math.random() * 4)],
-        name: ['Ana', 'Carlos', 'María', 'Luis', 'Sofia', 'Pedro'][Math.floor(Math.random() * 6)],
-        rating: Math.round(myRating + (Math.random() - 0.5) * 200),
-        league: myLeague,
-        advantage: 0
-      };
+    searchIntervalRef.current = setInterval(async () => {
+      try {
+        const foundMatchId = await findMatch(queueId, {
+          userId: myUserId,
+          name: myName,
+          avatar: myAvatar,
+          rating: myRating,
+          league: myLeague,
+          mode,
+          timestamp: new Date(),
+          status: 'searching'
+        });
 
-      // Calcular ventaja teórica
-      const ratingDiff = myRating - opponent.rating;
-      opponent.advantage = Math.round(50 + (ratingDiff / 400) * 25);
+        if (foundMatchId) {
+          setMatchId(foundMatchId);
+          if (searchIntervalRef.current) {
+            clearInterval(searchIntervalRef.current);
+          }
+        }
+      } catch (error) {
+        console.error('Error buscando partida:', error);
+      }
+    }, 3000);
 
-      setOpponentData(opponent);
-      setIsSearching(false);
-      setCountdown(3);
-    }, matchTime);
+    return () => {
+      if (searchIntervalRef.current) {
+        clearInterval(searchIntervalRef.current);
+      }
+    };
+  }, [isOpen, queueId, matchId, myUserId, myName, myAvatar, myRating, myLeague, mode]);
 
-    return () => clearTimeout(timeout);
-  }, [isOpen, myRating, myLeague]);
+  // Cuando se encuentra una partida, obtener datos del oponente
+  useEffect(() => {
+    if (!matchId || !onMatchFound) return;
+
+    // Simular obtención de datos del oponente (en producción vendría de activeMatches)
+    const opponent = {
+      userId: 'opponent_id',
+      avatar: ['🧑‍⚕️', '👨‍🎓', '👩‍🔬', '🧑‍🏫'][Math.floor(Math.random() * 4)],
+      name: ['Ana', 'Carlos', 'María', 'Luis', 'Sofia', 'Pedro'][Math.floor(Math.random() * 6)],
+      rating: Math.round(myRating + (Math.random() - 0.5) * 200),
+      league: myLeague,
+      advantage: 0
+    };
+
+    // Calcular ventaja teórica
+    const ratingDiff = myRating - opponent.rating;
+    opponent.advantage = Math.round(50 + (ratingDiff / 400) * 25);
+
+    setOpponentData(opponent);
+    setIsSearching(false);
+    setCountdown(3);
+  }, [matchId, myRating, myLeague, onMatchFound]);
 
   // Countdown cuando se encuentra rival
   useEffect(() => {
     if (countdown === null || countdown === 0) {
-      if (countdown === 0 && opponentData && onMatchFound) {
-        onMatchFound(opponentData);
+      if (countdown === 0 && matchId && opponentData && onMatchFound) {
+        onMatchFound(matchId, opponentData);
       }
       return;
     }
@@ -123,7 +233,7 @@ const MatchmakingModal: React.FC<MatchmakingModalProps> = ({
     }, 1000);
 
     return () => clearTimeout(timeout);
-  }, [countdown, opponentData, onMatchFound]);
+  }, [countdown, matchId, opponentData, onMatchFound]);
 
   if (!isOpen) return null;
 
@@ -171,7 +281,12 @@ const MatchmakingModal: React.FC<MatchmakingModalProps> = ({
 
             {/* Botón cancelar */}
             <button
-              onClick={onCancel}
+              onClick={async () => {
+                if (queueId) {
+                  await leaveMatchmakingQueue(queueId);
+                }
+                onCancel();
+              }}
               className="w-full bg-neutral-800 hover:bg-neutral-700 text-white font-medium py-3 rounded-xl transition-colors"
             >
               Cancelar búsqueda

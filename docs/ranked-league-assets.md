@@ -192,3 +192,4 @@ Para reemplazar con imágenes PNG:
 - [ ] Probar visibilidad en diferentes tamaños
 - [ ] Verificar rendimiento en móviles
 
+

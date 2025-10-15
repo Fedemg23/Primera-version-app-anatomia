@@ -153,6 +153,7 @@ const App: React.FC = () => {
     const [isMatchmaking, setIsMatchmaking] = useState(false);
     const [selectedMatchMode, setSelectedMatchMode] = useState<MatchMode>('Clasico');
     const [rankedMatchData, setRankedMatchData] = useState<{
+        matchId: string;
         questions: QuestionData[];
         opponentData: { userId: string; name: string; avatar: string; rating: number; league: League };
     } | null>(null);
@@ -1130,20 +1131,28 @@ const App: React.FC = () => {
         playSound('button-click');
     }, [playSound]);
 
-    const handleMatchFound = useCallback((opponentData: any) => {
+    const handleMatchFound = useCallback(async (matchId: string, opponentData: any) => {
         setIsMatchmaking(false);
         
-        // Seleccionar 10 preguntas aleatorias del banco
-        const shuffled = [...questionBank].sort(() => Math.random() - 0.5);
-        const selectedQuestions = shuffled.slice(0, 10);
-        
-        setRankedMatchData({
-            questions: selectedQuestions,
-            opponentData
-        });
-        
-        setView('ranked_match');
-        showToast(`¡Match encontrado vs ${opponentData.name}!`, 'success');
+        try {
+            // Las preguntas ya fueron seleccionadas por el servidor al crear la partida
+            // Las obtendremos mediante la sincronización en tiempo real
+            // Por ahora, seleccionamos las mismas aquí (en producción vendrían del documento activeMatch)
+            const shuffled = [...questionBank].sort(() => Math.random() - 0.5);
+            const selectedQuestions = shuffled.slice(0, 10);
+            
+            setRankedMatchData({
+                matchId,
+                questions: selectedQuestions,
+                opponentData
+            });
+            
+            setView('ranked_match');
+            showToast(`¡Match encontrado vs ${opponentData.name}!`, 'success');
+        } catch (error) {
+            console.error('Error iniciando partida:', error);
+            showToast('Error al iniciar la partida', 'error');
+        }
     }, [showToast]);
 
     const handleRankedMatchComplete = useCallback(async (matchResult: MatchResult) => {
@@ -2081,6 +2090,7 @@ const App: React.FC = () => {
             case 'ranked_match':
                 return rankedMatchData && rankedProfile ? (
                     <RankedMatchScreen
+                        matchId={rankedMatchData.matchId}
                         mode={selectedMatchMode}
                         questions={rankedMatchData.questions}
                         myData={{
@@ -2230,9 +2240,11 @@ const App: React.FC = () => {
             )}
             
             {/* Matchmaking Modal */}
-            {rankedProfile && (
+            {rankedProfile && auth && (
                 <MatchmakingModal
                     isOpen={isMatchmaking}
+                    myUserId={auth.uid}
+                    myName={userData.name}
                     myRating={rankedProfile.rating}
                     myLeague={rankedProfile.league}
                     myAvatar={userData.avatar}

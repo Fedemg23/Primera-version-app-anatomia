@@ -1,8 +1,21 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { QuestionData, MatchMode, League } from '../../types';
 import { useAudio } from '../../src/contexts/AudioProvider';
+import { 
+  subscribeToActiveMatch, 
+  submitAnswer, 
+  sendHeartbeat, 
+  forfeitMatch,
+  ActiveMatch 
+} from '../../services/rankedMatchmaking';
+import {
+  validateAnswerTime,
+  validateAnswerIndex,
+  answerRateLimiter
+} from '../../utils/rankedValidation';
 
 interface RankedMatchScreenProps {
+  matchId: string;
   mode: MatchMode;
   questions: QuestionData[];
   myData: {
@@ -34,6 +47,7 @@ export interface MatchResult {
 }
 
 const RankedMatchScreen: React.FC<RankedMatchScreenProps> = ({
+  matchId,
   mode,
   questions,
   myData,
@@ -55,12 +69,65 @@ const RankedMatchScreen: React.FC<RankedMatchScreenProps> = ({
   const [showResult, setShowResult] = useState(false);
   const [myHP, setMyHP] = useState(5); // Para modo Ataque por Vida
   const [opponentHP, setOpponentHP] = useState(5);
+  const [opponentConnected, setOpponentConnected] = useState(true);
   
   const questionStartTime = useRef(Date.now());
   const timerRef = useRef<NodeJS.Timeout | null>(null);
+  const heartbeatInterval = useRef<NodeJS.Timeout | null>(null);
 
   const currentQuestion = questions[currentQuestionIndex];
   const isLastQuestion = currentQuestionIndex === questions.length - 1;
+
+  // Sincronización en tiempo real con la partida
+  useEffect(() => {
+    const unsubscribe = subscribeToActiveMatch(
+      matchId,
+      (match: ActiveMatch) => {
+        const isP1 = match.p1.userId === myData.userId;
+        const opponent = isP1 ? match.p2 : match.p1;
+
+        // Actualizar estado del oponente
+        setOpponentAnswers(opponent.answers);
+        setOpponentTimes(opponent.times);
+        setOpponentScore(opponent.score);
+        setOpponentConnected(opponent.connected);
+
+        // Actualizar HP si es modo Ataque
+        if (mode === 'Ataque') {
+          const myHP = 5 - opponent.answers.filter(a => a).length;
+          const oppHP = 5 - (isP1 ? match.p1.answers : match.p2.answers).filter(a => a).length;
+          setMyHP(Math.max(0, myHP));
+          setOpponentHP(Math.max(0, oppHP));
+        }
+
+        // Si la partida terminó, mostrar resultado
+        if (match.status === 'finished' && match.winner) {
+          const myWin = (match.winner === 'p1' && isP1) || (match.winner === 'p2' && !isP1);
+          const winner = match.winner === 'draw' ? 'draw' : myWin ? 'me' : 'opponent';
+          
+          finishMatch();
+        }
+      },
+      (error) => {
+        console.error('Error en sincronización:', error);
+      }
+    );
+
+    return () => unsubscribe();
+  }, [matchId, myData.userId, mode]);
+
+  // Heartbeat para mantener conexión
+  useEffect(() => {
+    heartbeatInterval.current = setInterval(() => {
+      sendHeartbeat(matchId, myData.userId);
+    }, 3000);
+
+    return () => {
+      if (heartbeatInterval.current) {
+        clearInterval(heartbeatInterval.current);
+      }
+    };
+  }, [matchId, myData.userId]);
 
   // Timer
   useEffect(() => {
@@ -81,33 +148,6 @@ const RankedMatchScreen: React.FC<RankedMatchScreenProps> = ({
     };
   }, [currentQuestionIndex, isAnswered, showResult]);
 
-  // Simular respuesta del oponente (en producción sería sincronizada en tiempo real)
-  const simulateOpponentAnswer = useCallback(() => {
-    // El oponente responde entre 3-8 segundos después
-    const delay = 3000 + Math.random() * 5000;
-    
-    setTimeout(() => {
-      const isCorrect = Math.random() > 0.3; // 70% de aciertos
-      const timeUsed = Math.floor(delay / 1000);
-      
-      setOpponentAnswers(prev => [...prev, isCorrect]);
-      setOpponentTimes(prev => [...prev, timeUsed]);
-      
-      if (isCorrect) {
-        setOpponentScore(prev => prev + getScoreForMode(mode, true));
-        if (mode === 'Ataque') {
-          setMyHP(prev => Math.max(0, prev - 1));
-        }
-      }
-    }, delay);
-  }, [mode]);
-
-  useEffect(() => {
-    if (!isAnswered) {
-      simulateOpponentAnswer();
-    }
-  }, [currentQuestionIndex]);
-
   const getScoreForMode = (mode: MatchMode, isCorrect: boolean): number => {
     if (!isCorrect) return 0;
     
@@ -127,15 +167,40 @@ const RankedMatchScreen: React.FC<RankedMatchScreenProps> = ({
     }
   };
 
-  const handleAnswerSubmit = (answerIndex: number | null) => {
+  const handleAnswerSubmit = async (answerIndex: number | null) => {
     if (isAnswered) return;
 
     const timeUsed = Math.floor((Date.now() - questionStartTime.current) / 1000);
+    
+    // Validaciones de seguridad
+    if (!validateAnswerIndex(answerIndex, currentQuestion)) {
+      console.error('Índice de respuesta inválido');
+      return;
+    }
+
+    if (!validateAnswerTime(timeUsed)) {
+      console.warn('Tiempo de respuesta sospechoso:', timeUsed);
+      // Continuar pero registrar para análisis
+    }
+
+    // Rate limiting
+    if (!answerRateLimiter.isAllowed(myData.userId)) {
+      console.error('Rate limit excedido');
+      return;
+    }
+
     const isCorrect = answerIndex === currentQuestion.indiceRespuestaCorrecta;
 
     setIsAnswered(true);
     setMyAnswers(prev => [...prev, isCorrect]);
     setMyTimes(prev => [...prev, timeUsed]);
+
+    // Enviar respuesta al servidor
+    try {
+      await submitAnswer(matchId, myData.userId, currentQuestionIndex, isCorrect, timeUsed);
+    } catch (error) {
+      console.error('Error enviando respuesta:', error);
+    }
 
     // Actualizar puntuación según el modo
     if (isCorrect) {
@@ -337,9 +402,24 @@ const RankedMatchScreen: React.FC<RankedMatchScreenProps> = ({
         </div>
       </div>
 
+      {/* Indicador de desconexión del oponente */}
+      {!opponentConnected && (
+        <div className="fixed top-20 left-1/2 -translate-x-1/2 bg-yellow-600 text-white px-4 py-2 rounded-lg shadow-lg z-50 animate-pulse">
+          ⚠️ Oponente desconectado... esperando reconexión
+        </div>
+      )}
+
       {/* Botón de abandonar */}
       <button
-        onClick={onForfeit}
+        onClick={async () => {
+          try {
+            await forfeitMatch(matchId, myData.userId);
+            onForfeit();
+          } catch (error) {
+            console.error('Error abandonando:', error);
+            onForfeit();
+          }
+        }}
         className="mt-4 text-sm text-neutral-500 hover:text-red-400 transition-colors"
       >
         Abandonar partida

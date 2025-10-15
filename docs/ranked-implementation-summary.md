@@ -294,3 +294,4 @@ Parte del proyecto **Anatomy Go** - Sistema educativo de anatomía gamificado.
 **Versión del sistema**: 1.0.0  
 **Temporada actual**: VII
 
+

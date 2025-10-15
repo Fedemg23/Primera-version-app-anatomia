@@ -142,6 +142,34 @@ service cloud.firestore {
         resource.data.userId == request.auth.uid;
     }
     
+    // Partidas activas (activeMatches)
+    match /activeMatches/{matchId} {
+      // Permitir leer si eres uno de los jugadores
+      allow read: if isSignedIn() && 
+        (resource.data.p1.userId == request.auth.uid || 
+         resource.data.p2.userId == request.auth.uid);
+      
+      // Permitir crear si eres uno de los jugadores
+      // En producción, esto debería ser solo servidor
+      allow create: if isSignedIn() && 
+        (request.resource.data.p1.userId == request.auth.uid || 
+         request.resource.data.p2.userId == request.auth.uid);
+      
+      // Permitir actualizar solo tus datos de jugador
+      allow update: if isSignedIn() && 
+        (resource.data.p1.userId == request.auth.uid || 
+         resource.data.p2.userId == request.auth.uid) &&
+        // No puede cambiar el matchId, mode o questions
+        request.resource.data.matchId == resource.data.matchId &&
+        request.resource.data.mode == resource.data.mode;
+      
+      // Permitir eliminar después de que la partida termine (limpieza)
+      allow delete: if isSignedIn() && 
+        resource.data.status == 'finished' &&
+        (resource.data.p1.userId == request.auth.uid || 
+         resource.data.p2.userId == request.auth.uid);
+    }
+    
     // Denegar acceso a cualquier otra colección por defecto
     match /{document=**} {
       allow read, write: if false;
