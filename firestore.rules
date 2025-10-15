@@ -136,9 +136,15 @@ service cloud.firestore {
       allow create: if isSignedIn() && 
         request.resource.data.userId == request.auth.uid;
       
-      // Permitir actualizar/eliminar solo tu entrada
-      allow update, delete: if isSignedIn() && 
-        resource.data.userId == request.auth.uid;
+      // Permitir actualizar tu entrada o si otro jugador te empareja
+      allow update: if isSignedIn() && 
+        (resource.data.userId == request.auth.uid || 
+         request.resource.data.status == 'matched');
+      
+      // Permitir eliminar tu entrada O entradas obsoletas (más de 30 segundos)
+      allow delete: if isSignedIn() && 
+        (resource.data.userId == request.auth.uid ||
+         resource.data.timestamp.toMillis() < request.time.toMillis() - 30000);
     }
     
     // Partidas activas (activeMatches)

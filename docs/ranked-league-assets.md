@@ -193,3 +193,4 @@ Para reemplazar con imágenes PNG:
 - [ ] Verificar rendimiento en móviles
 
 
+
