@@ -3,7 +3,6 @@ import { UserData, ShopItem, ShopScreenProps } from '../../types';
 import { shopItems } from '../../constants';
 import { iconMap, Gift, ShopCartBold } from '../icons';
 import HelpIcon from '../HelpIcon';
-import Atlas from '../Atlas';
 import {
     Rarity,
     getRewardRarity,
@@ -199,20 +198,6 @@ export default function ShopScreen({ userData, onPurchase, onClaimDailyReward }:
 								<li><strong>Caja Misteriosa</strong>: recompensa aleatoria (huesitos, boost, vida o avatar).</li>
 							</ul>
 						</HelpIcon>
-					</div>
-				</div>
-				
-				{/* Atlas da la bienvenida a la tienda */}
-				<div className="flex items-center gap-4 bg-slate-800/30 rounded-xl p-4 border border-slate-700/50 mb-6">
-					<Atlas 
-						size="small" 
-						expression="happy"
-						showMessage={false}
-					/>
-					<div className="flex-1">
-						<p className="text-slate-200 text-sm">
-							<span className="font-bold text-emerald-400">Atlas (C1) te recomienda:</span> Usa tus huesitos sabiamente. Los comodines del Botiquín pueden salvarte en momentos difíciles. 💡
-						</p>
 					</div>
 				</div>
 

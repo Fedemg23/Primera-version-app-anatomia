@@ -3,7 +3,6 @@ import { achievementsData } from '../../constants';
 import { UserData, AchievementsScreenProps, Achievement, AchievementRank } from '../../types';
 import { QuestionMarkCircle, StarFilled, iconMap } from '../icons';
 import HelpIcon from '../HelpIcon';
-import Atlas from '../Atlas';
 
 const rankToLevelMap: Record<AchievementRank, number> = {
     bronze: 1,
@@ -239,20 +238,6 @@ const AchievementsScreen: React.FC<AchievementsScreenProps> = ({ userData, onCla
               <li>¡Apunta al <strong>rango de Diamante</strong> como objetivo máximo <StarFilled className="inline w-4 h-4"/>!</li>
             </ul>
           </HelpIcon>
-        </div>
-      </div>
-      
-      {/* Atlas celebra los logros */}
-      <div className="flex items-center gap-4 bg-slate-800/30 rounded-xl p-4 border border-slate-700/50 mb-6">
-        <Atlas 
-          size="small" 
-          expression="celebrating"
-          showMessage={false}
-        />
-        <div className="flex-1">
-          <p className="text-slate-200 text-sm">
-            <span className="font-bold text-amber-400">¡Atlas está orgulloso de ti!</span> Cada logro es como una vértebra más en tu columna de conocimiento. 🏆
-          </p>
         </div>
       </div>
       {showHelp && (

@@ -309,8 +309,16 @@ const App: React.FC = () => {
     const handleNavigate = useCallback((newView: View) => {
         viewHistory.current.push(newView);
         setView(newView);
-        // Scroll to top cuando se cambia de página
-        window.scrollTo({ top: 0, behavior: 'instant' });
+        
+        // Scroll to top cuando se cambia de página - múltiples métodos para asegurar que funcione
+        setTimeout(() => {
+            window.scrollTo({ top: 0, behavior: 'instant' });
+            document.documentElement.scrollTop = 0;
+            document.body.scrollTop = 0;
+            if (mainRef.current) {
+                mainRef.current.scrollTop = 0;
+            }
+        }, 0);
     }, []);
 
     const handleBack = useCallback(() => {
@@ -331,17 +339,22 @@ const App: React.FC = () => {
             viewHistory.current = ['home'];
             setView('home');
             // Scroll to top cuando se cambia de página
-            window.scrollTo({ top: 0, behavior: 'instant' });
+            setTimeout(() => {
+                window.scrollTo({ top: 0, behavior: 'instant' });
+                document.documentElement.scrollTop = 0;
+                document.body.scrollTop = 0;
+                if (mainRef.current) mainRef.current.scrollTop = 0;
+            }, 0);
             return;
         }
         setView(newView);
         // Siempre resetea scroll al volver
-        try {
-            if (mainRef.current) mainRef.current.scrollTo({ top: 0, left: 0, behavior: 'auto' });
-            window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+        setTimeout(() => {
+            window.scrollTo({ top: 0, behavior: 'instant' });
             document.documentElement.scrollTop = 0;
             document.body.scrollTop = 0;
-        } catch {}
+            if (mainRef.current) mainRef.current.scrollTop = 0;
+        }, 0);
         requestAnimationFrame(() => {
             try {
                 if (mainRef.current) mainRef.current.scrollTo({ top: 0, left: 0, behavior: 'auto' });
@@ -757,7 +770,11 @@ const App: React.FC = () => {
         (window as any).__NAVIGATE__ = (v: View) => {
             setView(v);
             // Scroll to top cuando se cambia de página desde el tour
-            window.scrollTo({ top: 0, behavior: 'instant' });
+            setTimeout(() => {
+                window.scrollTo({ top: 0, behavior: 'instant' });
+                document.documentElement.scrollTop = 0;
+                document.body.scrollTop = 0;
+            }, 0);
         };
         (window as any).__SCROLL_TO__ = (selector: string) => {
             try {
@@ -1862,7 +1879,11 @@ const App: React.FC = () => {
         setView('home');
         viewHistory.current = ['home'];
         // Scroll to top cuando se cambia de página
-        window.scrollTo({ top: 0, behavior: 'instant' });
+        setTimeout(() => {
+            window.scrollTo({ top: 0, behavior: 'instant' });
+            document.documentElement.scrollTop = 0;
+            document.body.scrollTop = 0;
+        }, 0);
     }, [lastQuizResult, triggerAnimation]);
 
     const handleExamResultContinue = useCallback(() => {
@@ -1870,7 +1891,11 @@ const App: React.FC = () => {
         setView('home');
         viewHistory.current = ['home'];
         // Scroll to top cuando se cambia de página
-        window.scrollTo({ top: 0, behavior: 'instant' });
+        setTimeout(() => {
+            window.scrollTo({ top: 0, behavior: 'instant' });
+            document.documentElement.scrollTop = 0;
+            document.body.scrollTop = 0;
+        }, 0);
     }, []);
 
     const handleSaveUserNote = useCallback((note: Omit<UserNote, 'id' | 'timestamp'>) => {

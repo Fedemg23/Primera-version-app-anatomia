@@ -9,7 +9,6 @@ import type { PublicUser, FriendRequest } from '../../services/firestore';
 import { AVATAR_DATA } from '../../constants';
 import { iconMap, CheckSquare, Target, Lock, CheckCircle, Edit, XCircle, LogOut, Star, Users, UserPlus } from '../icons';
 import FriendsScreen from './FriendsScreen';
-import Atlas from '../Atlas';
 
 const StatCard: React.FC<{ icon: React.ReactNode; label: string; value: string | number; colorClass: string; }> = memo(({ icon, label, value, colorClass }) => (
 	<div className="bg-slate-800/40 backdrop-blur-sm p-4 rounded-xl flex items-center space-x-4 border border-slate-700/50">
@@ -131,16 +130,6 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ userData, onAvatarChange,
 	return (
 		<div className="h-full overflow-y-auto p-4 md:p-6 pb-24 pt-0">
 			<div className="space-y-6">
-				{/* Atlas saluda en el perfil */}
-				<div className="flex justify-center">
-					<Atlas 
-						size="small" 
-						expression="happy"
-						message={`¡Hola ${userData.name}! Soy Atlas (C1), tu guía en Anatomy Go. ¿Listo para seguir aprendiendo? 📚`}
-						showMessage={false}
-						userData={userData}
-					/>
-				</div>
 
 				{/* Profile Header Card */}
 				<div className="bg-slate-800/40 backdrop-blur-sm p-6 rounded-2xl shadow-md border border-slate-700/50 flex flex-col sm:flex-row items-center space-y-4 sm:space-y-0 sm:space-x-6">

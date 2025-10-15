@@ -77,6 +77,7 @@ const RankedMatchScreen: React.FC<RankedMatchScreenProps> = ({
   const questionStartTime = useRef(Date.now());
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const heartbeatInterval = useRef<NodeJS.Timeout | null>(null);
+  const matchCompletedRef = useRef(false); // Prevenir llamadas múltiples
 
   const currentQuestion = questions[currentQuestionIndex];
   const isLastQuestion = currentQuestionIndex === questions.length - 1;
@@ -114,13 +115,15 @@ const RankedMatchScreen: React.FC<RankedMatchScreenProps> = ({
           setIFinished(true);
         }
 
-        // Si ambos terminaron, calcular el ganador
-        if (myFinished && opponentFinished && iFinished) {
+        // Si ambos terminaron, calcular el ganador (solo una vez)
+        if (myFinished && opponentFinished && iFinished && !matchCompletedRef.current) {
+          matchCompletedRef.current = true;
           finishMatchWithResults(me.score, opponent.score, me.answers, opponent.answers);
         }
 
-        // Si la partida terminó por el servidor (desconexión, forfeit, etc.)
-        if (match.status === 'finished' && match.winner) {
+        // Si la partida terminó por el servidor (desconexión, forfeit, etc.) - solo una vez
+        if (match.status === 'finished' && match.winner && !matchCompletedRef.current) {
+          matchCompletedRef.current = true;
           const myWin = (match.winner === 'p1' && isP1) || (match.winner === 'p2' && !isP1);
           const winner = match.winner === 'draw' ? 'draw' : myWin ? 'me' : 'opponent';
           
@@ -357,26 +360,23 @@ const RankedMatchScreen: React.FC<RankedMatchScreenProps> = ({
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-neutral-900 to-black text-white p-4 flex flex-col">
-      {/* Header */}
-      <div className="flex items-center justify-between mb-6 bg-neutral-900/80 backdrop-blur-xl border border-neutral-700 rounded-2xl p-4">
+    <div className="relative flex flex-col min-h-screen overflow-hidden bg-transparent transition-colors duration-500">
+      {/* Header de puntuaciones */}
+      <div className="flex items-center justify-between mb-3 bg-gradient-to-t from-gray-800/60 to-gray-600/40 backdrop-blur-md border border-slate-700/50 rounded-2xl p-3 mx-2 mt-2 flex-shrink-0">
         {/* Mi info */}
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2">
           <div className="relative">
-            <div className="ring-4 ring-green-500/30 rounded-full">
-              <AvatarImage avatarId={myData.avatar} size="lg" className="ring-0 border-4 border-green-500" />
-            </div>
+            <AvatarImage avatarId={myData.avatar} size="md" className="ring-2 ring-green-500/50" />
             {mode === 'Ataque' && (
-              <div className="absolute -bottom-1 -right-1 bg-red-600 rounded-full px-2 py-0.5 text-xs font-bold flex items-center gap-0.5">
+              <div className="absolute -bottom-0.5 -right-0.5 bg-red-600 rounded-full px-1.5 py-0.5 text-[10px] font-bold flex items-center gap-0.5">
                 ❤️ {myHP}
               </div>
             )}
           </div>
           <div>
-            <div className="text-base font-bold text-white">{myData.name}</div>
-            <div className="text-xs text-neutral-400">{myData.rating} R · {myData.league}</div>
+            <div className="text-xs font-bold text-white leading-tight">{myData.name}</div>
             {mode !== 'Ataque' && (
-              <div className="text-xl font-black text-green-400 mt-1">
+              <div className="text-base font-black text-green-400 leading-tight">
                 {myScore} pts
               </div>
             )}
@@ -384,29 +384,26 @@ const RankedMatchScreen: React.FC<RankedMatchScreenProps> = ({
         </div>
 
         {/* VS */}
-        <div className="relative">
-          <div className="text-2xl font-black text-red-500 px-4 py-2 bg-neutral-800 rounded-lg border-2 border-red-500/30">
+        <div className="relative flex-shrink-0">
+          <div className="text-lg font-black text-red-500 px-2 py-1 bg-slate-800/50 rounded-lg border border-red-500/30">
             VS
           </div>
         </div>
 
         {/* Info del oponente */}
-        <div className="flex items-center gap-3 flex-row-reverse">
+        <div className="flex items-center gap-2 flex-row-reverse">
           <div className="relative">
-            <div className="ring-4 ring-blue-500/30 rounded-full">
-              <AvatarImage avatarId={opponentData.avatar} size="lg" className="ring-0 border-4 border-blue-500" />
-            </div>
+            <AvatarImage avatarId={opponentData.avatar} size="md" className="ring-2 ring-blue-500/50" />
             {mode === 'Ataque' && (
-              <div className="absolute -bottom-1 -left-1 bg-red-600 rounded-full px-2 py-0.5 text-xs font-bold flex items-center gap-0.5">
+              <div className="absolute -bottom-0.5 -left-0.5 bg-red-600 rounded-full px-1.5 py-0.5 text-[10px] font-bold flex items-center gap-0.5">
                 ❤️ {opponentHP}
               </div>
             )}
           </div>
           <div className="text-right">
-            <div className="text-base font-bold text-white">{opponentData.name}</div>
-            <div className="text-xs text-neutral-400">{opponentData.rating} R · {opponentData.league}</div>
+            <div className="text-xs font-bold text-white leading-tight">{opponentData.name}</div>
             {mode !== 'Ataque' && (
-              <div className="text-xl font-black text-blue-400 mt-1">
+              <div className="text-base font-black text-blue-400 leading-tight">
                 {opponentScore} pts
               </div>
             )}
@@ -415,41 +412,53 @@ const RankedMatchScreen: React.FC<RankedMatchScreenProps> = ({
       </div>
 
       {/* Barra de progreso */}
-      <div className="mb-4">
-        <div className="h-2 bg-neutral-800 rounded-full overflow-hidden">
+      <div className="mb-3 px-2">
+        <div className="w-full bg-slate-700 rounded-full h-3">
           <div 
-            className="h-full bg-gradient-to-r from-blue-500 to-purple-500 transition-all duration-300"
+            className="bg-gradient-to-r from-blue-500 to-sky-400 h-3 rounded-full transition-all duration-300"
             style={{ width: `${getProgressPercentage()}%` }}
           />
         </div>
         <div className="flex justify-between text-xs text-neutral-400 mt-1">
           <span>Pregunta {currentQuestionIndex + 1}/{questions.length}</span>
-          <span className={timeLeft <= 5 ? 'text-red-400 font-bold' : ''}>⏱️ {timeLeft}s</span>
+          <span className={timeLeft <= 5 ? 'text-red-400 font-bold animate-pulse' : ''}>⏱️ {timeLeft}s</span>
         </div>
       </div>
 
       {/* Pregunta */}
-      <div className="flex-1 flex flex-col justify-center max-w-3xl mx-auto w-full">
-        <div className="bg-neutral-800/50 backdrop-blur-xl border border-neutral-700 rounded-2xl p-6 mb-6">
-          <h2 className="text-xl font-bold mb-4 text-center">
-            {currentQuestion.textoPregunta}
-          </h2>
-          
-          {currentQuestion.urlImagen && (
+      <div className="flex-1 min-h-0 flex flex-col">
+        <h2 className="text-base md:text-lg font-semibold my-2 flex-shrink-0 text-slate-100 px-3 text-center">
+          {currentQuestion.textoPregunta}
+        </h2>
+        
+        {currentQuestion.urlImagen && (
+          <div className="flex justify-center mb-3 px-3">
             <img 
               src={currentQuestion.urlImagen} 
               alt="Pregunta" 
-              className="max-w-full max-h-64 mx-auto mb-4 rounded-lg"
+              className="max-w-full max-h-48 rounded-lg border border-slate-700"
             />
-          )}
-        </div>
+          </div>
+        )}
 
         {/* Opciones */}
-        <div className="grid grid-cols-1 gap-3">
+        <div className={`grid grid-cols-1 gap-1.5 md:gap-2 flex-none px-3 w-full ${isAnswered ? 'pointer-events-none opacity-90' : ''}`}>
           {currentQuestion.opciones.map((opcion, index) => {
             const isSelected = selectedAnswer === index;
             const isCorrect = index === currentQuestion.indiceRespuestaCorrecta;
             const showCorrectness = showResult;
+
+            let buttonClass = 'border border-slate-700 bg-slate-800/60 hover:bg-slate-700/60 active:bg-slate-700 text-slate-200';
+
+            if (showCorrectness) {
+              if (isCorrect) {
+                buttonClass = 'border-emerald-500 bg-emerald-900/50 font-bold ring-2 ring-emerald-500';
+              } else if (isSelected) {
+                buttonClass = 'border-red-500 bg-red-900/50 opacity-80 ring-2 ring-red-500';
+              } else {
+                buttonClass += ' opacity-50';
+              }
+            }
 
             return (
               <button
@@ -461,24 +470,22 @@ const RankedMatchScreen: React.FC<RankedMatchScreenProps> = ({
                   }
                 }}
                 disabled={isAnswered}
-                className={`p-4 rounded-xl font-medium text-left transition-all ${
-                  !showCorrectness
-                    ? isSelected
-                      ? 'bg-blue-600 text-white scale-95'
-                      : 'bg-neutral-800 hover:bg-neutral-700 text-white'
-                    : showCorrectness && isCorrect
-                    ? 'bg-green-600 text-white'
-                    : showCorrectness && isSelected && !isCorrect
-                    ? 'bg-red-600 text-white'
-                    : 'bg-neutral-800 text-neutral-400'
-                } ${isAnswered ? 'cursor-not-allowed' : 'cursor-pointer active:scale-95'}`}
+                className={`w-full text-left py-1 md:py-1.5 px-3 md:px-4 rounded-lg text-xs md:text-sm font-semibold transition-all duration-200 flex justify-between items-center gap-1.5 min-w-0 touch-manipulation min-h-10 md:min-h-11 ${buttonClass}`}
               >
-                <span className="font-bold mr-2">
-                  {String.fromCharCode(65 + index)}.
+                <span className="flex-1 whitespace-normal break-words leading-tight">
+                  <span className="font-bold mr-2">{String.fromCharCode(65 + index)}.</span>
+                  {opcion}
                 </span>
-                {opcion}
-                {showCorrectness && isCorrect && <span className="ml-2">✓</span>}
-                {showCorrectness && isSelected && !isCorrect && <span className="ml-2">✗</span>}
+                {showCorrectness && isCorrect && (
+                  <svg className="w-4 h-4 text-emerald-500 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd"/>
+                  </svg>
+                )}
+                {showCorrectness && isSelected && !isCorrect && (
+                  <svg className="w-4 h-4 text-red-500 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd"/>
+                  </svg>
+                )}
               </button>
             );
           })}
@@ -493,20 +500,24 @@ const RankedMatchScreen: React.FC<RankedMatchScreenProps> = ({
       )}
 
       {/* Botón de abandonar */}
-      <button
-        onClick={async () => {
-          try {
-            await forfeitMatch(matchId, myData.userId);
-            onForfeit();
-          } catch (error) {
-            console.error('Error abandonando:', error);
-            onForfeit();
-          }
-        }}
-        className="mt-4 text-sm text-neutral-500 hover:text-red-400 transition-colors"
-      >
-        Abandonar partida
-      </button>
+      <div className="flex justify-center mt-3 mb-2">
+        <button
+          onClick={async () => {
+            if (confirm('¿Seguro que quieres abandonar? Esto contará como derrota.')) {
+              try {
+                await forfeitMatch(matchId, myData.userId);
+                onForfeit();
+              } catch (error) {
+                console.error('Error abandonando:', error);
+                onForfeit();
+              }
+            }
+          }}
+          className="text-xs text-slate-400 hover:text-red-400 transition-colors px-4 py-1"
+        >
+          Abandonar partida
+        </button>
+      </div>
     </div>
   );
 };

@@ -198,8 +198,8 @@ export const findMatch = async (
     // Crear la partida
     const matchId = `match_${Date.now()}_${myEntry.userId}_${bestOpponent.data.userId}`;
     
-    // Seleccionar preguntas aleatorias
-    const selectedQuestions = selectRandomQuestions(myEntry.mode, 10);
+    // Seleccionar preguntas aleatorias (5 preguntas por partida)
+    const selectedQuestions = selectRandomQuestions(myEntry.mode, 5);
 
     const match: ActiveMatch = {
       matchId,
