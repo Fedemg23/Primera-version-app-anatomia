@@ -108,6 +108,34 @@ export const leaveMatchmakingQueue = async (queueId: string): Promise<void> => {
 };
 
 /**
+ * Limpia entradas obsoletas de la cola (usuarios que se desconectaron sin cancelar)
+ */
+const cleanupStaleQueueEntries = async (db: any): Promise<void> => {
+  try {
+    const STALE_THRESHOLD = 30000; // 30 segundos
+    const staleTimestamp = Timestamp.fromMillis(Date.now() - STALE_THRESHOLD);
+
+    // Buscar entradas antiguas
+    const staleQuery = query(
+      collection(db, 'matchmakingQueue'),
+      where('timestamp', '<', staleTimestamp)
+    );
+
+    const staleSnapshot = await getDocs(staleQuery);
+    
+    // Eliminar entradas obsoletas
+    const deletions = staleSnapshot.docs.map(doc => deleteDoc(doc.ref));
+    await Promise.all(deletions);
+
+    if (deletions.length > 0) {
+      console.log(`🧹 Limpiadas ${deletions.length} entradas obsoletas de la cola`);
+    }
+  } catch (error) {
+    console.error('Error limpiando cola:', error);
+  }
+};
+
+/**
  * Busca un rival REAL compatible y crea una partida
  * 
  * IMPORTANTE: Este sistema es 100% PvP (Player vs Player)
@@ -123,10 +151,13 @@ export const findMatch = async (
     const db = getDb();
     if (!db) throw new Error('Firestore no disponible');
 
-    // Calcular rango de búsqueda
+    // PASO 1: Limpiar entradas obsoletas (más de 30 segundos sin actualizar)
+    await cleanupStaleQueueEntries(db);
+
+    // PASO 2: Calcular rango de búsqueda
     const [minRating, maxRating] = getMatchmakingRange(myEntry.rating, 0);
 
-    // Buscar oponentes compatibles - usando solo >= para evitar error de índice
+    // PASO 3: Buscar oponentes compatibles - usando solo >= para evitar error de índice
     const q = query(
       collection(db, 'matchmakingQueue'),
       where('mode', '==', myEntry.mode),
@@ -139,15 +170,23 @@ export const findMatch = async (
 
     const snapshot = await getDocs(q);
     
-    // Buscar el mejor rival (excluyéndome a mí mismo y filtrando por maxRating)
+    // PASO 4: Buscar el mejor rival (excluyéndome a mí mismo y filtrando por maxRating)
+    // También verificar que la entrada sea reciente (menos de 30 segundos)
     let bestOpponent: { id: string; data: MatchmakingEntry } | null = null;
+    const now = Date.now();
+    const MAX_ENTRY_AGE = 30000; // 30 segundos
     
     for (const docSnap of snapshot.docs) {
       const data = docSnap.data() as MatchmakingEntry;
-      // Filtrar por maxRating manualmente y excluirme a mí mismo
+      
+      // Calcular antigüedad de la entrada
+      const entryAge = now - (data.timestamp?.toMillis() || 0);
+      
+      // Filtrar por: maxRating, no ser yo mismo, status activo, y entrada reciente
       if (data.userId !== myEntry.userId && 
           data.status === 'searching' && 
-          data.rating <= maxRating) {
+          data.rating <= maxRating &&
+          entryAge < MAX_ENTRY_AGE) {
         bestOpponent = { id: docSnap.id, data };
         break;
       }

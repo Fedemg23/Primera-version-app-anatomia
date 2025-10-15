@@ -144,6 +144,30 @@ const MatchmakingModal: React.FC<MatchmakingModalProps> = ({
     return () => clearInterval(interval);
   }, [isOpen]);
 
+  // Heartbeat: Actualizar timestamp cada 5 segundos para indicar que sigo buscando
+  useEffect(() => {
+    if (!isOpen || !queueId) return;
+
+    const heartbeatInterval = setInterval(async () => {
+      try {
+        const { getDb } = await import('../services/firebase');
+        const { doc, updateDoc, Timestamp } = await import('firebase/firestore');
+        
+        const db = getDb();
+        if (!db) return;
+
+        // Actualizar timestamp para mantener la entrada activa
+        await updateDoc(doc(db, 'matchmakingQueue', queueId), {
+          timestamp: Timestamp.now()
+        });
+      } catch (error) {
+        console.error('Error actualizando heartbeat:', error);
+      }
+    }, 5000); // Cada 5 segundos
+
+    return () => clearInterval(heartbeatInterval);
+  }, [isOpen, queueId]);
+
   // Actualizar rango de búsqueda
   useEffect(() => {
     if (!isOpen) return;
