@@ -61,6 +61,20 @@
       ]
     },
     {
+      "collectionGroup": "rankedProfiles",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "userId",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "rating",
+          "order": "DESCENDING"
+        }
+      ]
+    },
+    {
       "collectionGroup": "matchmakingQueue",
       "queryScope": "COLLECTION",
       "fields": [
@@ -87,11 +101,11 @@
       "queryScope": "COLLECTION",
       "fields": [
         {
-          "fieldPath": "timestamp",
+          "fieldPath": "status",
           "order": "ASCENDING"
         },
         {
-          "fieldPath": "status",
+          "fieldPath": "timestamp",
           "order": "ASCENDING"
         }
       ]

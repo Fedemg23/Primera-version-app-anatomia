@@ -197,6 +197,58 @@ const App: React.FC = () => {
     const [view, setView] = useState<View>('home');
     const viewHistory = useRef<View[]>(['home']);
 
+    // Scroll al inicio cada vez que cambia la vista
+    useEffect(() => {
+        // Función para forzar scroll de forma agresiva
+        const forceScrollToTop = () => {
+            // Método 1: Scroll en WINDOW primero (para que vaya por encima del header)
+            window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+            document.documentElement.scrollTop = 0;
+            document.body.scrollTop = 0;
+            
+            // Método 2: Scroll directo en el main
+            if (mainRef.current) {
+                mainRef.current.scrollTop = 0;
+                mainRef.current.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+            }
+            
+            // Método 3: Hacer scroll al elemento root para que todo vaya arriba
+            const rootElement = document.getElementById('root');
+            if (rootElement) {
+                rootElement.scrollTop = 0;
+                rootElement.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+            }
+        };
+
+        // Ejecutar INMEDIATAMENTE (antes de que React renderice)
+        forceScrollToTop();
+        
+        // Ejecutar en el siguiente frame (después de que React renderice)
+        requestAnimationFrame(() => {
+            forceScrollToTop();
+            
+            // Y una vez más en el frame siguiente
+            requestAnimationFrame(() => {
+                forceScrollToTop();
+            });
+        });
+        
+        // Ejecutar después de 50ms para componentes que cargan datos
+        const timer1 = setTimeout(() => {
+            forceScrollToTop();
+        }, 50);
+        
+        // Ejecutar después de 150ms para total seguridad
+        const timer2 = setTimeout(() => {
+            forceScrollToTop();
+        }, 150);
+        
+        return () => {
+            clearTimeout(timer1);
+            clearTimeout(timer2);
+        };
+    }, [view]);
+
     const defaultUserData: UserData = {
         name: 'AnatomyGO',
         hearts: 5, 
@@ -307,22 +359,51 @@ const App: React.FC = () => {
     }, [userData, auth, saveData]);
     
     const handleNavigate = useCallback((newView: View) => {
+        // Scroll ULTRA-INMEDIATO antes de cambiar la vista
+        // Primero window (para header)
+        window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+        document.documentElement.scrollTop = 0;
+        document.body.scrollTop = 0;
+        
+        // Luego main
+        if (mainRef.current) {
+            mainRef.current.scrollTop = 0;
+            mainRef.current.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+        }
+        
+        // Luego root
+        const rootElement = document.getElementById('root');
+        if (rootElement) {
+            rootElement.scrollTop = 0;
+            rootElement.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+        }
+        
         viewHistory.current.push(newView);
         setView(newView);
-        
-        // Scroll to top cuando se cambia de página - múltiples métodos para asegurar que funcione
-        setTimeout(() => {
-            window.scrollTo({ top: 0, behavior: 'instant' });
-            document.documentElement.scrollTop = 0;
-            document.body.scrollTop = 0;
-            if (mainRef.current) {
-                mainRef.current.scrollTop = 0;
-            }
-        }, 0);
+        // El scroll también se maneja en el useEffect que escucha cambios en 'view'
     }, []);
 
     const handleBack = useCallback(() => {
         if (viewHistory.current.length <= 1) return;
+    
+        // Scroll ULTRA-INMEDIATO antes de cambiar la vista
+        // Primero window (para header)
+        window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+        document.documentElement.scrollTop = 0;
+        document.body.scrollTop = 0;
+        
+        // Luego main
+        if (mainRef.current) {
+            mainRef.current.scrollTop = 0;
+            mainRef.current.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+        }
+        
+        // Luego root
+        const rootElement = document.getElementById('root');
+        if (rootElement) {
+            rootElement.scrollTop = 0;
+            rootElement.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+        }
     
         const currentView = viewHistory.current.pop();
         const newView = viewHistory.current[viewHistory.current.length - 1];
@@ -338,29 +419,10 @@ const App: React.FC = () => {
         if (currentView === 'achievements') {
             viewHistory.current = ['home'];
             setView('home');
-            // Scroll to top cuando se cambia de página
-            setTimeout(() => {
-                window.scrollTo({ top: 0, behavior: 'instant' });
-                document.documentElement.scrollTop = 0;
-                document.body.scrollTop = 0;
-                if (mainRef.current) mainRef.current.scrollTop = 0;
-            }, 0);
             return;
         }
         setView(newView);
-        // Siempre resetea scroll al volver
-        setTimeout(() => {
-            window.scrollTo({ top: 0, behavior: 'instant' });
-            document.documentElement.scrollTop = 0;
-            document.body.scrollTop = 0;
-            if (mainRef.current) mainRef.current.scrollTop = 0;
-        }, 0);
-        requestAnimationFrame(() => {
-            try {
-                if (mainRef.current) mainRef.current.scrollTo({ top: 0, left: 0, behavior: 'auto' });
-                window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
-            } catch {}
-        });
+        // El scroll también se maneja en el useEffect que escucha cambios en 'view'
     }, []);
     
     const handleSignIn = useCallback(async () => {
@@ -769,12 +831,7 @@ const App: React.FC = () => {
         (window as any).__OPEN_TOUR__ = () => setIsTourOpen(true);
         (window as any).__NAVIGATE__ = (v: View) => {
             setView(v);
-            // Scroll to top cuando se cambia de página desde el tour
-            setTimeout(() => {
-                window.scrollTo({ top: 0, behavior: 'instant' });
-                document.documentElement.scrollTop = 0;
-                document.body.scrollTop = 0;
-            }, 0);
+            // El scroll se maneja automáticamente en el useEffect que escucha cambios en 'view'
         };
         (window as any).__SCROLL_TO__ = (selector: string) => {
             try {
@@ -1878,24 +1935,14 @@ const App: React.FC = () => {
         setLastQuizResult(null);
         setView('home');
         viewHistory.current = ['home'];
-        // Scroll to top cuando se cambia de página
-        setTimeout(() => {
-            window.scrollTo({ top: 0, behavior: 'instant' });
-            document.documentElement.scrollTop = 0;
-            document.body.scrollTop = 0;
-        }, 0);
+        // El scroll se maneja automáticamente en el useEffect que escucha cambios en 'view'
     }, [lastQuizResult, triggerAnimation]);
 
     const handleExamResultContinue = useCallback(() => {
         setExamResult(null);
         setView('home');
         viewHistory.current = ['home'];
-        // Scroll to top cuando se cambia de página
-        setTimeout(() => {
-            window.scrollTo({ top: 0, behavior: 'instant' });
-            document.documentElement.scrollTop = 0;
-            document.body.scrollTop = 0;
-        }, 0);
+        // El scroll se maneja automáticamente en el useEffect que escucha cambios en 'view'
     }, []);
 
     const handleSaveUserNote = useCallback((note: Omit<UserNote, 'id' | 'timestamp'>) => {
@@ -2175,6 +2222,7 @@ const App: React.FC = () => {
             )}
 
             <main 
+                key={view}
                 ref={mainRef}
                 className={`flex-grow overflow-x-hidden overflow-y-auto`}
                 style={{

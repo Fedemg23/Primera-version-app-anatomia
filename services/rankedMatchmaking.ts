@@ -101,9 +101,29 @@ export const leaveMatchmakingQueue = async (queueId: string): Promise<void> => {
     const db = getDb();
     if (!db) return;
 
-    await deleteDoc(doc(db, 'matchmakingQueue', queueId));
-  } catch (error) {
-    console.error('Error saliendo de la cola:', error);
+    const queueRef = doc(db, 'matchmakingQueue', queueId);
+    
+    // Verificar si el documento existe y pertenece al usuario actual
+    const queueDoc = await getDoc(queueRef);
+    
+    if (!queueDoc.exists()) {
+      console.log('ℹ️ La entrada en la cola ya no existe (probablemente ya fue eliminada)');
+      return;
+    }
+    
+    // Intentar eliminar el documento
+    await deleteDoc(queueRef);
+    console.log('✅ Salida exitosa de la cola de matchmaking');
+  } catch (error: any) {
+    // Si es un error de permisos, simplemente ignorarlo
+    // (la entrada no nos pertenece o ya fue eliminada)
+    if (error?.code === 'permission-denied') {
+      console.log('ℹ️ No se pudo eliminar la entrada (ya no existe o no nos pertenece)');
+      return;
+    }
+    
+    // Para otros errores, solo logearlos sin hacer nada más
+    console.warn('Advertencia al salir de la cola:', error.message || error);
   }
 };
 
