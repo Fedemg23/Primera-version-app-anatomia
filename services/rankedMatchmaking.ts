@@ -54,9 +54,9 @@ export interface ActiveMatch {
   winner?: 'p1' | 'p2' | 'draw';
 }
 
-const MATCHMAKING_TIMEOUT = 60000; // 60 segundos
+// Sistema de matchmaking PvP real - Sin timeout, espera indefinida hasta encontrar rival real
 const HEARTBEAT_INTERVAL = 3000; // 3 segundos
-const DISCONNECT_TIMEOUT = 30000; // 30 segundos
+const DISCONNECT_TIMEOUT = 30000; // 30 segundos - Para detección de desconexión durante partida
 
 /**
  * Agrega al usuario a la cola de matchmaking
@@ -108,7 +108,12 @@ export const leaveMatchmakingQueue = async (queueId: string): Promise<void> => {
 };
 
 /**
- * Busca un rival compatible y crea una partida
+ * Busca un rival REAL compatible y crea una partida
+ * 
+ * IMPORTANTE: Este sistema es 100% PvP (Player vs Player)
+ * - NO hay bots ni oponentes simulados
+ * - NO hay timeout - espera indefinidamente hasta encontrar un rival real
+ * - Solo empareja jugadores reales que estén buscando partida al mismo tiempo
  */
 export const findMatch = async (
   myQueueId: string,

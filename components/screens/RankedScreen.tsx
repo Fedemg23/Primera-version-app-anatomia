@@ -188,7 +188,7 @@ const RankedScreen: React.FC<RankedScreenProps> = ({
           className="rounded-xl bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 p-4 font-bold text-white shadow-lg transition-all active:scale-95 touch-manipulation"
         >
           Jugar Ranked
-          <div className="text-xs font-normal opacity-80 mt-1">~25s de espera</div>
+          <div className="text-xs font-normal opacity-80 mt-1">PvP real - Esperando rival</div>
         </button>
         <button
           onClick={() => playSound('button-click')}

@@ -197,28 +197,59 @@ const MatchmakingModal: React.FC<MatchmakingModalProps> = ({
     };
   }, [isOpen, queueId, matchId, myUserId, myName, myAvatar, myRating, myLeague, mode]);
 
-  // Cuando se encuentra una partida, obtener datos del oponente
+  // Cuando se encuentra una partida, obtener datos del oponente REAL desde Firebase
   useEffect(() => {
     if (!matchId || !onMatchFound) return;
 
-    // Simular obtención de datos del oponente (en producción vendría de activeMatches)
-    const opponent = {
-      userId: 'opponent_id',
-      avatar: ['🧑‍⚕️', '👨‍🎓', '👩‍🔬', '🧑‍🏫'][Math.floor(Math.random() * 4)],
-      name: ['Ana', 'Carlos', 'María', 'Luis', 'Sofia', 'Pedro'][Math.floor(Math.random() * 6)],
-      rating: Math.round(myRating + (Math.random() - 0.5) * 200),
-      league: myLeague,
-      advantage: 0
+    const loadOpponentData = async () => {
+      try {
+        const { getDb } = await import('../services/firebase');
+        const { doc, getDoc } = await import('firebase/firestore');
+        
+        const db = getDb();
+        if (!db) {
+          console.error('Firestore no disponible');
+          return;
+        }
+
+        // Obtener datos de la partida activa desde Firebase
+        const matchDoc = await getDoc(doc(db, 'activeMatches', matchId));
+        
+        if (!matchDoc.exists()) {
+          console.error('Partida no encontrada');
+          return;
+        }
+
+        const matchData = matchDoc.data() as any;
+        
+        // Determinar si soy p1 o p2
+        const isP1 = matchData.p1.userId === myUserId;
+        const opponentInfo = isP1 ? matchData.p2 : matchData.p1;
+
+        // Construir datos del oponente REAL
+        const opponent = {
+          userId: opponentInfo.userId,
+          avatar: opponentInfo.avatar,
+          name: opponentInfo.name,
+          rating: opponentInfo.rating,
+          league: opponentInfo.league,
+          advantage: 0
+        };
+
+        // Calcular ventaja teórica
+        const ratingDiff = myRating - opponent.rating;
+        opponent.advantage = Math.round(50 + (ratingDiff / 400) * 25);
+
+        setOpponentData(opponent);
+        setIsSearching(false);
+        setCountdown(3);
+      } catch (error) {
+        console.error('Error cargando datos del oponente:', error);
+      }
     };
 
-    // Calcular ventaja teórica
-    const ratingDiff = myRating - opponent.rating;
-    opponent.advantage = Math.round(50 + (ratingDiff / 400) * 25);
-
-    setOpponentData(opponent);
-    setIsSearching(false);
-    setCountdown(3);
-  }, [matchId, myRating, myLeague, onMatchFound]);
+    loadOpponentData();
+  }, [matchId, myUserId, myRating, onMatchFound]);
 
   // Countdown cuando se encuentra rival
   useEffect(() => {
