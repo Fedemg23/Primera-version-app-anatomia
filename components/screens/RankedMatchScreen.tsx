@@ -71,6 +71,8 @@ const RankedMatchScreen: React.FC<RankedMatchScreenProps> = ({
   const [myHP, setMyHP] = useState(5); // Para modo Ataque por Vida
   const [opponentHP, setOpponentHP] = useState(5);
   const [opponentConnected, setOpponentConnected] = useState(true);
+  const [waitingForOpponent, setWaitingForOpponent] = useState(false);
+  const [iFinished, setIFinished] = useState(false);
   
   const questionStartTime = useRef(Date.now());
   const timerRef = useRef<NodeJS.Timeout | null>(null);
@@ -86,6 +88,7 @@ const RankedMatchScreen: React.FC<RankedMatchScreenProps> = ({
       (match: ActiveMatch) => {
         const isP1 = match.p1.userId === myData.userId;
         const opponent = isP1 ? match.p2 : match.p1;
+        const me = isP1 ? match.p1 : match.p2;
 
         // Actualizar estado del oponente
         setOpponentAnswers(opponent.answers);
@@ -96,17 +99,40 @@ const RankedMatchScreen: React.FC<RankedMatchScreenProps> = ({
         // Actualizar HP si es modo Ataque
         if (mode === 'Ataque') {
           const myHP = 5 - opponent.answers.filter(a => a).length;
-          const oppHP = 5 - (isP1 ? match.p1.answers : match.p2.answers).filter(a => a).length;
+          const oppHP = 5 - me.answers.filter(a => a).length;
           setMyHP(Math.max(0, myHP));
           setOpponentHP(Math.max(0, oppHP));
         }
 
-        // Si la partida terminó, mostrar resultado
+        // Verificar si ambos jugadores terminaron todas las preguntas
+        const myFinished = me.currentQuestionIndex >= questions.length;
+        const opponentFinished = opponent.currentQuestionIndex >= questions.length;
+
+        // Si yo terminé pero el oponente no, mostrar pantalla de espera
+        if (myFinished && !opponentFinished && !waitingForOpponent) {
+          setWaitingForOpponent(true);
+          setIFinished(true);
+        }
+
+        // Si ambos terminaron, calcular el ganador
+        if (myFinished && opponentFinished && iFinished) {
+          finishMatchWithResults(me.score, opponent.score, me.answers, opponent.answers);
+        }
+
+        // Si la partida terminó por el servidor (desconexión, forfeit, etc.)
         if (match.status === 'finished' && match.winner) {
           const myWin = (match.winner === 'p1' && isP1) || (match.winner === 'p2' && !isP1);
           const winner = match.winner === 'draw' ? 'draw' : myWin ? 'me' : 'opponent';
           
-          finishMatch();
+          onMatchComplete({
+            myScore,
+            opponentScore,
+            myAnswers,
+            opponentAnswers,
+            myTimes,
+            opponentTimes,
+            winner
+          });
         }
       },
       (error) => {
@@ -115,7 +141,7 @@ const RankedMatchScreen: React.FC<RankedMatchScreenProps> = ({
     );
 
     return () => unsubscribe();
-  }, [matchId, myData.userId, mode]);
+  }, [matchId, myData.userId, mode, iFinished, waitingForOpponent, questions.length]);
 
   // Heartbeat para mantener conexión
   useEffect(() => {
@@ -231,8 +257,12 @@ const RankedMatchScreen: React.FC<RankedMatchScreenProps> = ({
 
     // Esperar 2 segundos antes de pasar a la siguiente pregunta
     setTimeout(() => {
-      if (isLastQuestion || (mode === 'Ataque' && (myHP <= 1 || opponentHP <= 1))) {
-        finishMatch();
+      if (isLastQuestion) {
+        // Marcar que terminé y esperar al rival
+        setIFinished(true);
+        setWaitingForOpponent(true);
+      } else if (mode === 'Ataque' && (myHP <= 1 || opponentHP <= 1)) {
+        finishMatchWithResults(myScore, opponentScore, myAnswers, opponentAnswers);
       } else {
         nextQuestion();
       }
@@ -248,22 +278,22 @@ const RankedMatchScreen: React.FC<RankedMatchScreenProps> = ({
     questionStartTime.current = Date.now();
   };
 
-  const finishMatch = () => {
+  const finishMatchWithResults = (finalMyScore: number, finalOpponentScore: number, finalMyAnswers: boolean[], finalOpponentAnswers: boolean[]) => {
     let winner: 'me' | 'opponent' | 'draw' = 'draw';
     
     if (mode === 'Ataque') {
       winner = myHP > opponentHP ? 'me' : opponentHP > myHP ? 'opponent' : 'draw';
     } else if (mode === 'MuerteSubita') {
-      winner = myAnswers[myAnswers.length - 1] ? 'me' : 'opponent';
+      winner = finalMyAnswers[finalMyAnswers.length - 1] ? 'me' : 'opponent';
     } else {
-      winner = myScore > opponentScore ? 'me' : opponentScore > myScore ? 'opponent' : 'draw';
+      winner = finalMyScore > finalOpponentScore ? 'me' : finalOpponentScore > finalMyScore ? 'opponent' : 'draw';
     }
 
     onMatchComplete({
-      myScore,
-      opponentScore,
-      myAnswers,
-      opponentAnswers,
+      myScore: finalMyScore,
+      opponentScore: finalOpponentScore,
+      myAnswers: finalMyAnswers,
+      opponentAnswers: finalOpponentAnswers,
       myTimes,
       opponentTimes,
       winner
@@ -273,6 +303,58 @@ const RankedMatchScreen: React.FC<RankedMatchScreenProps> = ({
   const getProgressPercentage = () => {
     return ((currentQuestionIndex + 1) / questions.length) * 100;
   };
+
+  // Pantalla de espera cuando yo terminé pero el rival no
+  if (waitingForOpponent) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-neutral-900 to-black text-white p-4 flex items-center justify-center">
+        <div className="bg-neutral-900/80 backdrop-blur-xl border border-neutral-700 rounded-2xl p-8 max-w-md w-full text-center">
+          <div className="text-6xl mb-4 animate-bounce">⏳</div>
+          <h2 className="text-2xl font-black text-white mb-3">¡Has terminado!</h2>
+          <p className="text-neutral-400 mb-6">Esperando a que tu rival termine...</p>
+          
+          {/* Comparativa temporal */}
+          <div className="bg-gradient-to-r from-neutral-800/50 to-neutral-800/30 rounded-xl p-5 mb-6 border border-neutral-700">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-3">
+                <AvatarImage avatarId={myData.avatar} size="md" className="ring-0 border-4 border-green-500" />
+                <div>
+                  <div className="text-sm font-bold text-white">{myData.name}</div>
+                  <div className="text-xs text-neutral-400">Tú - Completado ✓</div>
+                </div>
+              </div>
+              <div className="text-3xl font-black text-green-400">
+                {myScore}
+              </div>
+            </div>
+
+            <div className="relative h-px bg-neutral-700 my-3">
+              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-neutral-900 px-2 text-xs text-neutral-500 font-bold">
+                VS
+              </div>
+            </div>
+
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <AvatarImage avatarId={opponentData.avatar} size="md" className="ring-0 border-4 border-blue-500" />
+                <div>
+                  <div className="text-sm font-bold text-white">{opponentData.name}</div>
+                  <div className="text-xs text-yellow-400 animate-pulse">En progreso...</div>
+                </div>
+              </div>
+              <div className="text-3xl font-black text-blue-400">
+                {opponentScore}
+              </div>
+            </div>
+          </div>
+
+          <div className="text-xs text-neutral-500 italic">
+            El rival aún puede remontar. ¡No cantes victoria todavía!
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-neutral-900 to-black text-white p-4 flex flex-col">

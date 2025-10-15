@@ -145,7 +145,7 @@ const MatchmakingModal: React.FC<MatchmakingModalProps> = ({
     return () => clearInterval(interval);
   }, [isOpen]);
 
-  // Heartbeat: Actualizar timestamp cada 5 segundos para indicar que sigo buscando
+  // Heartbeat: Actualizar timestamp cada 10 segundos para indicar que sigo buscando
   useEffect(() => {
     if (!isOpen || !queueId) return;
 
@@ -164,7 +164,7 @@ const MatchmakingModal: React.FC<MatchmakingModalProps> = ({
       } catch (error) {
         console.error('Error actualizando heartbeat:', error);
       }
-    }, 5000); // Cada 5 segundos
+    }, 10000); // Cada 10 segundos
 
     return () => clearInterval(heartbeatInterval);
   }, [isOpen, queueId]);

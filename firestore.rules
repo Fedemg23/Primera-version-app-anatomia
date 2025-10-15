@@ -141,10 +141,10 @@ service cloud.firestore {
         (resource.data.userId == request.auth.uid || 
          request.resource.data.status == 'matched');
       
-      // Permitir eliminar tu entrada O entradas obsoletas (más de 30 segundos)
+      // Permitir eliminar tu entrada O entradas obsoletas (más de 60 segundos)
       allow delete: if isSignedIn() && 
         (resource.data.userId == request.auth.uid ||
-         resource.data.timestamp.toMillis() < request.time.toMillis() - 30000);
+         resource.data.timestamp.toMillis() < request.time.toMillis() - 60000);
     }
     
     // Partidas activas (activeMatches)

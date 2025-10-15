@@ -1,4 +1,4 @@
-import { getFirestore, collection, doc, setDoc, onSnapshot, query, where, orderBy, limit, getDocs, updateDoc, deleteDoc, Timestamp, Unsubscribe } from 'firebase/firestore';
+import { getFirestore, collection, doc, setDoc, onSnapshot, query, where, orderBy, limit, getDocs, updateDoc, deleteDoc, Timestamp, Unsubscribe, getDoc } from 'firebase/firestore';
 import { getDb } from './firebase';
 import { MatchMode, League, QuestionData } from '../types';
 import { getMatchmakingRange } from '../utils/rankedElo';
@@ -112,13 +112,14 @@ export const leaveMatchmakingQueue = async (queueId: string): Promise<void> => {
  */
 const cleanupStaleQueueEntries = async (db: any): Promise<void> => {
   try {
-    const STALE_THRESHOLD = 30000; // 30 segundos
+    const STALE_THRESHOLD = 60000; // 60 segundos (aumentado para evitar limpiar entradas activas)
     const staleTimestamp = Timestamp.fromMillis(Date.now() - STALE_THRESHOLD);
 
-    // Buscar entradas antiguas
+    // Buscar entradas antiguas que NO estén emparejadas
     const staleQuery = query(
       collection(db, 'matchmakingQueue'),
-      where('timestamp', '<', staleTimestamp)
+      where('timestamp', '<', staleTimestamp),
+      where('status', '==', 'searching')
     );
 
     const staleSnapshot = await getDocs(staleQuery);
@@ -240,16 +241,43 @@ export const findMatch = async (
 
     // PASO 6: Actualizar entradas de cola para AMBOS jugadores
     // Esto activará los listeners de ambos jugadores simultáneamente
-    await Promise.all([
-      updateDoc(doc(db, 'matchmakingQueue', myQueueId), { 
-        status: 'matched', 
-        matchId 
-      }),
-      updateDoc(doc(db, 'matchmakingQueue', bestOpponent.id), { 
-        status: 'matched', 
-        matchId 
-      })
-    ]);
+    // Verificar que ambos documentos existan antes de actualizar
+    const updatePromises = [];
+    
+    // Verificar y actualizar mi entrada
+    const myQueueDoc = await getDoc(doc(db, 'matchmakingQueue', myQueueId));
+    if (myQueueDoc.exists()) {
+      updatePromises.push(
+        updateDoc(doc(db, 'matchmakingQueue', myQueueId), { 
+          status: 'matched', 
+          matchId 
+        })
+      );
+    } else {
+      console.warn(`Mi entrada de cola ${myQueueId} ya no existe`);
+    }
+    
+    // Verificar y actualizar entrada del oponente
+    const opponentQueueDoc = await getDoc(doc(db, 'matchmakingQueue', bestOpponent.id));
+    if (opponentQueueDoc.exists()) {
+      updatePromises.push(
+        updateDoc(doc(db, 'matchmakingQueue', bestOpponent.id), { 
+          status: 'matched', 
+          matchId 
+        })
+      );
+    } else {
+      console.warn(`Entrada de cola del oponente ${bestOpponent.id} ya no existe`);
+    }
+    
+    // Si ninguna entrada existe, cancelar el match
+    if (updatePromises.length === 0) {
+      console.error('No se pudieron actualizar las entradas de cola, cancelando match');
+      await deleteDoc(doc(db, 'activeMatches', matchId));
+      return null;
+    }
+    
+    await Promise.all(updatePromises);
 
     console.log(`✅ Match creado: ${matchId}`);
     console.log(`   Jugador 1: ${myEntry.name} (${myEntry.rating})`);
