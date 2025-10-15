@@ -13,6 +13,7 @@ import {
   validateAnswerIndex,
   answerRateLimiter
 } from '../../utils/rankedValidation';
+import AvatarImage from '../AvatarImage';
 
 interface RankedMatchScreenProps {
   matchId: string;
@@ -280,8 +281,8 @@ const RankedMatchScreen: React.FC<RankedMatchScreenProps> = ({
         {/* Mi info */}
         <div className="flex items-center gap-3">
           <div className="relative">
-            <div className="w-16 h-16 rounded-full bg-gradient-to-br from-green-500 to-green-600 flex items-center justify-center text-4xl shadow-lg ring-4 ring-green-500/30">
-              {myData.avatar}
+            <div className="ring-4 ring-green-500/30 rounded-full">
+              <AvatarImage avatarId={myData.avatar} size="lg" className="ring-0 border-4 border-green-500" />
             </div>
             {mode === 'Ataque' && (
               <div className="absolute -bottom-1 -right-1 bg-red-600 rounded-full px-2 py-0.5 text-xs font-bold flex items-center gap-0.5">
@@ -310,8 +311,8 @@ const RankedMatchScreen: React.FC<RankedMatchScreenProps> = ({
         {/* Info del oponente */}
         <div className="flex items-center gap-3 flex-row-reverse">
           <div className="relative">
-            <div className="w-16 h-16 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-4xl shadow-lg ring-4 ring-blue-500/30">
-              {opponentData.avatar}
+            <div className="ring-4 ring-blue-500/30 rounded-full">
+              <AvatarImage avatarId={opponentData.avatar} size="lg" className="ring-0 border-4 border-blue-500" />
             </div>
             {mode === 'Ataque' && (
               <div className="absolute -bottom-1 -left-1 bg-red-600 rounded-full px-2 py-0.5 text-xs font-bold flex items-center gap-0.5">

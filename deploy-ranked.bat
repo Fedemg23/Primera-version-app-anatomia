@@ -4,6 +4,15 @@ echo   Desplegando Sistema Ranked 1v1
 echo ========================================
 echo.
 
+echo Verificando proyecto activo...
+call firebase use anatomygo-beta-1
+if %ERRORLEVEL% NEQ 0 (
+    echo Error al cambiar de proyecto
+    pause
+    exit /b %ERRORLEVEL%
+)
+echo.
+
 echo [1/2] Desplegando reglas de Firestore...
 call firebase deploy --only firestore:rules
 if %ERRORLEVEL% NEQ 0 (

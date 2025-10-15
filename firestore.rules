@@ -129,45 +129,34 @@ service cloud.firestore {
     
     // Cola de matchmaking (matchmakingQueue) - opcional para implementación real
     match /matchmakingQueue/{queueId} {
-      // Permitir leer tu propia entrada en la cola
-      allow read: if isSignedIn() && 
-        resource.data.userId == request.auth.uid;
+      // Permitir leer cualquier entrada (necesario para buscar oponentes)
+      allow read: if isSignedIn();
       
       // Permitir crear tu entrada en la cola
       allow create: if isSignedIn() && 
         request.resource.data.userId == request.auth.uid;
       
-      // Permitir actualizar/eliminar tu entrada (para cancelar)
+      // Permitir actualizar/eliminar solo tu entrada
       allow update, delete: if isSignedIn() && 
         resource.data.userId == request.auth.uid;
     }
     
     // Partidas activas (activeMatches)
     match /activeMatches/{matchId} {
-      // Permitir leer si eres uno de los jugadores
-      allow read: if isSignedIn() && 
-        (resource.data.p1.userId == request.auth.uid || 
-         resource.data.p2.userId == request.auth.uid);
+      // Permitir leer cualquier partida activa (necesario para sincronización)
+      allow read: if isSignedIn();
       
-      // Permitir crear si eres uno de los jugadores
-      // En producción, esto debería ser solo servidor
-      allow create: if isSignedIn() && 
-        (request.resource.data.p1.userId == request.auth.uid || 
-         request.resource.data.p2.userId == request.auth.uid);
+      // Permitir crear partidas (matchmaking automático)
+      allow create: if isSignedIn();
       
-      // Permitir actualizar solo tus datos de jugador
+      // Permitir actualizar si eres uno de los jugadores
       allow update: if isSignedIn() && 
         (resource.data.p1.userId == request.auth.uid || 
-         resource.data.p2.userId == request.auth.uid) &&
-        // No puede cambiar el matchId, mode o questions
-        request.resource.data.matchId == resource.data.matchId &&
-        request.resource.data.mode == resource.data.mode;
-      
-      // Permitir eliminar después de que la partida termine (limpieza)
-      allow delete: if isSignedIn() && 
-        resource.data.status == 'finished' &&
-        (resource.data.p1.userId == request.auth.uid || 
          resource.data.p2.userId == request.auth.uid);
+      
+      // Permitir eliminar después de que la partida termine
+      allow delete: if isSignedIn() && 
+        resource.data.status == 'finished';
     }
     
     // Denegar acceso a cualquier otra colección por defecto

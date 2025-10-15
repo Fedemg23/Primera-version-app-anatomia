@@ -121,26 +121,28 @@ export const findMatch = async (
     // Calcular rango de búsqueda
     const [minRating, maxRating] = getMatchmakingRange(myEntry.rating, 0);
 
-    // Buscar oponentes compatibles
+    // Buscar oponentes compatibles - usando solo >= para evitar error de índice
     const q = query(
       collection(db, 'matchmakingQueue'),
       where('mode', '==', myEntry.mode),
       where('status', '==', 'searching'),
       where('rating', '>=', minRating),
-      where('rating', '<=', maxRating),
       orderBy('rating'),
       orderBy('timestamp'),
-      limit(10)
+      limit(50) // Aumentar límite para filtrar después
     );
 
     const snapshot = await getDocs(q);
     
-    // Buscar el mejor rival (excluyéndome a mí mismo)
+    // Buscar el mejor rival (excluyéndome a mí mismo y filtrando por maxRating)
     let bestOpponent: { id: string; data: MatchmakingEntry } | null = null;
     
     for (const docSnap of snapshot.docs) {
       const data = docSnap.data() as MatchmakingEntry;
-      if (data.userId !== myEntry.userId && data.status === 'searching') {
+      // Filtrar por maxRating manualmente y excluirme a mí mismo
+      if (data.userId !== myEntry.userId && 
+          data.status === 'searching' && 
+          data.rating <= maxRating) {
         bestOpponent = { id: docSnap.id, data };
         break;
       }

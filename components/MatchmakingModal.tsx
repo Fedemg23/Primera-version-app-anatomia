@@ -8,6 +8,7 @@ import {
   findMatch
 } from '../services/rankedMatchmaking';
 import { matchmakingRateLimiter, sanitizeUsername } from '../utils/rankedValidation';
+import AvatarImage from './AvatarImage';
 
 interface MatchmakingModalProps {
   isOpen: boolean;
@@ -253,7 +254,9 @@ const MatchmakingModal: React.FC<MatchmakingModalProps> = ({
               <div className="absolute inset-0 flex items-center justify-center">
                 <div className="w-24 h-24 rounded-full border-4 border-blue-600 border-t-transparent animate-spin"></div>
               </div>
-              <div className="text-5xl z-10">{myAvatar}</div>
+              <div className="z-10">
+                <AvatarImage avatarId={myAvatar} size="xl" />
+              </div>
             </div>
 
             {/* Información de búsqueda */}
@@ -305,8 +308,8 @@ const MatchmakingModal: React.FC<MatchmakingModalProps> = ({
               {/* Tú */}
               <div className="flex-1 text-center">
                 <div className="relative inline-block mb-3">
-                  <div className="w-20 h-20 rounded-full bg-gradient-to-br from-green-500 to-green-600 flex items-center justify-center text-5xl shadow-2xl ring-4 ring-green-500/40 animate-pulse">
-                    {myAvatar}
+                  <div className="ring-4 ring-green-500/40 rounded-full animate-pulse">
+                    <AvatarImage avatarId={myAvatar} size="xl" className="ring-0 border-4 border-green-500" />
                   </div>
                   <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 bg-green-600 rounded-full px-3 py-1 text-xs font-bold shadow-lg">
                     TÚ
@@ -326,8 +329,8 @@ const MatchmakingModal: React.FC<MatchmakingModalProps> = ({
               {/* Rival */}
               <div className="flex-1 text-center">
                 <div className="relative inline-block mb-3">
-                  <div className="w-20 h-20 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-5xl shadow-2xl ring-4 ring-blue-500/40 animate-pulse">
-                    {opponentData?.avatar}
+                  <div className="ring-4 ring-blue-500/40 rounded-full animate-pulse">
+                    <AvatarImage avatarId={opponentData?.avatar || 'novice'} size="xl" className="ring-0 border-4 border-blue-500" />
                   </div>
                   <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 bg-blue-600 rounded-full px-3 py-1 text-xs font-bold shadow-lg">
                     RIVAL

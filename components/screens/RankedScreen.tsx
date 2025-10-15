@@ -13,6 +13,7 @@ import {
   listFriendsUserIds
 } from '../../services/firestore';
 import { useAudio } from '../../src/contexts/AudioProvider';
+import AvatarImage from '../AvatarImage';
 
 interface LeagueEmblemProps {
   league: League;
@@ -280,7 +281,7 @@ const RankedScreen: React.FC<RankedScreenProps> = ({
                   className="flex items-center justify-between p-3 rounded-lg bg-neutral-800/50 hover:bg-neutral-800 transition-colors"
                 >
                   <div className="flex items-center gap-3 flex-1">
-                    <div className="text-2xl">{opponentData.avatar || '👤'}</div>
+                    <AvatarImage avatarId={opponentData.avatar || 'novice'} size="sm" />
                     <div className="flex-1">
                       <div className="text-sm text-white font-medium">
                         vs {opponentData.name || 'Anónimo'}
@@ -356,7 +357,7 @@ const RankedScreen: React.FC<RankedScreenProps> = ({
                     <div className="text-sm font-bold text-neutral-400 w-8">
                       #{entry.rank || idx + 1}
                     </div>
-                    <div className="text-xl">{entry.avatar}</div>
+                    <AvatarImage avatarId={entry.avatar} size="sm" />
                     <div className="flex-1">
                       <div className="text-sm text-white font-medium">
                         {entry.name}
@@ -387,7 +388,7 @@ const RankedScreen: React.FC<RankedScreenProps> = ({
             <div className="flex items-center justify-between p-3 rounded-lg bg-blue-600/20 border border-blue-500/50">
               <div className="flex items-center gap-3">
                 <div className="text-sm font-bold text-neutral-300">#{userPosition}</div>
-                <div className="text-xl">{userData.avatar}</div>
+                <AvatarImage avatarId={userData.avatar} size="sm" />
                 <div>
                   <div className="text-sm text-white font-medium">{userData.name} (Tú)</div>
                   <div className="flex items-center gap-2 text-xs text-neutral-400">

@@ -1,5 +1,6 @@
 import React from 'react';
 import { League } from '../types';
+import AvatarImage from './AvatarImage';
 
 interface RankedMatchSummaryProps {
   isOpen: boolean;
@@ -71,8 +72,8 @@ const RankedMatchSummary: React.FC<RankedMatchSummaryProps> = ({
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-3">
               <div className="relative">
-                <div className="w-14 h-14 rounded-full bg-gradient-to-br from-green-500 to-green-600 flex items-center justify-center text-3xl shadow-lg ring-4 ring-green-500/30">
-                  {myData.avatar}
+                <div className="ring-4 ring-green-500/30 rounded-full">
+                  <AvatarImage avatarId={myData.avatar} size="md" className="ring-0 border-4 border-green-500" />
                 </div>
                 <div className="absolute -bottom-1 -right-1 bg-green-600 rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold">
                   {isVictory ? '👑' : ''}
@@ -97,8 +98,8 @@ const RankedMatchSummary: React.FC<RankedMatchSummaryProps> = ({
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className="relative">
-                <div className="w-14 h-14 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-3xl shadow-lg ring-4 ring-blue-500/30">
-                  {opponentData.avatar}
+                <div className="ring-4 ring-blue-500/30 rounded-full">
+                  <AvatarImage avatarId={opponentData.avatar} size="md" className="ring-0 border-4 border-blue-500" />
                 </div>
                 <div className="absolute -bottom-1 -right-1 bg-blue-600 rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold">
                   {result.winner === 'opponent' ? '👑' : ''}
