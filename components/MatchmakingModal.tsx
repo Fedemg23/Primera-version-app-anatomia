@@ -9,6 +9,7 @@ import {
 } from '../services/rankedMatchmaking';
 import { matchmakingRateLimiter, sanitizeUsername } from '../utils/rankedValidation';
 import AvatarImage from './AvatarImage';
+import AvatarWithFrame from './AvatarWithFrame';
 
 interface MatchmakingModalProps {
   isOpen: boolean;
@@ -17,6 +18,7 @@ interface MatchmakingModalProps {
   myRating: number;
   myLeague: League;
   myAvatar: string;
+  myActiveFrame: League | null;
   mode: MatchMode;
   onCancel: () => void;
   onMatchFound?: (matchId: string, opponentData: {
@@ -49,6 +51,7 @@ const MatchmakingModal: React.FC<MatchmakingModalProps> = ({
   myRating,
   myLeague,
   myAvatar,
+  myActiveFrame,
   mode,
   onCancel,
   onMatchFound
@@ -314,7 +317,7 @@ const MatchmakingModal: React.FC<MatchmakingModalProps> = ({
                 <div className="w-24 h-24 rounded-full border-4 border-blue-600 border-t-transparent animate-spin"></div>
               </div>
               <div className="z-10">
-                <AvatarImage avatarId={myAvatar} size="xl" />
+                <AvatarWithFrame avatar={myAvatar} activeFrame={myActiveFrame} size="xl" />
               </div>
             </div>
 
@@ -368,7 +371,7 @@ const MatchmakingModal: React.FC<MatchmakingModalProps> = ({
               <div className="flex-1 text-center">
                 <div className="relative inline-block mb-3">
                   <div className="ring-4 ring-green-500/40 rounded-full animate-pulse">
-                    <AvatarImage avatarId={myAvatar} size="xl" className="ring-0 border-4 border-green-500" />
+                    <AvatarWithFrame avatar={myAvatar} activeFrame={myActiveFrame} size="xl" className="ring-0" />
                   </div>
                   <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 bg-green-600 rounded-full px-3 py-1 text-xs font-bold shadow-lg">
                     TÚ
@@ -389,7 +392,7 @@ const MatchmakingModal: React.FC<MatchmakingModalProps> = ({
               <div className="flex-1 text-center">
                 <div className="relative inline-block mb-3">
                   <div className="ring-4 ring-blue-500/40 rounded-full animate-pulse">
-                    <AvatarImage avatarId={opponentData?.avatar || 'novice'} size="xl" className="ring-0 border-4 border-blue-500" />
+                    <AvatarWithFrame avatar={opponentData?.avatar || 'novice'} activeFrame={null} size="xl" className="ring-0" />
                   </div>
                   <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 bg-blue-600 rounded-full px-3 py-1 text-xs font-bold shadow-lg">
                     RIVAL

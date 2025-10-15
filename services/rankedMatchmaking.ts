@@ -219,7 +219,7 @@ export const findMatch = async (
     const matchId = `match_${Date.now()}_${myEntry.userId}_${bestOpponent.data.userId}`;
     
     // Seleccionar preguntas aleatorias (5 preguntas por partida)
-    const selectedQuestions = selectRandomQuestions(myEntry.mode, 5);
+    const selectedQuestions = selectRandomQuestions(5);
 
     const match: ActiveMatch = {
       matchId,
@@ -325,24 +325,13 @@ export const findMatch = async (
 };
 
 /**
- * Selecciona preguntas aleatorias según el modo
+ * Selecciona 5 preguntas aleatorias para el modo clásico
  */
-const selectRandomQuestions = (mode: MatchMode, count: number): QuestionData[] => {
+const selectRandomQuestions = (count: number): QuestionData[] => {
   const allQuestions = [...questionBank];
   
-  // Filtrar por dificultad según el modo
-  let filteredQuestions = allQuestions;
-  
-  if (mode === 'MuerteSubita') {
-    // Solo preguntas fáciles para muerte súbita
-    filteredQuestions = allQuestions.filter(q => q.dificultad === 'Fácil');
-  } else if (mode === 'ImagenClick') {
-    // Solo preguntas con imagen
-    filteredQuestions = allQuestions.filter(q => q.urlImagen);
-  }
-
   // Mezclar y seleccionar
-  const shuffled = filteredQuestions.sort(() => Math.random() - 0.5);
+  const shuffled = allQuestions.sort(() => Math.random() - 0.5);
   return shuffled.slice(0, Math.min(count, shuffled.length));
 };
 

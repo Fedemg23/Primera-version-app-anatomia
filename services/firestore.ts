@@ -16,6 +16,9 @@ export type PublicUser = {
   totalCorrectAnswers?: number;
   totalQuestionsAnswered?: number;
   unlockedAchievements?: { [id: string]: number };
+  // Marcos de ranked
+  activeFrame?: any; // League | null
+  unlockedFrames?: any[]; // League[]
 };
 
 export type FriendRequest = {
@@ -946,16 +949,47 @@ export const getRankedLeaderboard = async (
         league: profile.league,
         streak: profile.streak,
         country: undefined, // TODO: Agregar país a perfil público
-        rank: idx + 1
+        rank: idx + 1,
+        hasRankedProfile: true,
+        activeFrame: userData?.activeFrame || null
       };
     });
 
     // Filtrar provisionales del ranking global
     if (scope === 'global') {
-      return leaderboard.filter((_, idx) => {
+      const filtered = leaderboard.filter((_, idx) => {
         const profile = profiles[idx];
         return profile.provisionalGames === 0;
       });
+      return filtered;
+    }
+
+    // Para amigos, agregar los que no tienen perfil ranked
+    if (scope === 'friends' && userIds && userIds.length > 0) {
+      const rankedFriendIds = new Set(profiles.map(p => p.userId));
+      const friendsWithoutRanked = userIds.filter(id => !rankedFriendIds.has(id));
+      
+      // Obtener datos de amigos sin ranked
+      const friendsDataPromises = friendsWithoutRanked.map(id => getUserById(id));
+      const friendsData = await Promise.all(friendsDataPromises);
+      
+      const friendsWithoutRankedEntries: RankedLeaderboardEntry[] = friendsData
+        .filter(Boolean)
+        .map(userData => ({
+          userId: userData!.userId,
+          name: userData!.name || 'Anónimo',
+          avatar: userData!.avatar || '👤',
+          rating: 0,
+          league: 'Sin Rango' as const,
+          streak: 0,
+          country: undefined,
+          rank: undefined,
+          hasRankedProfile: false,
+          activeFrame: userData!.activeFrame || null
+        }));
+      
+      // Combinar: primero los que tienen ranked (ordenados por rating), luego los sin ranked
+      return [...leaderboard, ...friendsWithoutRankedEntries];
     }
 
     return leaderboard;

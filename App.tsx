@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback, useRef, useMemo, memo } from '
 import { GoogleGenAI, Chat, Type } from "@google/genai";
 
 import { 
-    UserData, AuthUser, LastQuizResult, QuestionData, DailyChallenge, ShopItem, MysteryReward, Avatar, ExamResult, LifelineData, View, ExamConfigSelection, LeveledUpAchievement, Achievement, SettingsPopoverProps, AnimationType, AIOpponent, DuelState, DuelSummaryScreenProps, DuelMessage, MasterNote, UserNote, RankedProfile, MatchMode
+    UserData, AuthUser, LastQuizResult, QuestionData, DailyChallenge, ShopItem, MysteryReward, Avatar, ExamResult, LifelineData, View, ExamConfigSelection, LeveledUpAchievement, Achievement, SettingsPopoverProps, AnimationType, AIOpponent, DuelState, DuelSummaryScreenProps, DuelMessage, MasterNote, UserNote, RankedProfile, MatchMode, League
 } from './types';
 import { 
     LEVEL_REWARDS, MAX_LEVEL, achievementsData, shopItems, questionBank, PASS_THRESHOLD, AVATAR_DATA, dailyChallengesData, navigationData, HEART_REGEN_TIME, aiOpponentsData
@@ -49,7 +49,7 @@ import { getWeightedReward } from './src/features/rewards';
 import { AudioProvider, useAudio } from './src/contexts/AudioProvider';
 import { AnimationProvider } from './components/AnimationProvider';
 import { upsertUser, setUserActive, updateChallengeScore, getRankedProfile, updateRankedProfile, recordMatch } from './services/firestore';
-import { calculateRatingDelta, getLeagueFromRating } from './utils/rankedElo';
+import { calculateRatingDelta, getLeagueFromRating, getSeasonRewards } from './utils/rankedElo';
 import { getIncomingFriendRequests } from './services/firestore';
 import LeaderboardScreen from './components/screens/LeaderboardScreen';
 import FriendsScreen from './components/screens/FriendsScreen';
@@ -288,6 +288,9 @@ const App: React.FC = () => {
         isNewUser: true,
         hasCompletedWelcome: false,
         accountEmail: undefined,
+        // Marcos de ranked
+        unlockedFrames: [],
+        activeFrame: null,
     };
     
     // --- Data Persistence & Initial Load ---
@@ -1253,6 +1256,9 @@ const App: React.FC = () => {
             const newLeague = getLeagueFromRating(newRating);
             const newStreak = matchResult.winner === 'me' ? rankedProfile.streak + 1 : 0;
             
+            // Detectar promoción de liga
+            const wasPromoted = oldLeague !== newLeague && newRating > oldRating;
+            
             // Actualizar perfil ranked
             await updateRankedProfile(auth.uid, {
                 rating: newRating,
@@ -1265,6 +1271,32 @@ const App: React.FC = () => {
                 draws: matchResult.winner === 'draw' ? (rankedProfile.draws || 0) + 1 : rankedProfile.draws,
                 provisionalGames: Math.max(0, rankedProfile.provisionalGames - 1)
             });
+            
+            // Si hubo promoción, dar recompensas automáticamente
+            if (wasPromoted) {
+                const rewards = getSeasonRewards(newLeague);
+                
+                // Actualizar userData con las recompensas
+                setUserData(prev => {
+                    if (!prev) return prev;
+                    
+                    const updatedUnlockedFrames = prev.unlockedFrames || [];
+                    if (!updatedUnlockedFrames.includes(newLeague)) {
+                        updatedUnlockedFrames.push(newLeague);
+                    }
+                    
+                    return {
+                        ...prev,
+                        bones: prev.bones + rewards.bones,
+                        unlockedFrames: updatedUnlockedFrames,
+                        // Auto-equipar el marco de la nueva liga
+                        activeFrame: newLeague
+                    };
+                });
+                
+                // Mostrar notificación de promoción
+                showToast(`¡Promoción a ${newLeague}! +${rewards.bones} 🦴 y Marco ${newLeague}`, 'success');
+            }
             
             // Actualizar estado local
             setRankedProfile(prev => prev ? {
@@ -2035,19 +2067,65 @@ const App: React.FC = () => {
 
     // Cargar perfil ranked
     useEffect(() => {
-        if (!auth?.uid) return;
+        if (!auth?.uid || !userData) return;
         
         const loadRankedProfile = async () => {
             try {
                 const profile = await getRankedProfile(auth.uid!);
                 setRankedProfile(profile);
+                
+                // Desbloquear automáticamente todos los marcos de ligas alcanzadas
+                if (profile && profile.league) {
+                    const leagueOrder: League[] = ['Bronce', 'Plata', 'Oro', 'Rubí', 'Esmeralda', 'Diamante'];
+                    const currentLeagueIndex = leagueOrder.indexOf(profile.league);
+                    
+                    if (currentLeagueIndex >= 0) {
+                        // Obtener todas las ligas hasta la actual (inclusive)
+                        const leaguesToUnlock = leagueOrder.slice(0, currentLeagueIndex + 1);
+                        
+                        // Verificar si faltan marcos por desbloquear
+                        const currentUnlockedFrames = userData.unlockedFrames || [];
+                        const missingFrames = leaguesToUnlock.filter(league => !currentUnlockedFrames.includes(league));
+                        
+                        if (missingFrames.length > 0) {
+                            // Desbloquear marcos faltantes
+                            const newUnlockedFrames = [...currentUnlockedFrames, ...missingFrames];
+                            
+                            // Calcular recompensas por marcos desbloqueados retroactivamente
+                            let totalBones = 0;
+                            missingFrames.forEach(league => {
+                                const rewards = getSeasonRewards(league);
+                                totalBones += rewards.bones;
+                            });
+                            
+                            setUserData(prev => {
+                                if (!prev) return prev;
+                                
+                                return {
+                                    ...prev,
+                                    unlockedFrames: newUnlockedFrames,
+                                    bones: prev.bones + totalBones,
+                                    // Si no tiene marco activo, equipar el de su liga actual
+                                    activeFrame: prev.activeFrame || profile.league
+                                };
+                            });
+                            
+                            // Notificar al usuario
+                            if (missingFrames.length === 1) {
+                                showToast(`Marco ${missingFrames[0]} desbloqueado! +${totalBones} 🦴`, 'success');
+                            } else {
+                                showToast(`${missingFrames.length} marcos desbloqueados! +${totalBones} 🦴`, 'success');
+                            }
+                        }
+                    }
+                }
             } catch (error) {
                 console.warn('Error loading ranked profile:', error);
             }
         };
         
         loadRankedProfile();
-    }, [auth?.uid]);
+    }, [auth?.uid, userData?.unlockedFrames?.length]);
 
     // Presencia activa para ranking: heartbeat periódico y limpieza al salir
     useEffect(() => {
@@ -2123,7 +2201,16 @@ const App: React.FC = () => {
             case 'level_rewards':
                 return <LevelRewardsScreen userData={userData} onBack={handleBack} onClaimReward={handleClaimLevelReward} />;
             case 'profile':
-                return <ProfileScreen userData={userData} onAvatarChange={(avatar) => setUserData(p => p ? { ...p, avatar } : null)} onNameChange={(name) => setUserData(p => p ? { ...p, name } : null)} xpInCurrentLevel={xpInCurrentLevel} xpNeededForNextLevel={xpForNextLevel} onSignOut={handleSignOut} onClaimChallengeReward={handleClaimChallengeReward} />;
+                return <ProfileScreen 
+                    userData={userData} 
+                    onAvatarChange={(avatar) => setUserData(p => p ? { ...p, avatar } : null)} 
+                    onNameChange={(name) => setUserData(p => p ? { ...p, name } : null)} 
+                    onFrameChange={(frame) => setUserData(p => p ? { ...p, activeFrame: frame } : null)}
+                    xpInCurrentLevel={xpInCurrentLevel} 
+                    xpNeededForNextLevel={xpForNextLevel} 
+                    onSignOut={handleSignOut} 
+                    onClaimChallengeReward={handleClaimChallengeReward} 
+                />;
             case 'quiz': {
                 const isExam = currentQuiz.id === 'exam';
                 const isPractice = currentQuiz.id === 'practice';
@@ -2321,6 +2408,7 @@ const App: React.FC = () => {
                     myRating={rankedProfile.rating}
                     myLeague={rankedProfile.league}
                     myAvatar={userData.avatar}
+                    myActiveFrame={userData.activeFrame || null}
                     mode={selectedMatchMode}
                     onCancel={handleCancelMatchmaking}
                     onMatchFound={handleMatchFound}

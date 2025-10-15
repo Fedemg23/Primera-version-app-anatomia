@@ -130,6 +130,9 @@ export interface UserData {
   isNewUser?: boolean;
   hasCompletedWelcome?: boolean;
   accountEmail?: string;
+  // Marcos de ranked
+  unlockedFrames: League[]; // Ligas desbloqueadas (marcos disponibles)
+  activeFrame: League | null; // Marco actualmente equipado
 }
 
 // TIPOS GENÉRICOS Y DE LA APP
@@ -361,6 +364,7 @@ export interface ProfileScreenProps {
     xpNeededForNextLevel: number;
     onSignOut: () => void;
     onClaimChallengeReward?: (challengeId: string) => void;
+    onFrameChange: (frame: League | null) => void;
 }
 
 // --- DUEL MODE TYPES (REWORKED) ---
@@ -449,7 +453,7 @@ export interface RankedProfile {
   draws?: number;
 }
 
-export type MatchMode = 'Clasico' | 'Ataque' | 'Robo' | 'ImagenClick' | 'MuerteSubita';
+export type MatchMode = 'Clasico';
 
 export interface MatchRecord {
   matchId: string;
@@ -494,10 +498,12 @@ export interface RankedLeaderboardEntry {
   name: string;
   avatar: string;
   rating: number;
-  league: League;
+  league: League | 'Sin Rango';
   streak: number;
   country?: string;
   rank?: number;
+  hasRankedProfile?: boolean; // Indica si el usuario tiene perfil ranked
+  activeFrame?: League | null; // Marco activo del usuario
 }
 
 export interface RankedScreenProps {

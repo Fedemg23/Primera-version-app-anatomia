@@ -178,17 +178,9 @@ const RankedMatchScreen: React.FC<RankedMatchScreenProps> = ({
     };
   }, [currentQuestionIndex, isAnswered, showResult]);
 
-  const getScoreForMode = (mode: MatchMode, isCorrect: boolean): number => {
-    if (!isCorrect) return 0;
-    
-    switch (mode) {
-      case 'Robo':
-        return 2; // Robar puntos vale el doble
-      case 'MuerteSubita':
-        return 1;
-      default:
-        return 1;
-    }
+  // Modo clásico: 1 punto por respuesta correcta
+  const getScoreForMode = (isCorrect: boolean): number => {
+    return isCorrect ? 1 : 0;
   };
 
   const handleTimeout = () => {
@@ -232,28 +224,13 @@ const RankedMatchScreen: React.FC<RankedMatchScreenProps> = ({
       console.error('Error enviando respuesta:', error);
     }
 
-    // Actualizar puntuación según el modo
+    // Actualizar puntuación (modo clásico)
     if (isCorrect) {
-      const points = getScoreForMode(mode, true);
+      const points = getScoreForMode(true);
       setMyScore(prev => prev + points);
-      
-      if (mode === 'Ataque') {
-        setOpponentHP(prev => Math.max(0, prev - 1));
-      } else if (mode === 'Robo' && opponentScore > 0) {
-        setOpponentScore(prev => Math.max(0, prev - 1));
-      }
-      
       playSound('correct');
     } else {
       playSound('incorrect');
-      
-      if (mode === 'Ataque') {
-        setMyHP(prev => Math.max(0, prev - 1));
-      } else if (mode === 'MuerteSubita') {
-        // Muerte súbita: perder inmediatamente
-        finishMatch();
-        return;
-      }
     }
 
     setShowResult(true);
@@ -282,15 +259,11 @@ const RankedMatchScreen: React.FC<RankedMatchScreenProps> = ({
   };
 
   const finishMatchWithResults = (finalMyScore: number, finalOpponentScore: number, finalMyAnswers: boolean[], finalOpponentAnswers: boolean[]) => {
-    let winner: 'me' | 'opponent' | 'draw' = 'draw';
-    
-    if (mode === 'Ataque') {
-      winner = myHP > opponentHP ? 'me' : opponentHP > myHP ? 'opponent' : 'draw';
-    } else if (mode === 'MuerteSubita') {
-      winner = finalMyAnswers[finalMyAnswers.length - 1] ? 'me' : 'opponent';
-    } else {
-      winner = finalMyScore > finalOpponentScore ? 'me' : finalOpponentScore > finalMyScore ? 'opponent' : 'draw';
-    }
+    // Modo clásico: determinar ganador por puntuación
+    const winner: 'me' | 'opponent' | 'draw' = 
+      finalMyScore > finalOpponentScore ? 'me' : 
+      finalOpponentScore > finalMyScore ? 'opponent' : 
+      'draw';
 
     onMatchComplete({
       myScore: finalMyScore,

@@ -14,6 +14,7 @@ import {
 } from '../../services/firestore';
 import { useAudio } from '../../src/contexts/AudioProvider';
 import AvatarImage from '../AvatarImage';
+import AvatarWithFrame from '../AvatarWithFrame';
 
 interface LeagueEmblemProps {
   league: League;
@@ -43,11 +44,6 @@ const LeagueEmblem: React.FC<LeagueEmblemProps> = memo(({ league, size = 'md' })
       
       {/* Centro negro */}
       <div className="absolute inset-2 rounded-full bg-black shadow-inner"></div>
-      
-      {/* Texto de la liga */}
-      <span className="relative z-10 text-white font-black text-xs">
-        {league.charAt(0)}
-      </span>
     </div>
   );
 });
@@ -63,7 +59,6 @@ const RankedScreen: React.FC<RankedScreenProps> = ({
   const [leaderboard, setLeaderboard] = useState<RankedLeaderboardEntry[]>([]);
   const [matchHistory, setMatchHistory] = useState<MatchRecord[]>([]);
   const [userPosition, setUserPosition] = useState<number | null>(null);
-  const [selectedMode, setSelectedMode] = useState<MatchMode>('Clasico');
   const [loading, setLoading] = useState(true);
   const [showRules, setShowRules] = useState(false);
 
@@ -134,7 +129,7 @@ const RankedScreen: React.FC<RankedScreenProps> = ({
 
   const handleStartMatchmaking = () => {
     playSound('button-click');
-    onStartMatchmaking(selectedMode);
+    onStartMatchmaking('Clasico');
   };
 
   const handleTabChange = (tab: 'global' | 'country' | 'friends') => {
@@ -147,11 +142,15 @@ const RankedScreen: React.FC<RankedScreenProps> = ({
       {/* Header competitivo */}
       <section className="rounded-2xl border border-neutral-800 bg-neutral-900/80 backdrop-blur-xl p-6 flex items-center justify-between">
         <div className="flex items-center gap-4">
-          <LeagueEmblem league={rankedProfile.league} size="lg" />
+          <AvatarWithFrame 
+            avatar={userData.avatar} 
+            activeFrame={userData.activeFrame || null}
+            size="lg" 
+          />
           <div>
             <h1 className="text-2xl font-black text-white">Ranked</h1>
             <p className="text-sm text-neutral-400">
-              Temporada VII · {rankedProfile.provisionalGames > 0 ? 'Colocación' : rankedProfile.league}
+              Temporada I · {rankedProfile.provisionalGames > 0 ? 'Colocación' : rankedProfile.league}
             </p>
           </div>
         </div>
@@ -182,20 +181,13 @@ const RankedScreen: React.FC<RankedScreenProps> = ({
       </section>
 
       {/* Acciones rápidas */}
-      <section className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+      <section className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <button
           onClick={handleStartMatchmaking}
           className="rounded-xl bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 p-4 font-bold text-white shadow-lg transition-all active:scale-95 touch-manipulation"
         >
           Jugar Ranked
           <div className="text-xs font-normal opacity-80 mt-1">PvP real - Esperando rival</div>
-        </button>
-        <button
-          onClick={() => playSound('button-click')}
-          className="rounded-xl border border-neutral-700 bg-neutral-800/50 hover:bg-neutral-800 p-4 text-white transition-all active:scale-95 touch-manipulation"
-        >
-          Entrenamiento 1v1
-          <div className="text-xs opacity-60 mt-1">Sin impacto en rating</div>
         </button>
         <button
           onClick={() => setShowRules(true)}
@@ -206,28 +198,6 @@ const RankedScreen: React.FC<RankedScreenProps> = ({
         </button>
       </section>
 
-      {/* Selector de modo */}
-      <section className="rounded-2xl border border-neutral-800 bg-neutral-900/80 backdrop-blur-xl p-5">
-        <h3 className="font-bold text-white mb-3">Modo de juego</h3>
-        <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
-          {(['Clasico', 'Ataque', 'Robo', 'ImagenClick', 'MuerteSubita'] as MatchMode[]).map(mode => (
-            <button
-              key={mode}
-              onClick={() => {
-                playSound('button-click');
-                setSelectedMode(mode);
-              }}
-              className={`rounded-lg p-3 text-sm font-medium transition-all ${
-                selectedMode === mode
-                  ? 'bg-blue-600 text-white shadow-lg'
-                  : 'bg-neutral-800 text-neutral-400 hover:bg-neutral-700'
-              }`}
-            >
-              {mode}
-            </button>
-          ))}
-        </div>
-      </section>
 
       {/* Panel de temporada */}
       {rankedProfile.provisionalGames === 0 && (
@@ -281,7 +251,11 @@ const RankedScreen: React.FC<RankedScreenProps> = ({
                   className="flex items-center justify-between p-3 rounded-lg bg-neutral-800/50 hover:bg-neutral-800 transition-colors"
                 >
                   <div className="flex items-center gap-3 flex-1">
-                    <AvatarImage avatarId={opponentData.avatar || 'novice'} size="sm" />
+                    <AvatarWithFrame 
+                      avatar={opponentData.avatar || 'novice'} 
+                      activeFrame={null}
+                      size="sm" 
+                    />
                     <div className="flex-1">
                       <div className="text-sm text-white font-medium">
                         vs {opponentData.name || 'Anónimo'}
@@ -355,26 +329,43 @@ const RankedScreen: React.FC<RankedScreenProps> = ({
                 >
                   <div className="flex items-center gap-3 flex-1">
                     <div className="text-sm font-bold text-neutral-400 w-8">
-                      #{entry.rank || idx + 1}
+                      {entry.hasRankedProfile ? `#${entry.rank || idx + 1}` : '—'}
                     </div>
-                    <AvatarImage avatarId={entry.avatar} size="sm" />
+                    <AvatarWithFrame 
+                      avatar={entry.avatar} 
+                      activeFrame={entry.activeFrame || null}
+                      size="sm" 
+                    />
                     <div className="flex-1">
                       <div className="text-sm text-white font-medium">
                         {entry.name}
                         {isCurrentUser && <span className="ml-2 text-xs text-blue-400">(Tú)</span>}
                       </div>
                       <div className="flex items-center gap-2 text-xs text-neutral-400">
-                        <LeagueEmblem league={entry.league} size="sm" />
-                        <span>{entry.league}</span>
-                        {entry.streak > 0 && <span className="text-orange-400">🔥 {entry.streak}x</span>}
+                        {entry.hasRankedProfile ? (
+                          <>
+                            <span>{entry.league}</span>
+                            {entry.streak > 0 && <span className="text-orange-400">🔥 {entry.streak}x</span>}
+                          </>
+                        ) : (
+                          <span className="text-neutral-500 italic">Sin Rango</span>
+                        )}
                       </div>
                     </div>
                   </div>
                   <div className="text-right">
-                    <div className="text-lg font-black text-white">
-                      {entry.rating.toLocaleString()}
-                    </div>
-                    <div className="text-xs text-neutral-400">Rating</div>
+                    {entry.hasRankedProfile ? (
+                      <>
+                        <div className="text-lg font-black text-white">
+                          {entry.rating.toLocaleString()}
+                        </div>
+                        <div className="text-xs text-neutral-400">Rating</div>
+                      </>
+                    ) : (
+                      <div className="text-sm text-neutral-500 italic">
+                        Sin partidas
+                      </div>
+                    )}
                   </div>
                 </div>
               );
@@ -388,11 +379,14 @@ const RankedScreen: React.FC<RankedScreenProps> = ({
             <div className="flex items-center justify-between p-3 rounded-lg bg-blue-600/20 border border-blue-500/50">
               <div className="flex items-center gap-3">
                 <div className="text-sm font-bold text-neutral-300">#{userPosition}</div>
-                <AvatarImage avatarId={userData.avatar} size="sm" />
+                <AvatarWithFrame 
+                  avatar={userData.avatar} 
+                  activeFrame={userData.activeFrame || null}
+                  size="sm" 
+                />
                 <div>
                   <div className="text-sm text-white font-medium">{userData.name} (Tú)</div>
                   <div className="flex items-center gap-2 text-xs text-neutral-400">
-                    <LeagueEmblem league={rankedProfile.league} size="sm" />
                     <span>{rankedProfile.league}</span>
                   </div>
                 </div>

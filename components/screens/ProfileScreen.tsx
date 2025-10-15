@@ -2,13 +2,14 @@
 
 
 import React, { useState, useMemo, memo, useEffect } from 'react';
-import { ProfileScreenProps, Avatar, UserData, AuthUser } from '../../types';
+import { ProfileScreenProps, Avatar, UserData, AuthUser, League } from '../../types';
 import { subscribeAuth } from '../../services/firebase';
 import { getIncomingFriendRequests, acceptFriendRequest, rejectFriendRequest, listFriendsPublic, getUserById } from '../../services/firestore';
 import type { PublicUser, FriendRequest } from '../../services/firestore';
 import { AVATAR_DATA } from '../../constants';
 import { iconMap, CheckSquare, Target, Lock, CheckCircle, Edit, XCircle, LogOut, Star, Users, UserPlus } from '../icons';
 import FriendsScreen from './FriendsScreen';
+import AvatarWithFrame from '../AvatarWithFrame';
 
 const StatCard: React.FC<{ icon: React.ReactNode; label: string; value: string | number; colorClass: string; }> = memo(({ icon, label, value, colorClass }) => (
 	<div className="bg-slate-800/40 backdrop-blur-sm p-4 rounded-xl flex items-center space-x-4 border border-slate-700/50">
@@ -22,7 +23,7 @@ const StatCard: React.FC<{ icon: React.ReactNode; label: string; value: string |
 	</div>
 ));
 
-const ProfileScreen: React.FC<ProfileScreenProps> = ({ userData, onAvatarChange, onNameChange, xpInCurrentLevel, xpNeededForNextLevel, onSignOut, onClaimChallengeReward }) => {
+const ProfileScreen: React.FC<ProfileScreenProps> = ({ userData, onAvatarChange, onNameChange, xpInCurrentLevel, xpNeededForNextLevel, onSignOut, onClaimChallengeReward, onFrameChange }) => {
 	const [isEditingName, setIsEditingName] = useState(false);
 	const [nameInput, setNameInput] = useState(userData.name);
 	const [isReadyForInput, setIsReadyForInput] = useState(false);
@@ -134,13 +135,12 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ userData, onAvatarChange,
 				{/* Profile Header Card */}
 				<div className="bg-slate-800/40 backdrop-blur-sm p-6 rounded-2xl shadow-md border border-slate-700/50 flex flex-col sm:flex-row items-center space-y-4 sm:space-y-0 sm:space-x-6">
 					<div className="relative">
-						<div className="w-32 h-32 rounded-full flex items-center justify-center bg-slate-700 ring-4 ring-slate-800/50 shadow-inner overflow-hidden">
-							{typeof userData.avatar === 'string' && userData.avatar.includes('/') ? (
-								<img src={userData.avatar} alt="Avatar" className="w-28 h-28 object-contain" />
-							) : (
-								<span className="text-7xl">{userData.avatar}</span>
-							)}
-						</div>
+						<AvatarWithFrame 
+							avatar={userData.avatar} 
+							activeFrame={userData.activeFrame || null} 
+							size="xl"
+							className="ring-4 ring-slate-800/50 shadow-inner"
+						/>
 					</div>
 					<div className="flex-grow w-full">
 						{isEditingName ? (
@@ -226,6 +226,87 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ userData, onAvatarChange,
 									</div>
 								</button>
 							)
+						})}
+					</div>
+				</div>
+
+				{/* Frame Selection (Ranked Frames) */}
+				<div className="bg-slate-800/40 backdrop-blur-sm p-4 rounded-xl shadow-md border border-slate-700/50">
+					<h3 className="text-xl font-bold text-slate-100 mb-4">Marco de Perfil</h3>
+					<p className="text-sm text-slate-400 mb-4">Desbloquea marcos alcanzando ligas en Ranked</p>
+					<div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+						{/* Sin marco (opción por defecto) */}
+						<button
+							onClick={() => onFrameChange(null)}
+							disabled={!isReadyForInput}
+							className={`relative p-3 rounded-xl text-center transition-all duration-200 border-2 ${
+								userData.activeFrame === null 
+									? 'border-blue-500 bg-slate-600/50' 
+									: 'border-transparent bg-slate-700/50 hover:bg-slate-600/50'
+							} cursor-pointer active:transform active:-translate-y-1 ${!isReadyForInput ? 'cursor-wait' : ''} touch-manipulation`}
+						>
+							{userData.activeFrame === null && <div className="absolute -inset-px rounded-xl bg-blue-500/30 blur-md -z-10"></div>}
+							<div className="relative w-16 h-16 mx-auto flex items-center justify-center overflow-hidden rounded-full bg-slate-800/30">
+								<span className="text-3xl">👤</span>
+							</div>
+							<h4 className="font-bold mt-2 text-sm text-slate-200">Sin Marco</h4>
+						</button>
+
+						{/* Marcos de ligas */}
+						{(['Bronce', 'Plata', 'Oro', 'Rubí', 'Esmeralda', 'Diamante'] as League[]).map(league => {
+							const unlocked = (userData.unlockedFrames || []).includes(league);
+							const isSelected = userData.activeFrame === league;
+							
+							const frameColors = {
+								'Bronce': 'from-amber-700 via-amber-600 to-amber-800',
+								'Plata': 'from-gray-300 via-gray-200 to-gray-400',
+								'Oro': 'from-yellow-400 via-yellow-300 to-yellow-500',
+								'Rubí': 'from-red-600 via-red-500 to-pink-600',
+								'Esmeralda': 'from-emerald-500 via-teal-400 to-emerald-600',
+								'Diamante': 'from-blue-400 via-cyan-300 to-purple-400'
+							};
+
+							return (
+								<button 
+									key={league}
+									onClick={() => unlocked && onFrameChange(league)}
+									disabled={!isReadyForInput || !unlocked}
+									className={`relative p-3 rounded-xl text-center transition-all duration-200 border-2 ${
+										isSelected 
+											? 'border-blue-500 bg-slate-600/50' 
+											: 'border-transparent bg-slate-700/50 hover:bg-slate-600/50'
+									} ${unlocked ? 'cursor-pointer active:transform active:-translate-y-1' : 'cursor-not-allowed'} ${
+										!isReadyForInput ? 'cursor-wait' : ''
+									} touch-manipulation`}
+								>
+									{isSelected && <div className="absolute -inset-px rounded-xl bg-blue-500/30 blur-md -z-10"></div>}
+									<div className="relative w-16 h-16 mx-auto flex items-center justify-center">
+										{/* Marco circular con gradiente de liga */}
+										<div className={`w-16 h-16 rounded-full relative ${unlocked ? '' : 'opacity-40 grayscale'}`}>
+											<div className={`absolute inset-0 rounded-full bg-gradient-to-br ${frameColors[league]} opacity-90`}></div>
+											<div className="absolute inset-2 rounded-full bg-slate-900"></div>
+											<div className="absolute inset-0 flex items-center justify-center">
+												<span className={`text-white font-black text-sm ${unlocked ? '' : 'opacity-60'}`}>
+													{league.charAt(0)}
+												</span>
+											</div>
+										</div>
+										{!unlocked && (
+											<div className="absolute bottom-0 right-0 w-6 h-6 bg-slate-600 text-white rounded-full flex items-center justify-center">
+												<Lock className="w-3 h-3"/>
+											</div>
+										)}
+									</div>
+									<h4 className={`font-bold mt-2 text-sm ${unlocked ? 'text-slate-200' : 'text-slate-400'}`}>
+										{league}
+									</h4>
+									{!unlocked && (
+										<p className="text-xs font-semibold text-slate-400 mt-0.5">
+											Alcanza {league} en Ranked
+										</p>
+									)}
+								</button>
+							);
 						})}
 					</div>
 				</div>
