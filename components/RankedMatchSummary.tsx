@@ -1,6 +1,7 @@
 import React from 'react';
 import { League } from '../types';
 import AvatarImage from './AvatarImage';
+import EritrosDisplay from './EritrosDisplay';
 
 interface RankedMatchSummaryProps {
   isOpen: boolean;
@@ -120,7 +121,7 @@ const RankedMatchSummary: React.FC<RankedMatchSummaryProps> = ({
         <div className="bg-gradient-to-r from-neutral-800/50 to-neutral-800/30 rounded-xl p-4 mb-6">
           <div className="flex items-center justify-between mb-2">
             <span className="text-sm text-neutral-400">Rating anterior</span>
-            <span className="text-white font-bold">{result.oldRating}</span>
+            <EritrosDisplay value={result.oldRating} size="sm" />
           </div>
           
           <div className="flex items-center justify-center my-3">
@@ -133,7 +134,7 @@ const RankedMatchSummary: React.FC<RankedMatchSummaryProps> = ({
 
           <div className="flex items-center justify-between">
             <span className="text-sm text-neutral-400">Nuevo rating</span>
-            <span className="text-white font-bold text-xl">{result.newRating}</span>
+            <EritrosDisplay value={result.newRating} size="md" />
           </div>
         </div>
 

@@ -15,6 +15,7 @@ import {
 import { useAudio } from '../../src/contexts/AudioProvider';
 import AvatarImage from '../AvatarImage';
 import AvatarWithFrame from '../AvatarWithFrame';
+import EritrosDisplay from '../EritrosDisplay';
 
 interface LeagueEmblemProps {
   league: League;
@@ -155,10 +156,10 @@ const RankedScreen: React.FC<RankedScreenProps> = ({
           </div>
         </div>
         <div className="text-right">
-          <div className="text-3xl font-black text-white">
-            R: {rankedProfile.rating.toLocaleString()}
+          <div className="flex items-center justify-end">
+            <EritrosDisplay value={rankedProfile.rating} size="lg" />
           </div>
-          <div className="text-sm text-neutral-400 flex items-center justify-end gap-2">
+          <div className="text-sm text-neutral-400 flex items-center justify-end gap-2 mt-1">
             {rankedProfile.provisionalGames === 0 ? (
               <>
                 <span>Top {percentile.toFixed(1)}%</span>
@@ -204,9 +205,11 @@ const RankedScreen: React.FC<RankedScreenProps> = ({
         <section className="rounded-2xl border border-neutral-800 bg-neutral-900/80 backdrop-blur-xl p-5 space-y-3">
           <div className="flex items-center justify-between">
             <h2 className="font-bold text-white">Progreso de Temporada</h2>
-            <span className="text-sm text-neutral-400">
-              {rankedProfile.rating} / {nextLeagueMin}
-            </span>
+            <div className="flex items-center gap-2 text-sm text-neutral-400">
+              <EritrosDisplay value={rankedProfile.rating} size="sm" />
+              <span>/</span>
+              <span>{nextLeagueMin.toLocaleString()}</span>
+            </div>
           </div>
           <div className="relative h-3 rounded-full bg-neutral-800 overflow-hidden">
             <div 
@@ -215,8 +218,8 @@ const RankedScreen: React.FC<RankedScreenProps> = ({
             />
           </div>
           <div className="flex justify-between text-xs text-neutral-500">
-            <span>{leagueMin}</span>
-            {rankedProfile.league !== 'Diamante' && <span>{nextLeagueMin}</span>}
+            <span>{leagueMin.toLocaleString()}</span>
+            {rankedProfile.league !== 'Diamante' && <span>{nextLeagueMin.toLocaleString()}</span>}
           </div>
           
           {/* Recompensas de liga */}
@@ -355,12 +358,7 @@ const RankedScreen: React.FC<RankedScreenProps> = ({
                   </div>
                   <div className="text-right">
                     {entry.hasRankedProfile ? (
-                      <>
-                        <div className="text-lg font-black text-white">
-                          {entry.rating.toLocaleString()}
-                        </div>
-                        <div className="text-xs text-neutral-400">Rating</div>
-                      </>
+                      <EritrosDisplay value={entry.rating} size="sm" />
                     ) : (
                       <div className="text-sm text-neutral-500 italic">
                         Sin partidas
@@ -391,9 +389,7 @@ const RankedScreen: React.FC<RankedScreenProps> = ({
                   </div>
                 </div>
               </div>
-              <div className="text-lg font-black text-white">
-                {rankedProfile.rating.toLocaleString()}
-              </div>
+              <EritrosDisplay value={rankedProfile.rating} size="sm" />
             </div>
           </div>
         )}
