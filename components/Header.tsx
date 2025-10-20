@@ -65,51 +65,52 @@ const StatusBar: React.FC<StatusBarProps> = ({
 
     return (
         <div className="w-full z-10">
-            <div className={`w-full bg-transparent ${showBackButton ? 'h-14 md:h-16' : 'h-24 md:h-28'}`}>
-                <div className="max-w-7xl mx-auto h-full grid grid-cols-3 items-start gap-1 sm:gap-4 md:gap-8 py-2 px-3">
+            <div className={`w-full bg-transparent ${showBackButton ? 'h-14' : 'h-20'}`}>
+                <div className="max-w-7xl mx-auto h-full grid grid-cols-3 items-start gap-1 sm:gap-4 md:gap-8 py-2 px-2 sm:px-3">
                     {/* Left Side: Back Button (solo cuando no es home) */}
-                    <div className="flex-shrink-0 flex justify-start items-center gap-2 sm:gap-3 md:gap-4 ml-2">
+                    <div className="flex-shrink-0 flex justify-start items-center gap-2">
                         {showBackButton && (
-                            <button onClick={onBack} title="Volver" className="p-2 rounded-full active:bg-slate-800 transition-colors active:scale-90 touch-manipulation">
-                                <ArrowLeft className="w-6 h-6 sm:w-7 sm:h-7 text-slate-200" />
+                            <button onClick={onBack} title="Volver" className="p-1.5 rounded-full active:bg-slate-800 transition-colors active:scale-90 touch-manipulation">
+                                <ArrowLeft className="w-6 h-6 text-slate-200" />
                             </button>
                         )}
                     </div>
 
                     {/* Center Title */}
-                    <div className="text-center flex items-center justify-center z-0 pointer-events-none" style={{ marginTop: showBackButton ? '0' : '-7.5rem' }}>
+                    <div className="text-center flex items-center justify-center z-0 pointer-events-none" style={{ marginTop: showBackButton ? '0' : '-4.5rem' }}>
                         {!showBackButton && (
                             <OptimizedLogo 
-                                className="h-80 md:h-96 object-contain pointer-events-none"
+                                className="h-48 sm:h-64 md:h-80 object-contain pointer-events-none"
                             />
                         )}
                     </div>
 
                     {/* Right Side: Stats */}
-                    <div className={`flex justify-end items-center flex-wrap md:flex-nowrap gap-x-0 sm:gap-x-1 md:gap-x-3 ${showBackButton ? 'mt-0' : 'mt-8'}`}>
+                    <div className={`flex justify-end items-center flex-wrap gap-x-0.5 sm:gap-x-1 md:gap-x-3 ${showBackButton ? 'mt-0' : 'mt-6'}`}>
                         <StatItem 
                             icon={streakFreezeActive ? <Shield className="w-full h-full text-cyan-400" /> : (() => { const L = iconMap['llama']; return <L className="w-full h-full" /> })()} 
                             value={streak} 
                             title={`Racha de ${streak} días`}
-                            iconContainerClass={!streakFreezeActive ? "h-8 w-8 sm:h-10 sm:w-10" : ""}
+                            iconContainerClass={!streakFreezeActive ? "h-7 w-7 sm:h-10 sm:w-10" : ""}
                             onClick={() => onOpenInfoTooltip('streak')}
-                            textClass="text-lg sm:text-xl md:text-2xl"
+                            textClass="text-base sm:text-xl md:text-2xl"
                         />
                         <StatItem 
                             ref={bonesRef}
-                            icon={(() => { const B = iconMap['bones']; return <B className="w-7 h-7 sm:w-8 sm:h-8" /> })()} 
+                            icon={(() => { const B = iconMap['bones']; return <B className="w-6 h-6 sm:w-8 sm:h-8" /> })()} 
                             value={bones} 
                             title={`${bones} Huesitos`}
                             onClick={() => onOpenInfoTooltip('bones')}
+                            textClass="text-base sm:text-xl md:text-2xl"
                         />
                         <StatItem 
                             ref={heartsRef}
                             icon={(() => { const HImg = iconMap['heart_img']; return <HImg className="w-full h-full" /> })()} 
                             value={hearts < 0 ? 0 : hearts} 
                             title={`${hearts} Vidas`}
-                            iconContainerClass={"h-8 w-8 sm:h-10 sm:w-10"}
+                            iconContainerClass={"h-7 w-7 sm:h-10 sm:w-10"}
                             onClick={() => onOpenInfoTooltip('hearts')}
-                            textClass="text-lg sm:text-xl md:text-2xl"
+                            textClass="text-base sm:text-xl md:text-2xl"
                         />
                     </div>
                 </div>

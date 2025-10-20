@@ -102,16 +102,16 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onSelectMode, userData, onNavig
     };
 
     return (
-        <div className="relative flex flex-col min-h-[100vh] items-center p-4" style={{ paddingTop: '0rem' }}>
+        <div className="relative flex flex-col min-h-[100vh] items-center p-3" style={{ paddingTop: '0rem' }}>
             
-            <div className="flex flex-col justify-start items-center w-full max-w-4xl mx-auto min-h-full gap-6 pt-4">
+            <div className="flex flex-col justify-start items-center w-full max-w-4xl mx-auto min-h-full gap-4 pt-2">
                 {/* Título de bienvenida */}
                 <div className="text-center">
-                    <h1 className="text-4xl md:text-5xl font-black text-white drop-shadow-lg mb-2">
+                    <h1 className="text-2xl sm:text-4xl md:text-5xl font-black text-white drop-shadow-lg mb-1 sm:mb-2">
                         ¡Bienvenido a AnatomyGO!
                     </h1>
-                    <p className="text-lg md:text-xl text-slate-300">
-                        Selecciona un modo de juego para comenzar
+                    <p className="text-sm sm:text-lg md:text-xl text-slate-300">
+                        Selecciona un modo de juego
                     </p>
                 </div>
 
@@ -155,62 +155,62 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onSelectMode, userData, onNavig
                 </div>
 
                 {/* Modos de juego principales */}
-                <div className="w-full max-w-2xl grid grid-cols-1 md:grid-cols-2 gap-4 px-4">
+                <div className="w-full max-w-2xl grid grid-cols-2 gap-3 px-3">
                     <div
                         data-tour="home-study-btn"
                         onClick={() => handleModeSelection('study')}
-                        className="relative p-4 rounded-2xl overflow-hidden flex flex-col justify-center items-center text-center h-40 transition-all duration-300 bg-[#121212] ring-4 ring-blue-500/40 hover:ring-blue-500/70 transform hover:-translate-y-1 shadow-lg hover:shadow-blue-500/20 text-white cursor-pointer touch-manipulation"
+                        className="relative p-3 rounded-2xl overflow-hidden flex flex-col justify-center items-center text-center h-32 sm:h-40 transition-all duration-300 bg-[#121212] ring-4 ring-blue-500/40 hover:ring-blue-500/70 transform active:scale-95 shadow-lg hover:shadow-blue-500/20 text-white cursor-pointer touch-manipulation"
                     >
-                        <div className="absolute inset-0 bg-gradient-to-br from-blue-900/30 to-transparent opacity-50 group-hover:opacity-100 transition-opacity"></div>
+                        <div className="absolute inset-0 bg-gradient-to-br from-blue-900/30 to-transparent opacity-50"></div>
                         <img 
                             src="/images/Modo estudio.png" 
                             alt="Modo Estudio" 
-                            className="w-20 h-20 object-contain drop-shadow-2xl mb-2"
+                            className="w-14 h-14 sm:w-20 sm:h-20 object-contain drop-shadow-2xl mb-1 sm:mb-2"
                         />
-                        <h3 className="text-xl font-black tracking-tight text-white [text-shadow:0_2px_4px_rgba(0,0,0,0.5)]">
-                            Modo Estudio
+                        <h3 className="text-base sm:text-xl font-black tracking-tight text-white [text-shadow:0_2px_4px_rgba(0,0,0,0.5)]">
+                            Estudio
                         </h3>
                     </div>
 
                     <div
                         onClick={() => handleModeSelection('exam')}
-                        className="relative p-4 rounded-2xl overflow-hidden flex flex-col justify-center items-center text-center h-40 transition-all duration-300 bg-[#121212] ring-4 ring-purple-500/40 hover:ring-purple-500/70 transform hover:-translate-y-1 shadow-lg hover:shadow-purple-500/20 text-white cursor-pointer touch-manipulation"
+                        className="relative p-3 rounded-2xl overflow-hidden flex flex-col justify-center items-center text-center h-32 sm:h-40 transition-all duration-300 bg-[#121212] ring-4 ring-purple-500/40 hover:ring-purple-500/70 transform active:scale-95 shadow-lg hover:shadow-purple-500/20 text-white cursor-pointer touch-manipulation"
                     >
-                        <div className="absolute inset-0 bg-gradient-to-br from-purple-900/30 to-transparent opacity-50 group-hover:opacity-100 transition-opacity"></div>
+                        <div className="absolute inset-0 bg-gradient-to-br from-purple-900/30 to-transparent opacity-50"></div>
                         <img 
                             src="/images/Modo examen.png" 
                             alt="Modo Examen" 
-                            className="w-20 h-20 object-contain drop-shadow-2xl mb-2"
+                            className="w-14 h-14 sm:w-20 sm:h-20 object-contain drop-shadow-2xl mb-1 sm:mb-2"
                         />
-                        <h3 className="text-xl font-black tracking-tight text-white [text-shadow:0_2px_4px_rgba(0,0,0,0.5)]">
-                            Modo Examen
+                        <h3 className="text-base sm:text-xl font-black tracking-tight text-white [text-shadow:0_2px_4px_rgba(0,0,0,0.5)]">
+                            Examen
                         </h3>
                     </div>
                 </div>
 
                 {/* Modo Ranked - Destacado */}
-                <div className="w-full max-w-2xl px-4">
+                <div className="w-full max-w-2xl px-3">
                     <div
                         onClick={() => handleNavigation('ranked')}
-                        className="relative p-6 rounded-2xl overflow-hidden flex flex-row justify-between items-center h-32 transition-all duration-300 bg-gradient-to-r from-red-600 via-orange-500 to-yellow-500 hover:from-red-500 hover:via-orange-400 hover:to-yellow-400 transform hover:-translate-y-1 shadow-2xl hover:shadow-red-500/40 text-white cursor-pointer touch-manipulation group"
+                        className="relative p-4 sm:p-6 rounded-2xl overflow-hidden flex flex-row justify-between items-center h-24 sm:h-32 transition-all duration-300 bg-gradient-to-r from-red-600 via-orange-500 to-yellow-500 active:from-red-500 active:via-orange-400 active:to-yellow-400 transform active:scale-95 shadow-2xl text-white cursor-pointer touch-manipulation group"
                     >
                         <div className="absolute inset-0 bg-gradient-to-br from-black/20 to-transparent"></div>
                         
-                        <div className="relative z-10 flex items-center gap-4">
-                            <div className="text-5xl animate-pulse">🏆</div>
+                        <div className="relative z-10 flex items-center gap-2 sm:gap-4">
+                            <div className="text-3xl sm:text-5xl animate-pulse">🏆</div>
                             <div>
-                                <h3 className="text-2xl font-black tracking-tight text-white [text-shadow:0_2px_8px_rgba(0,0,0,0.5)]">
+                                <h3 className="text-lg sm:text-2xl font-black tracking-tight text-white [text-shadow:0_2px_8px_rgba(0,0,0,0.5)]">
                                     Ranked 1v1
                                 </h3>
-                                <p className="text-sm text-white/90 mt-1">
+                                <p className="text-xs sm:text-sm text-white/90 mt-0.5 sm:mt-1">
                                     Compite con Eritros
                                 </p>
                             </div>
                         </div>
                         
                         <div className="relative z-10 text-right">
-                            <div className="bg-white/20 backdrop-blur-sm px-4 py-2 rounded-xl border border-white/30">
-                                <span className="text-xs font-bold uppercase tracking-wider">¡Nuevo!</span>
+                            <div className="bg-white/20 backdrop-blur-sm px-2 sm:px-4 py-1 sm:py-2 rounded-xl border border-white/30">
+                                <span className="text-[10px] sm:text-xs font-bold uppercase tracking-wider">¡Nuevo!</span>
                             </div>
                         </div>
                         

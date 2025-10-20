@@ -121,6 +121,23 @@ p, span, button, input, select, textarea, label {
   letter-spacing: 0.01em;
 }
 
+/* Optimizaciones para móviles pequeños (iPhone 15 Pro y similares) */
+@media (max-width: 430px) {
+  html {
+    font-size: 14px;
+  }
+  
+  body {
+    line-height: 1.5;
+  }
+  
+  /* Asegurar que el contenido sea accesible en pantallas pequeñas */
+  .container {
+    padding-left: 0.75rem;
+    padding-right: 0.75rem;
+  }
+}
+
 /* Media queries para ajustes específicos */
 @media (min-width: 768px) {
   html {
@@ -598,4 +615,116 @@ p, span, button, input, select, textarea, label {
 
 .animate-reward-light-pulse {
   animation: reward-light-pulse 1.5s ease-in-out infinite;
+}
+
+/* ============================= */
+/* OPTIMIZACIONES MÓVIL VERTICAL  */
+/* ============================= */
+
+/* Mejoras de touch para iOS y Android */
+@media (pointer: coarse) {
+  /* Aumentar área de toque para elementos interactivos */
+  button, a, input, select, textarea {
+    min-height: 44px; /* Tamaño mínimo recomendado por Apple */
+    min-width: 44px;
+  }
+  
+  /* Mejorar feedback táctil */
+  button:active, a:active {
+    transform: scale(0.98);
+    opacity: 0.9;
+  }
+  
+  /* Eliminar el highlight azul en iOS */
+  * {
+    -webkit-tap-highlight-color: transparent;
+    -webkit-touch-callout: none;
+  }
+  
+  /* Mejorar scroll en móvil */
+  * {
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
+/* Soporte para notch en iPhone */
+@supports (padding: max(0px)) {
+  body {
+    padding-top: max(0px, env(safe-area-inset-top));
+    padding-bottom: max(0px, env(safe-area-inset-bottom));
+    padding-left: max(0px, env(safe-area-inset-left));
+    padding-right: max(0px, env(safe-area-inset-right));
+  }
+}
+
+/* Optimizaciones para modo portrait */
+@media (orientation: portrait) {
+  /* Ajustar espaciado vertical */
+  .space-y-6 > :not([hidden]) ~ :not([hidden]) {
+    margin-top: 1rem !important;
+  }
+  
+  /* Reducir padding en contenedores principales */
+  .p-6 {
+    padding: 1rem !important;
+  }
+  
+  .p-8 {
+    padding: 1.5rem !important;
+  }
+}
+
+/* Mejoras para pantallas pequeñas (< 400px) */
+@media (max-width: 400px) {
+  /* Reducir tamaños de texto grandes */
+  h1 {
+    font-size: 1.75rem !important;
+  }
+  
+  h2 {
+    font-size: 1.5rem !important;
+  }
+  
+  h3 {
+    font-size: 1.25rem !important;
+  }
+  
+  /* Reducir gaps entre elementos */
+  .gap-6 {
+    gap: 0.75rem !important;
+  }
+  
+  .gap-4 {
+    gap: 0.5rem !important;
+  }
+}
+
+/* Prevenir zoom en inputs en iOS */
+@media (max-width: 768px) {
+  input[type="text"],
+  input[type="email"],
+  input[type="password"],
+  input[type="number"],
+  textarea,
+  select {
+    font-size: 16px !important; /* Evita el zoom automático en iOS */
+  }
+}
+
+/* Mejorar rendimiento en animaciones móviles */
+@media (prefers-reduced-motion: no-preference) {
+  * {
+    scroll-behavior: smooth;
+  }
+}
+
+/* Reducir animaciones en modo de bajo consumo */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }
