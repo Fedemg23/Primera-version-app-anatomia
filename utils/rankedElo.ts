@@ -190,14 +190,14 @@ export function calculatePercentile(rating: number): number {
  * @returns [min, max] rango de búsqueda
  */
 export function getMatchmakingRange(rating: number, waitTime: number = 0): [number, number] {
-  // Rango base: ±50
-  let range = 50;
+  // Rango base: ±150 (aumentado para facilitar encuentros)
+  let range = 150;
   
-  // Expandir rango cada 10 segundos (+25 por cada 10s)
-  range += Math.floor(waitTime / 10) * 25;
+  // Expandir rango cada 5 segundos (+50 por cada 5s) - más rápido
+  range += Math.floor(waitTime / 5) * 50;
   
-  // Máximo rango: ±200
-  range = Math.min(200, range);
+  // Máximo rango: ±500 (más amplio)
+  range = Math.min(500, range);
   
   const min = Math.max(0, rating - range);
   const max = rating + range;
